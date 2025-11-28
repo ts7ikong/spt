@@ -72,6 +72,7 @@ public class AcceptUnitFormalController extends JeecgController<AcceptUnitFormal
         QueryWrapper<AcceptUnitFormal> queryWrapper = QueryGenerator.initQueryWrapper(acceptUnitFormal, req.getParameterMap());
 		Page<AcceptUnitFormal> page = new Page<AcceptUnitFormal>(pageNo, pageSize);
 		IPage<AcceptUnitFormal> pageList = acceptUnitFormalService.page(page, queryWrapper);
+
 		return Result.OK(pageList);
 	}
 	

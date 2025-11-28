@@ -52,19 +52,6 @@ public class ContractorViolationRecord implements Serializable {
 	@Dict(dictTable = "v_accept_company", dicText = "name", dicCode = "code")
     @ApiModelProperty(value = "上报企业")
     private java.lang.String reportCompanyCode;
-	/**
-	 * 区县名称
-	 */
-	@Excel(name = "区县名称", width = 15, dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-	@Dict(dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-	@ApiModelProperty(value = "区县名称")
-	private java.lang.String countyname;
-	/**
-	 * 所属区县区县编码
-	 */
-	@Excel(name = "所属区县区县编码", width = 15)
-	@ApiModelProperty(value = "所属区县区县编码")
-	private java.lang.String countycode;
 	/**违规发生地点*/
 	@Excel(name = "违规发生地点", width = 15)
     @ApiModelProperty(value = "违规发生地点")
