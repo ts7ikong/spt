@@ -74,6 +74,29 @@ public class RyjjController extends JeecgController<Ryjj, IRyjjService> {
 		IPage<Ryjj> pageList = ryjjService.page(page, queryWrapper);
 		return Result.OK(pageList);
 	}
+
+	 /**
+	  * 根据聚集报警id查询聚集报警详情
+	  *
+	  * @param ryjj
+	  * @param pageNo
+	  * @param pageSize
+	  * @param req
+	  * @return
+	  */
+	 @ApiOperation(value="根据聚集报警id查询聚集报警详情", notes="根据聚集报警id查询聚集报警详情")
+	 @GetMapping(value = "/getDById")
+	 public Result<IPage<Ryjj>> getDById(Ryjj ryjj,
+											  @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
+											  @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
+											  HttpServletRequest req) {
+		 QueryWrapper<Ryjj> queryWrapper = QueryGenerator.initQueryWrapper(ryjj, req.getParameterMap());
+		 Page<Ryjj> page = new Page<Ryjj>(pageNo, pageSize);
+		 IPage<Ryjj> pageList = ryjjService.page(page, queryWrapper);
+		 return Result.OK(pageList);
+	 }
+
+
 	
 	/**
 	 *   添加
