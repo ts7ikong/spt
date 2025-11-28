@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/scyf/rzyqd/acceptQrcodeListFormal")
 @Slf4j
 public class AcceptQrcodeListFormalController extends JeecgController<AcceptQrcodeListFormal, IAcceptQrcodeListFormalService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

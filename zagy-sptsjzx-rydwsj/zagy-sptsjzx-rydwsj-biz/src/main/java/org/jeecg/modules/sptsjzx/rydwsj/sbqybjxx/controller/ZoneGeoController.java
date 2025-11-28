@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/rydwsj/sbqybjxx/zoneGeo")
 @Slf4j
 public class ZoneGeoController extends JeecgController<ZoneGeo, IZoneGeoService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

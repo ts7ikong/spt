@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/rydwsj/sbrydwjcsj/acceptEmployeeInfoFormal")
 @Slf4j
 public class AcceptEmployeeInfoFormalController extends JeecgController<AcceptEmployeeInfoFormal, IAcceptEmployeeInfoFormalService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

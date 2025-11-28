@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/scyf/zztyjwxjl/acceptUnitStopFormal")
 @Slf4j
 public class AcceptUnitStopFormalController extends JeecgController<AcceptUnitStopFormal, IAcceptUnitStopFormalService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

@@ -131,4 +131,10 @@ public class Jczbxx implements Serializable {
 	@Excel(name = "更新人_企业", width = 15)
     @ApiModelProperty(value = "更新人_企业")
     private String updateByCompany;
+    /**园区编码*/
+    @Excel(name = "园区编码", width = 15, dictTable = "yqjbxx", dicText = "park_name", dicCode = "park_code")
+    @Dict(dictTable = "yqjbxx", dicText = "park_name", dicCode = "park_code")
+    @ApiModelProperty(value = "园区编码")
+    private String parkCode;
+
 }

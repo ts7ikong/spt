@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/tszyaqgk/zypyspgl/acceptTicketVideo")
 @Slf4j
 public class AcceptTicketVideoController extends JeecgController<AcceptTicketVideo, IAcceptTicketVideoService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/scyf/gwczk/acceptOperationFormal")
 @Slf4j
 public class AcceptOperationFormalController extends JeecgController<AcceptOperationFormal, IAcceptOperationFormalService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

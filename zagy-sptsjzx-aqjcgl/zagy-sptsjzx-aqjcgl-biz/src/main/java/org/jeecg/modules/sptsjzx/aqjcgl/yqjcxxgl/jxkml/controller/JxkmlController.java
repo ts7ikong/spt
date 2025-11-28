@@ -39,6 +39,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/aqjcgl/aqscxzxkgl/jxkml/jxkml")
 @Slf4j
 public class JxkmlController extends JeecgController<Jxkml, IJxkmlService> {
+	
+		@Autowired
+	private IYqjbxxService yqjbxxService;
+
 	@Autowired
 	private IYqjbxxService yqjbxxService;
 	

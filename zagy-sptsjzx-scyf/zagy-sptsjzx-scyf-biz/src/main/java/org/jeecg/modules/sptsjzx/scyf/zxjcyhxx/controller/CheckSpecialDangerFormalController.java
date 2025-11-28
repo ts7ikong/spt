@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/scyf/zxjcyhxx/checkSpecialDangerFormal")
 @Slf4j
 public class CheckSpecialDangerFormalController extends JeecgController<CheckSpecialDangerFormal, ICheckSpecialDangerFormalService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

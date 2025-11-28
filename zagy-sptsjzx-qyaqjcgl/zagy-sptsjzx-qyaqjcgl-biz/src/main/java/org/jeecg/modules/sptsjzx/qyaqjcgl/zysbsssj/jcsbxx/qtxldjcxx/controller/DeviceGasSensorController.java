@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/qyaqjcgl/zysbsssj/jcsbxx/qtxldjcxx/deviceGasSensor")
 @Slf4j
 public class DeviceGasSensorController extends JeecgController<DeviceGasSensor, IDeviceGasSensorService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

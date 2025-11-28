@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/qyaqjcgl/zysbsssj/jcsbxx/zzxx/deviceProcessSafety")
 @Slf4j
 public class DeviceProcessSafetyController extends JeecgController<DeviceProcessSafety, IDeviceProcessSafetyService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

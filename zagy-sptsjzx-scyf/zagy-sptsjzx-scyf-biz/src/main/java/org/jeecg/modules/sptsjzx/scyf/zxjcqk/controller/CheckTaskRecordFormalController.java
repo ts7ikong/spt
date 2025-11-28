@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/scyf/zxjcqk/checkTaskRecordFormal")
 @Slf4j
 public class CheckTaskRecordFormalController extends JeecgController<CheckTaskRecordFormal, ICheckTaskRecordFormalService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

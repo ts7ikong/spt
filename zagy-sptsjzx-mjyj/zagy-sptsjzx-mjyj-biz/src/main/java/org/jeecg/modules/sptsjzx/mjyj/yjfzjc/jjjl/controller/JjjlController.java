@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/mjyj/yjfzjc/jjjl/jjjl")
 @Slf4j
 public class JjjlController extends JeecgController<Jjjl, IJjjlService> {
+	
+		@Autowired
+	private IYqjbxxService yqjbxxService;
+
 	@Autowired
 	private IYqjbxxService yqjbxxService;
 	

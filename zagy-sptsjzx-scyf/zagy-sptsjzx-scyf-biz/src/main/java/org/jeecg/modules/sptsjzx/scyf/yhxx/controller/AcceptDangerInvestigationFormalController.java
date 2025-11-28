@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/scyf/yhxx/acceptDangerInvestigationFormal")
 @Slf4j
 public class AcceptDangerInvestigationFormalController extends JeecgController<AcceptDangerInvestigationFormal, IAcceptDangerInvestigationFormalService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/qyaqjcgl/zysbsssj/jcsbxx/sxtxx/videoInfo")
 @Slf4j
 public class VideoInfoController extends JeecgController<VideoInfo, IVideoInfoService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

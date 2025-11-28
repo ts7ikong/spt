@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/qyaqjcgl/zysbsssj/jcsbxx/cgjcxx/tankDeviceInfo")
 @Slf4j
 public class TankDeviceInfoController extends JeecgController<TankDeviceInfo, ITankDeviceInfoService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

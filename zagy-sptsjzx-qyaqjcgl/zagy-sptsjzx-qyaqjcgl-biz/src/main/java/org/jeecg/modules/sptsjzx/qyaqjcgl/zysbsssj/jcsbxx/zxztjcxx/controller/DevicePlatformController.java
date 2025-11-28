@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/qyaqjcgl/zysbsssj/jcsbxx/zxztjcxx/devicePlatform")
 @Slf4j
 public class DevicePlatformController extends JeecgController<DevicePlatform, IDevicePlatformService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

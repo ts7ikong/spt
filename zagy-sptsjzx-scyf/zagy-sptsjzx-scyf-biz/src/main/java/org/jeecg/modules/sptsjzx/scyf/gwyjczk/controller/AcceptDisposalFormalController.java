@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/scyf/gwyjczk/acceptDisposalFormal")
 @Slf4j
 public class AcceptDisposalFormalController extends JeecgController<AcceptDisposalFormal, IAcceptDisposalFormalService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

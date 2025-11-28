@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/tszyaqgk/tszyhdsj/acceptTicketActivity")
 @Slf4j
 public class AcceptTicketActivityController extends JeecgController<AcceptTicketActivity, IAcceptTicketActivityService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	

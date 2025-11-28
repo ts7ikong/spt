@@ -10,7 +10,6 @@ import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.entity.Yqjbxx;
-import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -37,8 +36,6 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/aqjcgl/aqscxzxkgl/yqjbxx/yqjbxx")
 @Slf4j
 public class YqjbxxController extends JeecgController<Yqjbxx, IYqjbxxService> {
-	@Autowired
-	private IYqjbxxService yqjbxxService;
 	
 	/**
 	 * 分页列表查询

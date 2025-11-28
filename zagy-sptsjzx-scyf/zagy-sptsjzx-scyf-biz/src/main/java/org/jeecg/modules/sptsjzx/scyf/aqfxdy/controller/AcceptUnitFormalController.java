@@ -52,6 +52,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/scyf/aqfxdy/acceptUnitFormal")
 @Slf4j
 public class AcceptUnitFormalController extends JeecgController<AcceptUnitFormal, IAcceptUnitFormalService> {
+	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
 	
@@ -84,6 +88,7 @@ public class AcceptUnitFormalController extends JeecgController<AcceptUnitFormal
 		}
 		Page<AcceptUnitFormal> page = new Page<AcceptUnitFormal>(pageNo, pageSize);
 		IPage<AcceptUnitFormal> pageList = acceptUnitFormalService.page(page, queryWrapper);
+
 		return Result.OK(pageList);
 	}
 	
