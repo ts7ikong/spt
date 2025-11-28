@@ -14,7 +14,6 @@ import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.DataScopeHelper;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.zdwxyaqgl.xccc.ccqyjl.ccqyjlsb.entity.Ccqyjlsb;
 import org.jeecg.modules.sptsjzx.zdwxyaqgl.xccc.ccqyjl.ccqyjlsb.service.ICcqyjlsbService;
@@ -52,8 +51,6 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/zdwxyaqgl/xccc/ccqyjl/ccqyjlsb/ccqyjlsb")
 @Slf4j
 public class CcqyjlsbController extends JeecgController<Ccqyjlsb, ICcqyjlsbService> {
-	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
 	
 	@Autowired
 	private ICcqyjlsbService ccqyjlsbService;
@@ -92,7 +89,7 @@ public class CcqyjlsbController extends JeecgController<Ccqyjlsb, ICcqyjlsbServi
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
 		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 		if (orgCode != null && !orgCode.isEmpty()) {
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			List<String> companyCodes = DataScopeHelper.getCompanyCodesByOrgCode(orgCode);
 			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
 		}
 		Page<Ccqyjlsb> page = new Page<Ccqyjlsb>(pageNo, pageSize);
