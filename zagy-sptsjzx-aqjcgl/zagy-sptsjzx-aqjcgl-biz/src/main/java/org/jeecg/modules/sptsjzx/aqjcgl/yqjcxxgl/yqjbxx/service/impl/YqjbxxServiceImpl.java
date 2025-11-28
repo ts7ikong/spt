@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -117,7 +118,7 @@ public class YqjbxxServiceImpl extends ServiceImpl<YqjbxxMapper, Yqjbxx> impleme
     @Override
     public List<String> getParkCodesByAreaCode(String parkAreaCode) {
         if (parkAreaCode == null || parkAreaCode.isEmpty()) {
-            return List.of();
+            return new ArrayList<>();
         }
 
         QueryWrapper<Yqjbxx> wrapper = new QueryWrapper<>();
