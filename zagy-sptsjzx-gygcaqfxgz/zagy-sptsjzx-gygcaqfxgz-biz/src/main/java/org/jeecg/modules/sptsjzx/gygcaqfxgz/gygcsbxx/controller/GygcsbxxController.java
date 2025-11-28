@@ -14,6 +14,7 @@ import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.gygcaqfxgz.gygcsbxx.entity.Gygcsbxx;
 import org.jeecg.modules.sptsjzx.gygcaqfxgz.gygcsbxx.service.IGygcsbxxService;
@@ -52,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class GygcsbxxController extends JeecgController<Gygcsbxx, IGygcsbxxService> {
 	
+		@Autowired
+	private IYqjbxxService yqjbxxService;
+
 	@Autowired
 	private IGygcsbxxService gygcsbxxService;
 	
@@ -80,7 +84,7 @@ public class GygcsbxxController extends JeecgController<Gygcsbxx, IGygcsbxxServi
 		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
 		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 		if (orgCode != null && !orgCode.isEmpty()) {
-			List<String> parkCodes = DataScopeHelper.getParkCodesByOrgCode(orgCode);
+			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
 			DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
 		}
 		Page<Gygcsbxx> page = new Page<Gygcsbxx>(pageNo, pageSize);

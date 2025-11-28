@@ -6,8 +6,6 @@ import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.system.vo.LoginUser;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,62 +56,6 @@ public class DataScopeHelper {
         String orgCode = getCurrentUserOrgCode();
         // 如果orgCode为空，不进行过滤
         return orgCode != null && !orgCode.isEmpty();
-    }
-
-    /**
-     * 根据区县编码获取企业编码列表（通过Spring容器动态获取Service）
-     * @param orgCode 区县编码
-     * @return 企业编码列表
-     */
-    @SuppressWarnings("unchecked")
-    public static List<String> getCompanyCodesByOrgCode(String orgCode) {
-        if (orgCode == null || orgCode.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        try {
-            // 通过Spring容器获取AcceptCompanyService
-            Object acceptCompanyService = SpringContextUtils.getBean("acceptCompanyServiceImpl");
-            if (acceptCompanyService != null) {
-                Method method = acceptCompanyService.getClass().getMethod("getCompanyCodesByCountyCode", String.class);
-                Object result = method.invoke(acceptCompanyService, orgCode);
-                if (result instanceof List) {
-                    return (List<String>) result;
-                }
-            }
-        } catch (Exception e) {
-            log.warn("动态获取企业编码列表失败: {}", e.getMessage());
-        }
-
-        return new ArrayList<>();
-    }
-
-    /**
-     * 根据区县编码获取园区编码列表（通过Spring容器动态获取Service）
-     * @param orgCode 区县编码
-     * @return 园区编码列表
-     */
-    @SuppressWarnings("unchecked")
-    public static List<String> getParkCodesByOrgCode(String orgCode) {
-        if (orgCode == null || orgCode.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        try {
-            // 通过Spring容器获取YqjbxxService
-            Object yqjbxxService = SpringContextUtils.getBean("yqjbxxServiceImpl");
-            if (yqjbxxService != null) {
-                Method method = yqjbxxService.getClass().getMethod("getParkCodesByAreaCode", String.class);
-                Object result = method.invoke(yqjbxxService, orgCode);
-                if (result instanceof List) {
-                    return (List<String>) result;
-                }
-            }
-        } catch (Exception e) {
-            log.warn("动态获取园区编码列表失败: {}", e.getMessage());
-        }
-
-        return new ArrayList<>();
     }
 
     /**

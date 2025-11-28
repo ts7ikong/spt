@@ -14,6 +14,7 @@ import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.scyf.zxjcqk.entity.CheckTaskRecordFormal;
 import org.jeecg.modules.sptsjzx.scyf.zxjcqk.service.ICheckTaskRecordFormalService;
@@ -52,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class CheckTaskRecordFormalController extends JeecgController<CheckTaskRecordFormal, ICheckTaskRecordFormalService> {
 	
+		@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private ICheckTaskRecordFormalService checkTaskRecordFormalService;
 	
@@ -82,7 +86,7 @@ public class CheckTaskRecordFormalController extends JeecgController<CheckTaskRe
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
 		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 		if (orgCode != null && !orgCode.isEmpty()) {
-			List<String> companyCodes = DataScopeHelper.getCompanyCodesByOrgCode(orgCode);
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
 			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
 		}
 		Page<CheckTaskRecordFormal> page = new Page<CheckTaskRecordFormal>(pageNo, pageSize);
