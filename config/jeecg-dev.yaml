@@ -1,0 +1,190 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    druid:
+      stat-view-servlet:
+        enabled: true
+        loginUsername: admin
+        loginPassword: 123456
+        allow:
+      web-stat-filter:
+        enabled: true
+    dynamic:
+      druid:
+        initial-size: 5
+        min-idle: 5
+        maxActive: 20
+        maxWait: 60000
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: SELECT 1 FROM DUAL
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxPoolPreparedStatementPerConnectionSize: 20
+        filters: stat,wall,slf4j
+        wall:
+          selectWhereAlwayTrueCheck: false
+        stat:
+          merge-sql: true
+          slow-sql-millis: 5000
+      datasource:
+        master:
+          url: jdbc:mysql://192.168.1.3:3306/shipingtaishujuzhongxin?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+          username: root
+          password: zlkj123456
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        zfd:
+          url: jdbc:mysql://192.168.1.3:3306/zlkj_danger_data_accept?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true
+          username: root
+          password: zlkj123456
+          driver-class-name: com.mysql.jdbc.Driver
+        # record-log:
+        #     url: jdbc:mysql://120.46.196.27:13309/zlkj-danger-record-log?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true
+        #     username: root
+        #     password: Cqsyf2021mysql#321
+        #     driver-class-name: com.mysql.jdbc.Driver
+  redis:
+    database: 0
+    host: 192.168.1.3
+    password: zlkj123456
+    port: 6379
+  rabbitmq:
+    host: 192.168.1.3
+    username: guest
+    password: guest
+    port: 5672
+    publisher-confirms: true
+    publisher-returns: true
+    virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: manual
+        concurrency: 1
+        max-concurrency: 1
+        retry:
+          enabled: true
+  flyway:
+    enabled: false
+    encoding: UTF-8
+    locations: classpath:flyway/sql/mysql
+    sql-migration-prefix: V
+    sql-migration-separator: __
+    placeholder-prefix: '#('
+    placeholder-suffix: )
+    sql-migration-suffixes: .sql
+    validate-on-migrate: true
+    baseline-on-migrate: true
+    clean-disabled: true
+minidao:
+  base-package: org.jeecg.modules.jmreport.*,org.jeecg.modules.drag.*
+jeecg:
+  firewall:
+    dataSourceSafe: false
+    lowCodeMode: dev
+  signatureSecret: dd05f1c54d63749eda95f9fa6d49v442a
+  signUrls: /sys/dict/getDictItems/*,/sys/dict/loadDict/*,/sys/dict/loadDictOrderByValue/*,/sys/dict/loadDictItem/*,/sys/dict/loadTreeData,/sys/api/queryTableDictItemsByCode,/sys/api/queryFilterTableDictInfo,/sys/api/queryTableDictByKeys,/sys/api/translateDictFromTable,/sys/api/translateDictFromTableByKeys,/sys/sendChangePwdSms,/sys/user/sendChangePhoneSms,/sys/sms,/desform/api/sendVerifyCode
+  uploadType: local
+  domainUrl:
+    pc: http://localhost:3100
+    app: http://localhost:8051
+  path:
+    upload: /opt/upFiles
+    webapp: /opt/webapp
+  shiro:
+    excludeUrls: /test/jeecgDemo/demo3,/test/jeecgDemo/redisDemo/**,/category/**,/visual/**,/map/**,/jmreport/bigscreen2/**
+  oss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    accessKey: ??
+    secretKey: ??
+    bucketName: jeecgdev
+    staticDomain: ??
+  elasticsearch:
+    cluster-name: jeecg-ES
+    cluster-nodes: jeecg-boot-es:9200
+    check-enabled: false
+  file-view-domain: 127.0.0.1:8012
+  minio:
+    minio_url: http://minio.jeecg.com
+    minio_name: ??
+    minio_pass: ??
+    bucketName: otatest
+  jmreport:
+    saasMode:
+    firewall:
+      dataSourceSafe: false
+      lowCodeMode: dev
+  wps:
+    domain: https://wwo.wps.cn/office/
+    appid: ??
+    appsecret: ??
+  xxljob:
+    enabled: true
+    adminAddresses: http://jeecg-boot-xxljob:9080/xxl-job-admin
+    appname: ${spring.application.name}
+    accessToken: ''
+    logPath: logs/jeecg/job/jobhandler/
+    logRetentionDays: 30
+  redisson:
+    address: 192.168.1.3:6379
+    password: zlkj123456
+    type: STANDALONE
+    enabled: true
+  ai-chat:
+    enabled: false
+    apiKey: "？？？？"
+    apiHost: "https://api.openai.com"
+    timeout: 60
+logging:
+  level:
+    org.jeecg.modules.system.mapper : info
+cas:
+  prefixUrl: http://localhost:8888/cas
+knife4j:
+  production: false
+  basic:
+    enable: false
+    username: jeecg
+    password: jeecg1314
+justauth:
+  enabled: true
+  type:
+    GITHUB:
+      client-id: ??
+      client-secret: ??
+      redirect-uri: http://sso.test.com:8080/jeecg-boot/thirdLogin/github/callback
+    WECHAT_ENTERPRISE:
+      client-id: ??
+      client-secret: ??
+      redirect-uri: http://sso.test.com:8080/jeecg-boot/thirdLogin/wechat_enterprise/callback
+      agent-id: ??
+    DINGTALK:
+      client-id: ??
+      client-secret: ??
+      redirect-uri: http://sso.test.com:8080/jeecg-boot/thirdLogin/dingtalk/callback
+  cache:
+    type: default
+    prefix: 'demo::'
+    timeout: 1h
+third-app:
+  enabled: false
+  type:
+    WECHAT_ENTERPRISE:
+      enabled: false
+      client-id: ??
+      client-secret: ??
+      agent-id: ??
+    DINGTALK:
+      enabled: false
+      client-id: ??
+      client-secret: ??
+      agent-id: ??
+qlt:
+  rydw:
+    username: admin
+  tszyp:
+    username: admin
+  password: Zagy#135
+  url: http://219.153.113.35:8990/euip-gapi-enterprise/gucs-user/api/euip/user/findUserByToken
