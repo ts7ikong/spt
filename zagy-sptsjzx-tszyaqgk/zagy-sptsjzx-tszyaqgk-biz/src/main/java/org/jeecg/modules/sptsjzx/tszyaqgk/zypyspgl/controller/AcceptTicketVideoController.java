@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.tszyaqgk.zypyspgl.entity.AcceptTicketVideo;
 import org.jeecg.modules.sptsjzx.tszyaqgk.zypyspgl.service.IAcceptTicketVideoService;
@@ -51,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class AcceptTicketVideoController extends JeecgController<AcceptTicketVideo, IAcceptTicketVideoService> {
 	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+	
+	@Autowired
 	private IAcceptTicketVideoService acceptTicketVideoService;
 	
 	/**
@@ -70,6 +75,13 @@ public class AcceptTicketVideoController extends JeecgController<AcceptTicketVid
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
 								   HttpServletRequest req) {
         QueryWrapper<AcceptTicketVideo> queryWrapper = QueryGenerator.initQueryWrapper(acceptTicketVideo, req.getParameterMap());
+
+		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
+		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+		if (orgCode != null && !orgCode.isEmpty()) {
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<AcceptTicketVideo> page = new Page<AcceptTicketVideo>(pageNo, pageSize);
 		IPage<AcceptTicketVideo> pageList = acceptTicketVideoService.page(page, queryWrapper);
 		return Result.OK(pageList);

@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.entity.AcceptCompany;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
@@ -97,6 +98,11 @@ public class AcceptCompanyController extends JeecgController<AcceptCompany, IAcc
         customeRuleMap.put("isCompanyTicket", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("isCompanyAlarm", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<AcceptCompany> queryWrapper = QueryGenerator.initQueryWrapper(acceptCompany, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码过滤数据
+		// accept_company表直接包含countycode字段，直接应用过滤
+		DataScopeHelper.applyOrgCodeFilter(queryWrapper, "countycode");
+
 		Page<AcceptCompany> page = new Page<AcceptCompany>(pageNo, pageSize);
 		IPage<AcceptCompany> pageList = acceptCompanyService.page(page, queryWrapper);
 		return Result.OK(pageList);

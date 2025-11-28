@@ -1,5 +1,6 @@
 package org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.formula.functions.T;
 import org.jeecg.common.api.dto.aqjcgl.YqjbxxDTO;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @Description: 园区基本信息
@@ -110,6 +112,23 @@ public class YqjbxxServiceImpl extends ServiceImpl<YqjbxxMapper, Yqjbxx> impleme
         BeanUtils.copyProperties(yqjbxx, yqjbxxDTO);
         //删除用户信息
         sysBaseAPI.scyqyhxxToUser(yqjbxxDTO);
+    }
+
+    @Override
+    public List<String> getParkCodesByAreaCode(String parkAreaCode) {
+        if (parkAreaCode == null || parkAreaCode.isEmpty()) {
+            return List.of();
+        }
+
+        QueryWrapper<Yqjbxx> wrapper = new QueryWrapper<>();
+        wrapper.eq("park_area_code", parkAreaCode);
+        wrapper.select("park_code");
+
+        List<Yqjbxx> parks = this.list(wrapper);
+        return parks.stream()
+                .map(Yqjbxx::getParkCode)
+                .filter(code -> code != null && !code.isEmpty())
+                .collect(Collectors.toList());
     }
 
 }

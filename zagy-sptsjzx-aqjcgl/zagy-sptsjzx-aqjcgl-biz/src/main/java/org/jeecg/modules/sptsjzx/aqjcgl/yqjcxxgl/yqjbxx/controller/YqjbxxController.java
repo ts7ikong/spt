@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.entity.Yqjbxx;
 import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
 
@@ -60,6 +61,11 @@ public class YqjbxxController extends JeecgController<Yqjbxx, IYqjbxxService> {
         // 自定义多选的查询规则为：LIKE_WITH_OR
         customeRuleMap.put("status", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Yqjbxx> queryWrapper = QueryGenerator.initQueryWrapper(yqjbxx, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码过滤园区数据
+		// yqjbxx表的park_area_code字段对应登录用户的orgCode
+		DataScopeHelper.applyOrgCodeFilter(queryWrapper, "park_area_code");
+
 		Page<Yqjbxx> page = new Page<Yqjbxx>(pageNo, pageSize);
 		IPage<Yqjbxx> pageList = yqjbxxService.page(page, queryWrapper);
 		return Result.OK(pageList);
