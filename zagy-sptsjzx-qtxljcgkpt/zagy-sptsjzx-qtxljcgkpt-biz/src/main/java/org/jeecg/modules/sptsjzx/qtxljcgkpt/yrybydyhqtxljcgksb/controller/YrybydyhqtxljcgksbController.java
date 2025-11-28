@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.qtxljcgkpt.yrybydyhqtxljcgksb.entity.Yrybydyhqtxljcgksb;
 import org.jeecg.modules.sptsjzx.qtxljcgkpt.yrybydyhqtxljcgksb.service.IYrybydyhqtxljcgksbService;
@@ -51,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class YrybydyhqtxljcgksbController extends JeecgController<Yrybydyhqtxljcgksb, IYrybydyhqtxljcgksbService> {
 	@Autowired
+	private IYqjbxxService yqjbxxService;
+	
+	@Autowired
 	private IYrybydyhqtxljcgksbService yrybydyhqtxljcgksbService;
 	
 	/**
@@ -76,6 +81,13 @@ public class YrybydyhqtxljcgksbController extends JeecgController<Yrybydyhqtxljc
         customeRuleMap.put("equipType", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("equipStatus", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Yrybydyhqtxljcgksb> queryWrapper = QueryGenerator.initQueryWrapper(yrybydyhqtxljcgksb, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
+		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+		if (orgCode != null && !orgCode.isEmpty()) {
+			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
+			DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
+		}
 		Page<Yrybydyhqtxljcgksb> page = new Page<Yrybydyhqtxljcgksb>(pageNo, pageSize);
 		IPage<Yrybydyhqtxljcgksb> pageList = yrybydyhqtxljcgksbService.page(page, queryWrapper);
 		return Result.OK(pageList);

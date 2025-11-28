@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.rydwsj.sbqybjxx.entity.ZoneGeo;
 import org.jeecg.modules.sptsjzx.rydwsj.sbqybjxx.service.IZoneGeoService;
@@ -51,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class ZoneGeoController extends JeecgController<ZoneGeo, IZoneGeoService> {
 	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+	
+	@Autowired
 	private IZoneGeoService zoneGeoService;
 	
 	/**
@@ -74,6 +79,13 @@ public class ZoneGeoController extends JeecgController<ZoneGeo, IZoneGeoService>
         // 自定义多选的查询规则为：LIKE_WITH_OR
         customeRuleMap.put("zoneType", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<ZoneGeo> queryWrapper = QueryGenerator.initQueryWrapper(zoneGeo, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
+		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+		if (orgCode != null && !orgCode.isEmpty()) {
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<ZoneGeo> page = new Page<ZoneGeo>(pageNo, pageSize);
 		IPage<ZoneGeo> pageList = zoneGeoService.page(page, queryWrapper);
 		return Result.OK(pageList);

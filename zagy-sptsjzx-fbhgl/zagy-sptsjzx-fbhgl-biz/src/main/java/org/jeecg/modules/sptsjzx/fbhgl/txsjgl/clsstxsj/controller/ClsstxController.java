@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.fbhgl.txsjgl.clsstxsj.entity.Clsstx;
 import org.jeecg.modules.sptsjzx.fbhgl.txsjgl.clsstxsj.service.IClsstxService;
@@ -51,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class ClsstxController extends JeecgController<Clsstx, IClsstxService> {
 	@Autowired
+	private IYqjbxxService yqjbxxService;
+	
+	@Autowired
 	private IClsstxService clsstxService;
 	
 	/**
@@ -77,6 +82,13 @@ public class ClsstxController extends JeecgController<Clsstx, IClsstxService> {
         customeRuleMap.put("passType", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Clsstx> queryWrapper = QueryGenerator.initQueryWrapper(clsstx, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
+		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+		if (orgCode != null && !orgCode.isEmpty()) {
+			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
+			DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
+		}
 		Page<Clsstx> page = new Page<Clsstx>(pageNo, pageSize);
 		IPage<Clsstx> pageList = clsstxService.page(page, queryWrapper);
 		return Result.OK(pageList);

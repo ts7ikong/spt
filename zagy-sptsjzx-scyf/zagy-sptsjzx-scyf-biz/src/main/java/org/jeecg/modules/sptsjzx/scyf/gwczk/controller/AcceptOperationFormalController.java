@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.scyf.gwczk.entity.AcceptOperationFormal;
 import org.jeecg.modules.sptsjzx.scyf.gwczk.service.IAcceptOperationFormalService;
@@ -51,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class AcceptOperationFormalController extends JeecgController<AcceptOperationFormal, IAcceptOperationFormalService> {
 	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+	
+	@Autowired
 	private IAcceptOperationFormalService acceptOperationFormalService;
 	
 	/**
@@ -70,6 +75,13 @@ public class AcceptOperationFormalController extends JeecgController<AcceptOpera
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
 								   HttpServletRequest req) {
         QueryWrapper<AcceptOperationFormal> queryWrapper = QueryGenerator.initQueryWrapper(acceptOperationFormal, req.getParameterMap());
+
+		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
+		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+		if (orgCode != null && !orgCode.isEmpty()) {
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<AcceptOperationFormal> page = new Page<AcceptOperationFormal>(pageNo, pageSize);
 		IPage<AcceptOperationFormal> pageList = acceptOperationFormalService.page(page, queryWrapper);
 		return Result.OK(pageList);

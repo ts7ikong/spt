@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.zysbsssj.jcsbxx.sbxx.entity.DeviceBaseInfo;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.zysbsssj.jcsbxx.sbxx.service.IDeviceBaseInfoService;
@@ -51,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class DeviceBaseInfoController extends JeecgController<DeviceBaseInfo, IDeviceBaseInfoService> {
 	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+	
+	@Autowired
 	private IDeviceBaseInfoService deviceBaseInfoService;
 	
 	/**
@@ -75,6 +80,13 @@ public class DeviceBaseInfoController extends JeecgController<DeviceBaseInfo, ID
         customeRuleMap.put("equipType", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("equipStatus", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<DeviceBaseInfo> queryWrapper = QueryGenerator.initQueryWrapper(deviceBaseInfo, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
+		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+		if (orgCode != null && !orgCode.isEmpty()) {
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<DeviceBaseInfo> page = new Page<DeviceBaseInfo>(pageNo, pageSize);
 		IPage<DeviceBaseInfo> pageList = deviceBaseInfoService.page(page, queryWrapper);
 		return Result.OK(pageList);
