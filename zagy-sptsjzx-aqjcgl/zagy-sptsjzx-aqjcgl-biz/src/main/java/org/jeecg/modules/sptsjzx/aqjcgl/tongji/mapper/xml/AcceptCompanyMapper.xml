@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.aqjcgl.tongji.mapper.AcceptCompanyMapper">
+
+
+    <!-- 统计区县数量 -->
+    <select id="countCounties" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT ac.countycode)
+        FROM accept_company ac
+        WHERE ac.deleted = 0
+        <if test="countycode != null and countycode != ''">
+            AND ac.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND ac.yq_type = #{yqType}
+        </if>
+        <if test="isScqy != null">
+            AND ac.is_scqy = #{isScqy}
+        </if>
+    </select>
+
+    <!-- 统计企业数量 -->
+    <select id="countCompanies" resultType="java.lang.Long">
+        SELECT COUNT(ac.id)
+        FROM accept_company ac
+        WHERE ac.deleted = 0
+        <if test="countycode != null and countycode != ''">
+            AND ac.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND ac.yq_type = #{yqType}
+        </if>
+        <if test="isScqy != null">
+            AND ac.is_scqy = #{isScqy}
+        </if>
+    </select>
+
+    <!-- 统计生产企业数量 -->
+    <select id="countProductionCompanies" resultType="java.lang.Long">
+        SELECT COUNT(ac.id)
+        FROM accept_company ac
+        WHERE ac.deleted = 0
+        AND ac.is_scqy = 1
+        <if test="countycode != null and countycode != ''">
+            AND ac.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND ac.yq_type = #{yqType}
+        </if>
+    </select>
+
+    <!-- 统计重大危险源企业数量 -->
+    <select id="countMajorHazardCompanies" resultType="java.lang.Long">
+        SELECT COUNT(ac.id)
+        FROM accept_company ac
+        WHERE ac.deleted = 0
+        AND ac.is_zdwxy = 1
+        <if test="countycode != null and countycode != ''">
+            AND ac.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND ac.yq_type = #{yqType}
+        </if>
+        <if test="isScqy != null">
+            AND ac.is_scqy = #{isScqy}
+        </if>
+    </select>
+</mapper>

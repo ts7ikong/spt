@@ -1,0 +1,26 @@
+-- 注意：该页面对应的前台目录为views/sptsjzx/tszyaqgk/zypyspgl文件夹下
+-- 如果你想更改到其他目录，请修改sql中component字段对应的值
+
+
+INSERT INTO sys_permission(id, parent_id, name, url, component, component_name, redirect, menu_type, perms, perms_type, sort_no, always_show, icon, is_route, is_leaf, keep_alive, hidden, hide_tab, description, status, del_flag, rule_flag, create_by, create_time, update_by, update_time, internal_or_external) 
+VALUES ('2025062302251150360', NULL, '作业票与视频关联', '/sptsjzx/tszyaqgk/zypyspgl/acceptTicketVideoList', 'sptsjzx/tszyaqgk/zypyspgl/AcceptTicketVideoList', NULL, NULL, 0, NULL, '1', 0.00, 0, NULL, 1, 0, 0, 0, 0, NULL, '1', 0, 0, 'admin', '2025-06-23 14:25:36', NULL, NULL, 0);
+
+-- 权限控制sql
+-- 新增
+INSERT INTO sys_permission(id, parent_id, name, url, component, is_route, component_name, redirect, menu_type, perms, perms_type, sort_no, always_show, icon, is_leaf, keep_alive, hidden, hide_tab, description, create_by, create_time, update_by, update_time, del_flag, rule_flag, status, internal_or_external)
+VALUES ('2025062302251150361', '2025062302251150360', '添加作业票与视频关联', NULL, NULL, 0, NULL, NULL, 2, 'sptsjzx.tszyaqgk.zypyspgl:accept_ticket_video:add', '1', NULL, 0, NULL, 1, 0, 0, 0, NULL, 'admin', '2025-06-23 14:25:36', NULL, NULL, 0, 0, '1', 0);
+-- 编辑
+INSERT INTO sys_permission(id, parent_id, name, url, component, is_route, component_name, redirect, menu_type, perms, perms_type, sort_no, always_show, icon, is_leaf, keep_alive, hidden, hide_tab, description, create_by, create_time, update_by, update_time, del_flag, rule_flag, status, internal_or_external)
+VALUES ('2025062302251150362', '2025062302251150360', '编辑作业票与视频关联', NULL, NULL, 0, NULL, NULL, 2, 'sptsjzx.tszyaqgk.zypyspgl:accept_ticket_video:edit', '1', NULL, 0, NULL, 1, 0, 0, 0, NULL, 'admin', '2025-06-23 14:25:36', NULL, NULL, 0, 0, '1', 0);
+-- 删除
+INSERT INTO sys_permission(id, parent_id, name, url, component, is_route, component_name, redirect, menu_type, perms, perms_type, sort_no, always_show, icon, is_leaf, keep_alive, hidden, hide_tab, description, create_by, create_time, update_by, update_time, del_flag, rule_flag, status, internal_or_external)
+VALUES ('2025062302251150363', '2025062302251150360', '删除作业票与视频关联', NULL, NULL, 0, NULL, NULL, 2, 'sptsjzx.tszyaqgk.zypyspgl:accept_ticket_video:delete', '1', NULL, 0, NULL, 1, 0, 0, 0, NULL, 'admin', '2025-06-23 14:25:36', NULL, NULL, 0, 0, '1', 0);
+-- 批量删除
+INSERT INTO sys_permission(id, parent_id, name, url, component, is_route, component_name, redirect, menu_type, perms, perms_type, sort_no, always_show, icon, is_leaf, keep_alive, hidden, hide_tab, description, create_by, create_time, update_by, update_time, del_flag, rule_flag, status, internal_or_external)
+VALUES ('2025062302251150364', '2025062302251150360', '批量删除作业票与视频关联', NULL, NULL, 0, NULL, NULL, 2, 'sptsjzx.tszyaqgk.zypyspgl:accept_ticket_video:deleteBatch', '1', NULL, 0, NULL, 1, 0, 0, 0, NULL, 'admin', '2025-06-23 14:25:36', NULL, NULL, 0, 0, '1', 0);
+-- 导出excel
+INSERT INTO sys_permission(id, parent_id, name, url, component, is_route, component_name, redirect, menu_type, perms, perms_type, sort_no, always_show, icon, is_leaf, keep_alive, hidden, hide_tab, description, create_by, create_time, update_by, update_time, del_flag, rule_flag, status, internal_or_external)
+VALUES ('2025062302251150365', '2025062302251150360', '导出excel_作业票与视频关联', NULL, NULL, 0, NULL, NULL, 2, 'sptsjzx.tszyaqgk.zypyspgl:accept_ticket_video:exportXls', '1', NULL, 0, NULL, 1, 0, 0, 0, NULL, 'admin', '2025-06-23 14:25:36', NULL, NULL, 0, 0, '1', 0);
+-- 导入excel
+INSERT INTO sys_permission(id, parent_id, name, url, component, is_route, component_name, redirect, menu_type, perms, perms_type, sort_no, always_show, icon, is_leaf, keep_alive, hidden, hide_tab, description, create_by, create_time, update_by, update_time, del_flag, rule_flag, status, internal_or_external)
+VALUES ('2025062302251150366', '2025062302251150360', '导入excel_作业票与视频关联', NULL, NULL, 0, NULL, NULL, 2, 'sptsjzx.tszyaqgk.zypyspgl:accept_ticket_video:importExcel', '1', NULL, 0, NULL, 1, 0, 0, 0, NULL, 'admin', '2025-06-23 14:25:36', NULL, NULL, 0, 0, '1', 0);

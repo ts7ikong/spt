@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.PersonnelPositioningMapper">
+
+    <!-- 1. 人员定位接入情况统计 -->
+    <select id="getPositioningAccessStats" resultType="map">
+        SELECT
+        COUNT(CASE WHEN ryxxk = '1' AND qybjxx = '1' AND ryjjsj = '1' AND rybjsj = '1' AND qybjsj = '1' THEN 1 END) as fullAccess,
+        COUNT(CASE WHEN NOT (ryxxk = '1' AND qybjxx = '1' AND ryjjsj = '1' AND rybjsj = '1' AND qybjsj = '1')
+        AND (ryxxk = '1' OR qybjxx = '1' OR ryjjsj = '1' OR rybjsj = '1' OR qybjsj = '1') THEN 1 END) as partialAccess,
+        COUNT(CASE WHEN ryxxk = '0' AND qybjxx = '0' AND ryjjsj = '0' AND rybjsj = '0' AND qybjsj = '0' THEN 1 END) as notAccess,
+        COUNT(*) as total
+        FROM zlkj_danger_data_accept.all_access_status a
+        <where>
+            <if test="countycode != null and countycode != ''">
+                EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.countycode = #{countycode}
+                )
+            </if>
+            <if test="yqType != null">
+                AND EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.yq_type = #{yqType}
+                )
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                AND a.company_code = #{companyCode}
+            </if>
+            <if test="isScqy != null">
+                AND EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.is_scqy = #{isScqy}
+                )
+            </if>
+        </where>
+    </select>
+
+    <!-- 2. 人员类型统计(饼图) -->
+    <select id="getPersonnelTypeStats" resultType="map">
+        SELECT
+        CASE e.person_type
+        WHEN '01' THEN '内部人员/员工'
+        WHEN '02' THEN '第三方'
+        WHEN '03' THEN '访客'
+        WHEN '04' THEN '物品'
+        WHEN '05' THEN '车辆'
+        ELSE '未知'
+        END as name,
+        COUNT(*) as value
+        FROM zlkj_danger_data_accept.accept_employee_info_formal e
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON e.company_code = c.code
+        </if>
+        <where>
+            e.deleted = 0
+            <if test="countycode != null and countycode != ''">
+                AND c.countycode = #{countycode}
+            </if>
+            <if test="yqType != null">
+                AND c.yq_type = #{yqType}
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                AND e.company_code = #{companyCode}
+            </if>
+            <if test="isScqy != null">
+                AND c.is_scqy = #{isScqy}
+            </if>
+        </where>
+        GROUP BY e.person_type
+    </select>
+
+    <!-- 3. 区域统计 -->
+    <select id="getZoneStats" resultType="map">
+        SELECT
+        COUNT(CASE WHEN z.zone_type = 0 THEN 1 END) as temporaryZoneCount,
+        COUNT(CASE WHEN z.zone_type = 1 THEN 1 END) as fixedZoneCount,
+        COUNT(*) as totalZoneCount
+        FROM zlkj_danger_data_accept.zone_geo z
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON z.company_code = c.code
+        </if>
+        <where>
+            z.deleted = 0
+            <if test="countycode != null and countycode != ''">
+                AND c.countycode = #{countycode}
+            </if>
+            <if test="yqType != null">
+                AND c.yq_type = #{yqType}
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                AND z.company_code = #{companyCode}
+            </if>
+            <if test="isScqy != null">
+                AND c.is_scqy = #{isScqy}
+            </if>
+        </where>
+    </select>
+
+    <!-- 4. 人员聚集报警数量 -->
+    <select id="getCrowdAlarmCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM zlkj_danger_data_accept.ryjj r
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON r.company_code = c.code
+        </if>
+        <where>
+            1=1
+            <if test="countycode != null and countycode != ''">
+                AND c.countycode = #{countycode}
+            </if>
+            <if test="yqType != null">
+                AND c.yq_type = #{yqType}
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                AND r.company_code = #{companyCode}
+            </if>
+            <if test="isScqy != null">
+                AND c.is_scqy = #{isScqy}
+            </if>
+        </where>
+    </select>
+
+    <!-- 5. 报警分类统计 - 人员报警(rybjsj) -->
+    <!-- alarm_type: 0-SOS报警, 1-越界报警, 2-滞留报警, 3-静止报警, 4-离场报警 -->
+    <select id="getPersonnelAlarmStats" resultType="map">
+        SELECT
+        CASE r.alarm_type
+        WHEN '0' THEN 'SOS报警'
+        WHEN '1' THEN '越界报警'
+        WHEN '2' THEN '滞留报警'
+        WHEN '3' THEN '静止报警'
+        WHEN '4' THEN '离场报警'
+        ELSE '其他'
+        END as name,
+        COUNT(*) as value
+        FROM zlkj_danger_data_accept.rybjsj r
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON r.company_code = c.code
+        </if>
+        <where>
+            r.deleted = '0'
+            <!-- 报警状态筛选 -->
+            <if test="alarmStatus != null and alarmStatus != ''">
+                <choose>
+                    <when test="alarmStatus == 'alarming'">
+                        <!-- 报警中: 有报警时间但没有销警时间 -->
+                        AND r.alarm_time IS NOT NULL
+                        AND r.alarm_time != ''
+                        AND (r.dispel_time IS NULL OR r.dispel_time = '')
+                    </when>
+                    <when test="alarmStatus == 'dispelled'">
+                        <!-- 已消警: 有销警时间 -->
+                        AND r.dispel_time IS NOT NULL
+                        AND r.dispel_time != ''
+                    </when>
+                    <!-- 'all' 或其他值: 查询全部,不添加额外条件 -->
+                </choose>
+            </if>
+            <if test="countycode != null and countycode != ''">
+                AND c.countycode = #{countycode}
+            </if>
+            <if test="yqType != null">
+                AND c.yq_type = #{yqType}
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                AND r.company_code = #{companyCode}
+            </if>
+            <if test="isScqy != null">
+                AND c.is_scqy = #{isScqy}
+            </if>
+        </where>
+        GROUP BY r.alarm_type
+    </select>
+
+    <!-- 6. 报警分类统计 - 区域报警(qybjsj) -->
+    <!-- alarm_type: 1-超员报警, 2-缺员报警, 3-缺岗报警 -->
+    <select id="getZoneAlarmStats" resultType="map">
+        SELECT
+        CASE q.alarm_type
+        WHEN '1' THEN '超员报警'
+        WHEN '2' THEN '缺员报警'
+        WHEN '3' THEN '缺岗报警'
+        ELSE '其他'
+        END as name,
+        COUNT(*) as value
+        FROM zlkj_danger_data_accept.qybjsj q
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON q.company_code = c.code
+        </if>
+        <where>
+            q.deleted = '0'
+            <!-- 报警状态筛选 -->
+            <if test="alarmStatus != null and alarmStatus != ''">
+                <choose>
+                    <when test="alarmStatus == 'alarming'">
+                        <!-- 报警中: 有报警时间但没有销警时间 -->
+                        AND q.alarm_time IS NOT NULL
+                        AND q.alarm_time != ''
+                        AND (q.dispel_time IS NULL OR q.dispel_time = '')
+                    </when>
+                    <when test="alarmStatus == 'dispelled'">
+                        <!-- 已消警: 有销警时间 -->
+                        AND q.dispel_time IS NOT NULL
+                        AND q.dispel_time != ''
+                    </when>
+                    <!-- 'all' 或其他值: 查询全部,不添加额外条件 -->
+                </choose>
+            </if>
+            <if test="countycode != null and countycode != ''">
+                AND c.countycode = #{countycode}
+            </if>
+            <if test="yqType != null">
+                AND c.yq_type = #{yqType}
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                AND q.company_code = #{companyCode}
+            </if>
+            <if test="isScqy != null">
+                AND c.is_scqy = #{isScqy}
+            </if>
+        </where>
+        GROUP BY q.alarm_type
+    </select>
+
+    <!-- 7. 人员总数统计 -->
+    <select id="getPersonnelTotalCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM zlkj_danger_data_accept.accept_employee_info_formal e
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON e.company_code = c.code
+        </if>
+        <where>
+            e.deleted = 0
+            <if test="countycode != null and countycode != ''">
+                AND c.countycode = #{countycode}
+            </if>
+            <if test="yqType != null">
+                AND c.yq_type = #{yqType}
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                AND e.company_code = #{companyCode}
+            </if>
+            <if test="isScqy != null">
+                AND c.is_scqy = #{isScqy}
+            </if>
+        </where>
+    </select>
+
+</mapper>

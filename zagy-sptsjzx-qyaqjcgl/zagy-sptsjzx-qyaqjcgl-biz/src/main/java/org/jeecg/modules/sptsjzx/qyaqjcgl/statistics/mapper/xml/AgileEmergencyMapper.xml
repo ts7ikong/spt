@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.AgileEmergencyMapper">
+    <!-- 1. 敏捷应急接入情况统计 -->
+    <select id="getEmergencyAccessStats" resultType="map">
+        SELECT
+        -- 应急预案
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjyaxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as yjyaCount,
+        -- 应急演练计划
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjyljhxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as yjyljhCount,
+        -- 应急演练实施过程记录
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjylssgcjl WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as yjylssgcCount,
+        -- 应急物资
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjwzjcxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as yjwzCount,
+        -- 应急救援队伍
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjjydwxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as yjjydwCount,
+        -- 应急专家
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjzjxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as yjzjCount,
+        -- 应急避难场所
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjbncsxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as yjbncsCount,
+        -- 医疗机构资源
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.ylzyxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as ylzyCount,
+        -- 接警记录
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.jjjl WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        ) as jjjlCount,
+        -- 续报记录
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.xbjl WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as xbjlCount,
+        -- 救援处置过程记录
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.jyczgcjl WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        ) as jyczgcCount,
+        -- 应急处置方案记录
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjczfajl WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as yjczfaCount
+    </select>
+
+    <!-- 2. 应急预案等级统计 -->
+    <select id="getEmergencyPlanLevelStats" resultType="map">
+        SELECT
+        emergence_plan_level as level,
+        COUNT(*) as count
+        FROM shipingtaishujuzhongxin.yjyaxx
+        <where>
+            deleted = '0'
+            <if test="parkCode != null and parkCode != ''">
+                AND park_code = #{parkCode}
+            </if>
+            <if test="countycode != null and countycode != ''">
+                AND countycode = #{countycode}
+            </if>
+        </where>
+        GROUP BY emergence_plan_level
+    </select>
+
+    <!-- 3. 应急演练级别统计(带演练类型筛选) -->
+    <select id="getEmergencyDrillLevelStats" resultType="map">
+        SELECT
+        drill_level as level,
+        COUNT(*) as count
+        FROM shipingtaishujuzhongxin.yjyljhxx
+        <where>
+            deleted = '0'
+            <if test="parkCode != null and parkCode != ''">
+                AND park_code = #{parkCode}
+            </if>
+            <if test="countycode != null and countycode != ''">
+                AND countycode = #{countycode}
+            </if>
+            <if test="drillType != null and drillType != ''">
+                AND drill_type = #{drillType}
+            </if>
+        </where>
+        GROUP BY drill_level
+    </select>
+
+    <!-- 4. 应急资源统计 -->
+    <select id="getEmergencyResourceStats" resultType="map">
+        SELECT
+        -- 应急物资数量
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjwzjcxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as materialCount,
+        -- 应急救援队伍数量
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjjydwxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as rescueTeamCount,
+        -- 应急专家数量
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjzjxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as expertCount,
+        -- 应急避难场所数量
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjbncsxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as shelterCount,
+        -- 医疗机构资源数量
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.ylzyxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as medicalInstitutionCount
+    </select>
+</mapper>

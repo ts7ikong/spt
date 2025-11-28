@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatisticsMapper">
+
+
+        <!-- 企业安全基础管理数据接入情况统计 -->
+        <select id="getDataAccessStats" resultType="java.util.HashMap">
+            SELECT
+            COUNT(*) AS total,
+            SUM(CASE
+            WHEN qylshghygx=1 AND qylszdhygx=1 AND wxhxpxx=1 AND qyzdjggyxx=1
+            AND wxyhxpxx=1 AND wxybbfzrxx=1 AND ryxxk=1 AND qysgsj=1
+            AND device=1 AND tank=1 AND process=1 AND gas_sensor=1
+            AND warehouse=1 AND platfor=1 AND stop_record=1 AND camera=1
+            AND device_medium=1 AND medium_component=1 AND chemical=1
+            AND stsjgxx=1 AND qyzzdjxba=1
+            THEN 1 ELSE 0
+            END) AS fullAccess,
+            SUM(CASE
+            WHEN (qylshghygx=1 OR qylszdhygx=1 OR wxhxpxx=1 OR qyzdjggyxx=1
+            OR wxyhxpxx=1 OR wxybbfzrxx=1 OR ryxxk=1 OR qysgsj=1
+            OR device=1 OR tank=1 OR process=1 OR gas_sensor=1
+            OR warehouse=1 OR platfor=1 OR stop_record=1 OR camera=1
+            OR device_medium=1 OR medium_component=1 OR chemical=1
+            OR stsjgxx=1 OR qyzzdjxba=1)
+            AND NOT (qylshghygx=1 AND qylszdhygx=1 AND wxhxpxx=1 AND qyzdjggyxx=1
+            AND wxyhxpxx=1 AND wxybbfzrxx=1 AND ryxxk=1 AND qysgsj=1
+            AND device=1 AND tank=1 AND process=1 AND gas_sensor=1
+            AND warehouse=1 AND platfor=1 AND stop_record=1 AND camera=1
+            AND device_medium=1 AND medium_component=1 AND chemical=1
+            AND stsjgxx=1 AND qyzzdjxba=1)
+            THEN 1 ELSE 0
+            END) AS partialAccess,
+            SUM(CASE
+            WHEN COALESCE(qylshghygx,0)=0 AND COALESCE(qylszdhygx,0)=0 AND COALESCE(wxhxpxx,0)=0
+            AND COALESCE(qyzdjggyxx,0)=0 AND COALESCE(wxyhxpxx,0)=0 AND COALESCE(wxybbfzrxx,0)=0
+            AND COALESCE(ryxxk,0)=0 AND COALESCE(qysgsj,0)=0 AND COALESCE(device,0)=0
+            AND COALESCE(tank,0)=0 AND COALESCE(process,0)=0 AND COALESCE(gas_sensor,0)=0
+            AND COALESCE(warehouse,0)=0 AND COALESCE(platfor,0)=0 AND COALESCE(stop_record,0)=0
+            AND COALESCE(camera,0)=0 AND COALESCE(device_medium,0)=0 AND COALESCE(medium_component,0)=0
+            AND COALESCE(chemical,0)=0 AND COALESCE(stsjgxx,0)=0 AND COALESCE(qyzzdjxba,0)=0
+            THEN 1 ELSE 0
+            END) AS notAccess
+            FROM zlkj_danger_data_accept.all_access_status a
+            LEFT JOIN accept_company c ON a.company_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">
+                AND c.countycode = #{countycode}
+            </if>
+            <if test="yqType != null">
+                AND c.yq_type = #{yqType}
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                AND a.company_code = #{companyCode}
+            </if>
+            <if test="isScqy != null">
+                AND c.is_scqy = #{isScqy}
+            </if>
+        </select>
+
+        <!-- 设备类型统计 -->
+        <select id="getDeviceTypeStats" resultType="java.util.HashMap">
+            SELECT
+            d.equip_type AS name,
+            COUNT(*) AS value
+            FROM device_base_info d
+            LEFT JOIN accept_company c ON d.company_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">
+                AND c.countycode = #{countycode}
+            </if>
+            <if test="yqType != null">
+                AND c.yq_type = #{yqType}
+            </if>
+            <if test="companyCode != null and companyCode != ''">
+                AND d.company_code = #{companyCode}
+            </if>
+            <if test="isScqy != null">
+                AND c.is_scqy = #{isScqy}
+            </if>
+            GROUP BY d.equip_type
+            ORDER BY value DESC
+        </select>
+
+        <!-- 其他统计项 -->
+        <select id="getOtherStats" resultType="java.util.HashMap">
+            SELECT
+            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.qyzdjggyxx q
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON q.company_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
+            <if test="yqType != null">AND c.yq_type = #{yqType}</if>
+            <if test="companyCode != null and companyCode != ''">AND q.company_code = #{companyCode}</if>
+            <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
+            ) AS keyProcessCount,
+
+            (SELECT COUNT(*) FROM zlkj_danger_data_accept.accept_hazard_code h
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
+            <if test="yqType != null">AND c.yq_type = #{yqType}</if>
+            <if test="companyCode != null and companyCode != ''">AND h.company_code = #{companyCode}</if>
+            <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
+            ) AS hazardCount,
+
+            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.stsjgxx s
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON s.company_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
+            <if test="yqType != null">AND c.yq_type = #{yqType}</if>
+            <if test="companyCode != null and companyCode != ''">AND s.company_code = #{companyCode}</if>
+            <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
+            ) AS stsCount,
+
+            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.qyzzdjxba z
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON z.company_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
+            <if test="yqType != null">AND c.yq_type = #{yqType}</if>
+            <if test="companyCode != null and companyCode != ''">AND z.company_code = #{companyCode}</if>
+            <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
+            ) AS maintenanceCount,
+
+            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.jxkml j
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON j.company_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
+            <if test="yqType != null">AND c.yq_type = #{yqType}</if>
+            <if test="companyCode != null and companyCode != ''">AND j.company_code = #{companyCode}</if>
+            <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
+            ) AS restrictionCount,
+
+            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.zfjcyhxx z
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON z.company_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
+            <if test="yqType != null">AND c.yq_type = #{yqType}</if>
+            <if test="companyCode != null and companyCode != ''">AND z.company_code = #{companyCode}</if>
+            <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
+            ) AS hazardInspectionCount,
+
+            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.dsfdwjbxx d
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON d.social_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
+            <if test="yqType != null">AND c.yq_type = #{yqType}</if>
+            <if test="companyCode != null and companyCode != ''">AND d.social_code = #{companyCode}</if>
+            <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
+            ) AS thirdPartyCount,
+
+            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.dsfdwryxx d
+            LEFT JOIN accept_company c ON d.socia_code = c.code
+            WHERE 1=1
+            <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
+            <if test="yqType != null">AND c.yq_type = #{yqType}</if>
+            <if test="companyCode != null and companyCode != ''">AND dw.company_code = #{companyCode}</if>
+            <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
+            ) AS thirdPartyPersonCount
+        </select>
+
+</mapper>

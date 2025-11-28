@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.ClosedManagementMapper">
+
+    <!-- 1. 封闭化管理接入情况统计 -->
+    <select id="getClosedAccessStats" resultType="map">
+        SELECT
+        -- 卡口门禁是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.kkmjxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as kkmjCount,
+        -- 访客信息是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.fkxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as fkxxCount,
+        -- 危化品车辆信息是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.whpclxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as whpclCount,
+        -- 其他车辆信息是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.qtclxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as qtclCount,
+        -- 危化品运输车辆停车场信息是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.whpyscltccxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as tccCount,
+        -- 车辆实时通行数据是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.clsstx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as clsstxCount,
+        -- 人员实时通行数据是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.rysstxsj WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as rysstxCount,
+        -- 人员实时定位是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.ryssdw WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as ryssdwCount,
+        -- 危化品车辆实时定位是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.whpclssdw WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as whpclssdwCount,
+        -- 报警数据是否有数据
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.sbbjsj WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as sbbjsjCount
+    </select>
+
+    <!-- 2. 报警类型统计(饼图) -->
+    <select id="getAlarmTypeStats" resultType="map">
+        SELECT
+        CASE alarm_type
+        WHEN '1' THEN '入侵报警'
+        WHEN '2' THEN '超速报警'
+        WHEN '3' THEN '求救报警'
+        WHEN '4' THEN '滞留报警'
+        ELSE '其他'
+        END as name,
+        COUNT(*) as value
+        FROM shipingtaishujuzhongxin.sbbjsj
+        <where>
+            deleted = '0'
+            <if test="parkCode != null and parkCode != ''">
+                AND park_code = #{parkCode}
+            </if>
+            <if test="countycode != null and countycode != ''">
+                AND countycode = #{countycode}
+            </if>
+        </where>
+        GROUP BY alarm_type
+    </select>
+
+    <!-- 3. 报警基本信息统计 -->
+    <select id="getBasicInfoStats" resultType="map">
+        SELECT
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.kkmjxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as gateCount,
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.whpclxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as hazardousVehicleCount,
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.qtclxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as otherVehicleCount,
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.fkxx WHERE deleted = '0'
+        <if test="parkCode != null and parkCode != ''">
+            AND park_code = #{parkCode}
+        </if>
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        ) as visitorCount
+    </select>
+
+    <!-- 4. 通行数据统计 - 车辆 -->
+    <select id="getVehicleTrafficStats" resultType="map">
+        SELECT
+        COUNT(CASE WHEN vehicle_type = '1' THEN 1 END) as generalCargoCount,
+        COUNT(CASE WHEN vehicle_type = '2' THEN 1 END) as hazardousTransportCount,
+        COUNT(CASE WHEN vehicle_type = '3' THEN 1 END) as smallVehicleCount,
+        COUNT(CASE WHEN vehicle_type = '4' THEN 1 END) as emergencyVehicleCount
+        FROM shipingtaishujuzhongxin.clsstx
+        <where>
+            deleted = '0'
+            <if test="parkCode != null and parkCode != ''">
+                AND park_code = #{parkCode}
+            </if>
+            <if test="countycode != null and countycode != ''">
+                AND countycode = #{countycode}
+            </if>
+            <if test="timeRange != null and timeRange != ''">
+                <choose>
+                    <when test="timeRange == 'today'">
+                        AND DATE(pass_time) = CURDATE()
+                    </when>
+                    <when test="timeRange == 'week'">
+                        AND pass_time >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+                    </when>
+                    <when test="timeRange == 'month'">
+                        AND pass_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                    </when>
+                </choose>
+            </if>
+        </where>
+    </select>
+
+    <!-- 5. 通行数据统计 - 人员 -->
+    <select id="getPersonnelTrafficStats" resultType="map">
+        SELECT
+        COUNT(CASE WHEN staff_type = '1' THEN 1 END) as registeredPersonnelCount,
+        COUNT(CASE WHEN staff_type = '2' THEN 1 END) as visitorPersonnelCount
+        FROM shipingtaishujuzhongxin.rysstxsj
+        <where>
+            deleted = '0'
+            <if test="parkCode != null and parkCode != ''">
+                AND park_code = #{parkCode}
+            </if>
+            <if test="countycode != null and countycode != ''">
+                AND countycode = #{countycode}
+            </if>
+            <if test="timeRange != null and timeRange != ''">
+                <choose>
+                    <when test="timeRange == 'today'">
+                        AND DATE(pass_time) = CURDATE()
+                    </when>
+                    <when test="timeRange == 'week'">
+                        AND pass_time >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+                    </when>
+                    <when test="timeRange == 'month'">
+                        AND pass_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                    </when>
+                </choose>
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

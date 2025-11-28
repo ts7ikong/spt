@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.HazardStatisticsMapper">
+
+    <!-- 危险源接入情况统计 - 修改后 -->
+    <select id="getHazardAccessStats" resultType="java.util.HashMap">
+        SELECT
+        COUNT(DISTINCT CASE WHEN h.level != 5 THEN h.company_code END) AS fullAccess,
+        0 AS partialAccess,
+        0 AS notAccess,
+        COUNT(DISTINCT h.company_code) AS total
+        FROM zlkj_danger_data_accept.accept_hazard_code h
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
+        </if>
+        WHERE 1=1
+        <if test="countycode != null and countycode != ''">
+            AND c.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND c.yq_type = #{yqType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND h.company_code = #{companyCode}
+        </if>
+        <if test="isScqy != null">
+            AND c.is_scqy = #{isScqy}
+        </if>
+    </select>
+
+    <!-- 危险源分类统计 - 饼图 -->
+    <select id="getHazardClassificationStats" resultType="java.util.HashMap">
+        SELECT
+        COUNT(*) AS value,
+        CASE
+        WHEN h.hazard_factility IS NULL THEN '9'
+        ELSE h.hazard_factility
+        END AS name
+        FROM zlkj_danger_data_accept.accept_hazard_code h
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
+        </if>
+        WHERE 1=1
+        <if test="countycode != null and countycode != ''">
+            AND c.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND c.yq_type = #{yqType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND h.company_code = #{companyCode}
+        </if>
+        <if test="isScqy != null">
+            AND c.is_scqy = #{isScqy}
+        </if>
+        GROUP BY CASE
+        WHEN h.hazard_factility IS NULL THEN '9'
+        ELSE h.hazard_factility
+        END
+        ORDER BY value DESC
+    </select>
+
+    <!-- 危险源等级统计 - 柱状图 -->
+    <select id="getHazardLevelStats" resultType="java.util.HashMap">
+        SELECT
+        h.level AS level,
+        COUNT(*) AS count
+        FROM zlkj_danger_data_accept.accept_hazard_code h
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
+        </if>
+        WHERE h.level IS NOT NULL
+        <if test="countycode != null and countycode != ''">
+            AND c.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND c.yq_type = #{yqType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND h.company_code = #{companyCode}
+        </if>
+        <if test="isScqy != null">
+            AND c.is_scqy = #{isScqy}
+        </if>
+        GROUP BY h.level
+        ORDER BY h.level
+    </select>
+
+    <!-- 当日安全承诺统计 -->
+    <select id="getTodayCommitmentStats" resultType="java.util.HashMap">
+        SELECT
+        COUNT(*) AS todayCommitted,
+        0 AS todayUncommitted,
+        SUM(CASE WHEN q.risk_grade = '1' THEN 1 ELSE 0 END) AS todayHighRisk,
+        SUM(CASE WHEN q.risk_grade = '2' THEN 1 ELSE 0 END) AS todayMajorRisk,
+        SUM(CASE WHEN q.risk_grade = '3' THEN 1 ELSE 0 END) AS todayGeneralRisk,
+        SUM(CASE WHEN q.risk_grade = '4' THEN 1 ELSE 0 END) AS todayLowRisk
+        FROM shipingtaishujuzhongxin.qycnxq q
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON q.company_code = c.code
+        </if>
+        WHERE DATE(q.commit_date) = #{today}
+        <if test="countycode != null and countycode != ''">
+            AND c.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND c.yq_type = #{yqType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND q.company_code = #{companyCode}
+        </if>
+        <if test="isScqy != null">
+            AND c.is_scqy = #{isScqy}
+        </if>
+    </select>
+
+    <!-- 预警和警示统计 -->
+    <select id="getWarningStats" resultType="java.util.HashMap">
+        SELECT
+        (SELECT COUNT(*)
+        FROM shipingtaishujuzhongxin.yjsjsj y
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON y.company_code = c.code
+        </if>
+        WHERE 1=1
+        <if test="countycode != null and countycode != ''">
+            AND c.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND c.yq_type = #{yqType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND y.company_code = #{companyCode}
+        </if>
+        <if test="isScqy != null">
+            AND c.is_scqy = #{isScqy}
+        </if>
+        ) AS warningCount,
+
+        (SELECT COUNT(*)
+        FROM shipingtaishujuzhongxin.jstbsj j
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON j.company_code = c.code
+        </if>
+        WHERE 1=1
+        <if test="countycode != null and countycode != ''">
+            AND c.countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND c.yq_type = #{yqType}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND j.company_code = #{companyCode}
+        </if>
+        <if test="isScqy != null">
+            AND c.is_scqy = #{isScqy}
+        </if>
+        ) AS alertReportCount
+    </select>
+
+</mapper>

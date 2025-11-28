@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.mapper.YqjbxxMapper">
+
+
+    <!-- 统计园区数量 -->
+    <select id="countParks" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM yqjbxx yq
+        WHERE yq.status = '0'
+        <if test="countycode != null and countycode != ''">
+            AND yq.park_area_code = #{countycode}
+        </if>
+    </select>
+
+</mapper>
