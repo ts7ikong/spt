@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.dsfdwgl.dsfry.entity.ContractorUserInfo;
 import org.jeecg.modules.sptsjzx.dsfdwgl.dsfry.service.IContractorUserInfoService;
@@ -51,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class ContractorUserInfoController extends JeecgController<ContractorUserInfo, IContractorUserInfoService> {
 	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+	
+	@Autowired
 	private IContractorUserInfoService contractorUserInfoService;
 	
 	/**
@@ -75,6 +80,13 @@ public class ContractorUserInfoController extends JeecgController<ContractorUser
         customeRuleMap.put("status", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("highRiskPosition", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<ContractorUserInfo> queryWrapper = QueryGenerator.initQueryWrapper(contractorUserInfo, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
+		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+		if (orgCode != null && !orgCode.isEmpty()) {
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "report_company_code");
+		}
 		Page<ContractorUserInfo> page = new Page<ContractorUserInfo>(pageNo, pageSize);
 		IPage<ContractorUserInfo> pageList = contractorUserInfoService.page(page, queryWrapper);
 		return Result.OK(pageList);

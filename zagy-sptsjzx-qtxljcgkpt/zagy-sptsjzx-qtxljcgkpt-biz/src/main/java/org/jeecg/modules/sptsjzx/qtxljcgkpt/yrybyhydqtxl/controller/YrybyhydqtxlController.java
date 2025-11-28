@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.qtxljcgkpt.yrybyhydqtxl.entity.Yrybyhydqtxl;
 import org.jeecg.modules.sptsjzx.qtxljcgkpt.yrybyhydqtxl.service.IYrybyhydqtxlService;
@@ -51,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class YrybyhydqtxlController extends JeecgController<Yrybyhydqtxl, IYrybyhydqtxlService> {
 	@Autowired
+	private IYqjbxxService yqjbxxService;
+	
+	@Autowired
 	private IYrybyhydqtxlService yrybyhydqtxlService;
 	
 	/**
@@ -74,6 +79,13 @@ public class YrybyhydqtxlController extends JeecgController<Yrybyhydqtxl, IYryby
         // 自定义多选的查询规则为：LIKE_WITH_OR
         customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Yrybyhydqtxl> queryWrapper = QueryGenerator.initQueryWrapper(yrybyhydqtxl, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
+		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+		if (orgCode != null && !orgCode.isEmpty()) {
+			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
+			DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
+		}
 		Page<Yrybyhydqtxl> page = new Page<Yrybyhydqtxl>(pageNo, pageSize);
 		IPage<Yrybyhydqtxl> pageList = yrybyhydqtxlService.page(page, queryWrapper);
 		return Result.OK(pageList);

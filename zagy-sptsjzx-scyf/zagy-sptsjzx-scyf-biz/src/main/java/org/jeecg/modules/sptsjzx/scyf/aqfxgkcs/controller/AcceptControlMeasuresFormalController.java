@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.scyf.aqfxgkcs.entity.AcceptControlMeasuresFormal;
 import org.jeecg.modules.sptsjzx.scyf.aqfxgkcs.service.IAcceptControlMeasuresFormalService;
@@ -51,6 +53,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class AcceptControlMeasuresFormalController extends JeecgController<AcceptControlMeasuresFormal, IAcceptControlMeasuresFormalService> {
 	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+	
+	@Autowired
 	private IAcceptControlMeasuresFormalService acceptControlMeasuresFormalService;
 	
 	/**
@@ -74,6 +79,13 @@ public class AcceptControlMeasuresFormalController extends JeecgController<Accep
         // 自定义多选的查询规则为：LIKE_WITH_OR
         customeRuleMap.put("dataSrc", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<AcceptControlMeasuresFormal> queryWrapper = QueryGenerator.initQueryWrapper(acceptControlMeasuresFormal, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
+		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+		if (orgCode != null && !orgCode.isEmpty()) {
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<AcceptControlMeasuresFormal> page = new Page<AcceptControlMeasuresFormal>(pageNo, pageSize);
 		IPage<AcceptControlMeasuresFormal> pageList = acceptControlMeasuresFormalService.page(page, queryWrapper);
 		return Result.OK(pageList);
