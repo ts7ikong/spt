@@ -89,8 +89,8 @@ public class SbbjsjController extends JeecgController<Sbbjsj, ISbbjsjService> {
         QueryWrapper<Sbbjsj> queryWrapper = QueryGenerator.initQueryWrapper(sbbjsj, req.getParameterMap(),customeRuleMap);
 
 		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
-		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-		if (orgCode != null && !orgCode.isEmpty()) {
+		if (DataScopeHelper.needDataScope()) {
+			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
 			DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
 		}

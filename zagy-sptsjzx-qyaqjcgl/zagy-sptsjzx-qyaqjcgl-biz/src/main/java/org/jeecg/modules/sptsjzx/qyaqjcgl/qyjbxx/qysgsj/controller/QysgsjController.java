@@ -88,8 +88,8 @@ public class QysgsjController extends JeecgController<Qysgsj, IQysgsjService> {
         QueryWrapper<Qysgsj> queryWrapper = QueryGenerator.initQueryWrapper(qysgsj, req.getParameterMap(),customeRuleMap);
 
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
-		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-		if (orgCode != null && !orgCode.isEmpty()) {
+		if (DataScopeHelper.needDataScope()) {
+			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
 			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
 		}

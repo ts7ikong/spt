@@ -86,8 +86,8 @@ public class ZfajxxController extends JeecgController<Zfajxx, IZfajxxService> {
         QueryWrapper<Zfajxx> queryWrapper = QueryGenerator.initQueryWrapper(zfajxx, req.getParameterMap(),customeRuleMap);
 
 		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
-		String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-		if (orgCode != null && !orgCode.isEmpty()) {
+		if (DataScopeHelper.needDataScope()) {
+			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
 			DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
 		}

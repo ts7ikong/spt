@@ -51,13 +51,41 @@ public class DataScopeHelper {
     }
 
     /**
+     * 判断当前用户是否是市级平台账号
+     * 市级平台账号可以看到所有区县的数据，不受数据权限限制
+     *
+     * 判断规则：
+     * 1. orgCode为null或空字符串 → 市级平台
+     * 2. orgCode为"500000"或以"0000"结尾 → 市级平台
+     * 3. 其他情况 → 区县平台
+     *
+     * @return true表示是市级平台，false表示是区县平台
+     */
+    public static boolean isCityLevelPlatform() {
+        String orgCode = getCurrentUserOrgCode();
+
+        // 1. orgCode为空，认为是市级平台
+        if (orgCode == null || orgCode.trim().isEmpty()) {
+            return true;
+        }
+
+        // 2. orgCode为"500000"或以"0000"结尾，认为是市级平台
+        if (orgCode.equals("500000") || orgCode.endsWith("0000")) {
+            return true;
+        }
+
+        // 3. 其他情况为区县平台
+        return false;
+    }
+
+    /**
      * 判断是否需要应用数据权限过滤
-     * @return true表示需要过滤，false表示不需要（如管理员）
+     *
+     * @return true表示需要过滤（区县账号），false表示不需要（市平台账号）
      */
     public static boolean needDataScope() {
-        String orgCode = getCurrentUserOrgCode();
-        // 如果orgCode为空，不进行过滤
-        return orgCode != null && !orgCode.isEmpty();
+        // 市级平台账号不需要数据权限过滤
+        return !isCityLevelPlatform();
     }
 
     /**

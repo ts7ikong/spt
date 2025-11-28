@@ -89,16 +89,93 @@ public class QycnxqController extends JeecgController<Qycnxq, IQycnxqService> {
         customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Qycnxq> queryWrapper = QueryGenerator.initQueryWrapper(qycnxq, req.getParameterMap(), customeRuleMap);
 
-        // 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
-        String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-        if (orgCode != null && !orgCode.isEmpty()) {
-            List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
-            DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
-        }
-        Page<Qycnxq> page = new Page<Qycnxq>(pageNo, pageSize);
-        IPage<Qycnxq> pageList = qycnxqService.page(page, queryWrapper);
-        return Result.OK(pageList);
-    }
+		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
+		if (DataScopeHelper.needDataScope()) {
+			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
+			DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
+		}
+		Page<Qycnxq> page = new Page<Qycnxq>(pageNo, pageSize);
+		IPage<Qycnxq> pageList = qycnxqService.page(page, queryWrapper);
+		return Result.OK(pageList);
+	}
+	
+	/**
+	 *   添加
+	 *
+	 * @param qycnxq
+	 * @return
+	 */
+	@AutoLog(value = "企业承诺详情表-添加")
+	@ApiOperation(value="企业承诺详情表-添加", notes="企业承诺详情表-添加")
+	//@RequiresPermissions("sptsjzx.zdwxyaqgl.aqcnsj.qycnxq:qycnxq:add")
+	@PostMapping(value = "/add")
+	public Result<String> add(@RequestBody Qycnxq qycnxq) {
+		qycnxqService.save(qycnxq);
+		return Result.XZ(qycnxq.getId(),"添加成功！");
+	}
+	
+	/**
+	 *  编辑
+	 *
+	 * @param qycnxq
+	 * @return
+	 */
+	@AutoLog(value = "企业承诺详情表-编辑")
+	@ApiOperation(value="企业承诺详情表-编辑", notes="企业承诺详情表-编辑")
+	//@RequiresPermissions("sptsjzx.zdwxyaqgl.aqcnsj.qycnxq:qycnxq:edit")
+	@RequestMapping(value = "/edit", method = {RequestMethod.PUT,RequestMethod.POST})
+	public Result<String> edit(@RequestBody Qycnxq qycnxq) {
+		qycnxqService.updateById(qycnxq);
+		return Result.OK("编辑成功!");
+	}
+	
+	/**
+	 *   通过id删除
+	 *
+	 * @param id
+	 * @return
+	 */
+	@AutoLog(value = "企业承诺详情表-通过id删除")
+	@ApiOperation(value="企业承诺详情表-通过id删除", notes="企业承诺详情表-通过id删除")
+	//@RequiresPermissions("sptsjzx.zdwxyaqgl.aqcnsj.qycnxq:qycnxq:delete")
+	@DeleteMapping(value = "/delete")
+	public Result<String> delete(@RequestParam(name="id",required=true) String id) {
+		qycnxqService.removeById(id);
+		return Result.OK("删除成功!");
+	}
+	
+	/**
+	 *  批量删除
+	 *
+	 * @param ids
+	 * @return
+	 */
+	@AutoLog(value = "企业承诺详情表-批量删除")
+	@ApiOperation(value="企业承诺详情表-批量删除", notes="企业承诺详情表-批量删除")
+	//@RequiresPermissions("sptsjzx.zdwxyaqgl.aqcnsj.qycnxq:qycnxq:deleteBatch")
+	@DeleteMapping(value = "/deleteBatch")
+	public Result<String> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
+		this.qycnxqService.removeByIds(Arrays.asList(ids.split(",")));
+		return Result.OK("批量删除成功!");
+	}
+	
+	/**
+	 * 通过id查询
+	 *
+	 * @param id
+	 * @return
+	 */
+	//@AutoLog(value = "企业承诺详情表-通过id查询")
+	@ApiOperation(value="企业承诺详情表-通过id查询", notes="企业承诺详情表-通过id查询")
+	@GetMapping(value = "/queryById")
+	public Result<Qycnxq> queryById(@RequestParam(name="id",required=true) String id) {
+		Qycnxq qycnxq = qycnxqService.getById(id);
+		if(qycnxq==null) {
+			return Result.error("未找到对应数据");
+		}
+		return Result.OK(qycnxq);
+	}
 
     /**
      * 添加
