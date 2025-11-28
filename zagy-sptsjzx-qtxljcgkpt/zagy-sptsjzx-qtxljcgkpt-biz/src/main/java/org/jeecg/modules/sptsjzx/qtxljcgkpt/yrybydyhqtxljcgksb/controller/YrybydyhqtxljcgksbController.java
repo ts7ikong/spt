@@ -53,9 +53,6 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class YrybydyhqtxljcgksbController extends JeecgController<Yrybydyhqtxljcgksb, IYrybydyhqtxljcgksbService> {
 	
-		@Autowired
-	private IYqjbxxService yqjbxxService;
-
 	@Autowired
 	private IYqjbxxService yqjbxxService;
 	

@@ -4,12 +4,14 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Map;
+
 /**
  * 企业信息Mapper
  */
 @Mapper
 @DS("zfd")  // 使用 zfd 数据源 (zlkj_danger_data_accept库)
-public interface AcceptCompanyMapper {
+public interface TjAcceptCompanyMapper {
     
     /**
      * 统计区县数量
@@ -52,4 +54,8 @@ public interface AcceptCompanyMapper {
     Long countMajorHazardCompanies(@Param("countycode") String countycode,
                                     @Param("yqType") Integer yqType,
                                     @Param("isScqy") Integer isScqy);
+
+    Map<String, Object> getAccessStats(@Param("countycode") String countycode,
+                                       @Param("yqType") Integer yqType,
+                                       @Param("isScqy") Integer isScqy);
 }

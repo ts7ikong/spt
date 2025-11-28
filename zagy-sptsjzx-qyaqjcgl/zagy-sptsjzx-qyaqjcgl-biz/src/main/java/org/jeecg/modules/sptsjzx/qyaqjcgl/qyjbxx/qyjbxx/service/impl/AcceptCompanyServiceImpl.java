@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * @Description: 企业基本信息
  * @Author: zagy-cg
- * @Date:   2025-06-20
+ * @Date: 2025-06-20
  * @Version: V1.0
  */
 @Service
@@ -31,7 +32,7 @@ public class AcceptCompanyServiceImpl extends ServiceImpl<AcceptCompanyMapper, A
     @Override
     public List<String> getCompanyCodesByCountyCode(String countycode) {
         if (countycode == null || countycode.isEmpty()) {
-            return List.of();
+            return new ArrayList<>();
         }
 
         QueryWrapper<AcceptCompany> wrapper = new QueryWrapper<>();

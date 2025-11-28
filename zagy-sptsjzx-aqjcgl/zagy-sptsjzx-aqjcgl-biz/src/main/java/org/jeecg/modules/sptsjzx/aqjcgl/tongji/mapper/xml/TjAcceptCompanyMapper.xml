@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.jeecg.modules.sptsjzx.aqjcgl.tongji.mapper.AcceptCompanyMapper">
+<mapper namespace="org.jeecg.modules.sptsjzx.aqjcgl.tongji.mapper.TjAcceptCompanyMapper">
 
 
     <!-- 统计区县数量 -->
@@ -63,6 +63,24 @@
         </if>
         <if test="isScqy != null">
             AND ac.is_scqy = #{isScqy}
+        </if>
+    </select>
+
+    <select id="getAccessStats" resultType="java.util.HashMap">
+        SELECT
+        SUM(CASE WHEN is_company_ticket = 1 THEN 1 ELSE 0 END) AS workPermitCount,
+        SUM(CASE WHEN is_company_alarm = 1 THEN 1 ELSE 0 END) AS personnelLocationCount,
+        SUM(CASE WHEN isbuild = 1 THEN 1 ELSE 0 END) AS dualControlCount
+        FROM accept_company
+        WHERE 1=1
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND yq_type = #{yqType}
+        </if>
+        <if test="isScqy != null">
+            AND is_scqy = #{isScqy}
         </if>
     </select>
 </mapper>

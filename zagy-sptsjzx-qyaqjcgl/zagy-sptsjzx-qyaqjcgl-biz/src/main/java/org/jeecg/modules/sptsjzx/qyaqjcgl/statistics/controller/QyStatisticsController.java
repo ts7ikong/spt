@@ -1,7 +1,7 @@
 package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.controller;
 
 import org.jeecg.common.api.vo.Result;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.IStatisticsService;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.IQyStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.Api;
@@ -12,10 +12,10 @@ import java.util.Map;
 @Api(tags="企业统计")
 @RestController
 @RequestMapping("/qyaqjcgl/statistics")
-public class StatisticsController {
+public class QyStatisticsController {
 
     @Autowired
-    private IStatisticsService statisticsService;
+    private IQyStatisticsService statisticsService;
 
 
     /**

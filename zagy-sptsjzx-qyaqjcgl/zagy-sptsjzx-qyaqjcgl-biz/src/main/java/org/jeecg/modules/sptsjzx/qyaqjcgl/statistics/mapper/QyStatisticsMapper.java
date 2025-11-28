@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Map;
 
-public interface StatisticsMapper {
+public interface QyStatisticsMapper {
 
     /**
      * 获取企业安全基础管理数据接入情况

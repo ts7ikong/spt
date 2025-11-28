@@ -2,7 +2,7 @@ package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service;
 
 import java.util.Map;
 
-public interface IStatisticsService {
+public interface IQyStatisticsService {
 
     /**
      * 获取综合统计数据
