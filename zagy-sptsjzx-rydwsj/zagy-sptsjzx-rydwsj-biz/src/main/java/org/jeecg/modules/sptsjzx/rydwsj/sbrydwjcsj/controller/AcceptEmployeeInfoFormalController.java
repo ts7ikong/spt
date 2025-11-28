@@ -53,8 +53,6 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class AcceptEmployeeInfoFormalController extends JeecgController<AcceptEmployeeInfoFormal, IAcceptEmployeeInfoFormalService> {
 	
-		@Autowired
-	private IAcceptCompanyService acceptCompanyService;
 
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;

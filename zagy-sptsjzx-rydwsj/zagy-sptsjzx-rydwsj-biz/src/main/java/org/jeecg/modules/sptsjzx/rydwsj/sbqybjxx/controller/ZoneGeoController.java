@@ -53,8 +53,6 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @Slf4j
 public class ZoneGeoController extends JeecgController<ZoneGeo, IZoneGeoService> {
 	
-		@Autowired
-	private IAcceptCompanyService acceptCompanyService;
 
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
