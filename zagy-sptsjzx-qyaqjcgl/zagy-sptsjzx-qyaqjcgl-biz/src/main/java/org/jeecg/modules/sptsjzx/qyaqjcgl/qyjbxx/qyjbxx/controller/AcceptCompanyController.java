@@ -106,7 +106,58 @@ public class AcceptCompanyController extends JeecgController<AcceptCompany, IAcc
 		IPage<AcceptCompany> pageList = acceptCompanyService.page(page, queryWrapper);
 		return Result.OK(pageList);
 	}
-	
+
+	/**
+	 * 获取企业列表（用于下拉选择）
+	 * 根据当前用户权限返回可见的企业列表
+	 * - 市平台账号：返回所有企业
+	 * - 区县账号：只返回本区县的企业
+	 *
+	 * @param countycode 可选的区县编码（市平台可以通过此参数筛选特定区县的企业）
+	 * @return 企业列表（包含code和name）
+	 */
+	@ApiOperation(value="获取企业列表", notes="获取当前用户可见的企业列表，用于下拉选择")
+	@GetMapping(value = "/selectList")
+	public Result<List<Map<String, Object>>> getCompanySelectList(
+			@RequestParam(name="countycode", required=false) String countycode) {
+
+		QueryWrapper<AcceptCompany> queryWrapper = new QueryWrapper<>();
+
+		// 【数据权限过滤】根据登录用户权限过滤
+		if (DataScopeHelper.needDataScope()) {
+			// 区县账号：只能看自己区县的企业
+			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+			if (orgCode != null && !orgCode.isEmpty()) {
+				queryWrapper.eq("countycode", orgCode);
+			}
+		} else {
+			// 市平台账号：如果传了countycode参数，按参数过滤
+			if (countycode != null && !countycode.isEmpty()) {
+				queryWrapper.eq("countycode", countycode);
+			}
+			// 否则返回所有企业
+		}
+
+		// 只查询需要的字段
+		queryWrapper.select("code", "name", "countycode");
+		queryWrapper.orderByAsc("code");
+
+		List<AcceptCompany> companies = acceptCompanyService.list(queryWrapper);
+
+		// 转换为Map格式，方便前端使用
+		List<Map<String, Object>> result = companies.stream()
+				.map(company -> {
+					Map<String, Object> map = new HashMap<>();
+					map.put("code", company.getCode());
+					map.put("name", company.getName());
+					map.put("countycode", company.getCountycode());
+					return map;
+				})
+				.collect(Collectors.toList());
+
+		return Result.OK(result);
+	}
+
 	/**
 	 *   添加
 	 *

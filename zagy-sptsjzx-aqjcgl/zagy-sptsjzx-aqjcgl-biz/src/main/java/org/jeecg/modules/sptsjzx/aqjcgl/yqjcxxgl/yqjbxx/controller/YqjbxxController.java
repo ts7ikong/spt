@@ -2,7 +2,9 @@ package org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.controller;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
@@ -67,7 +69,58 @@ public class YqjbxxController extends JeecgController<Yqjbxx, IYqjbxxService> {
 		IPage<Yqjbxx> pageList = yqjbxxService.page(page, queryWrapper);
 		return Result.OK(pageList);
 	}
-	
+
+	/**
+	 * 获取园区列表（用于下拉选择）
+	 * 根据当前用户权限返回可见的园区列表
+	 * - 市平台账号：返回所有园区
+	 * - 区县账号：只返回本区县的园区
+	 *
+	 * @param parkAreaCode 可选的区县编码（市平台可以通过此参数筛选特定区县的园区）
+	 * @return 园区列表（包含parkCode和parkName）
+	 */
+	@ApiOperation(value="获取园区列表", notes="获取当前用户可见的园区列表，用于下拉选择")
+	@GetMapping(value = "/selectList")
+	public Result<List<Map<String, Object>>> getParkSelectList(
+			@RequestParam(name="parkAreaCode", required=false) String parkAreaCode) {
+
+		QueryWrapper<Yqjbxx> queryWrapper = new QueryWrapper<>();
+
+		// 【数据权限过滤】根据登录用户权限过滤
+		if (DataScopeHelper.needDataScope()) {
+			// 区县账号：只能看自己区县的园区
+			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+			if (orgCode != null && !orgCode.isEmpty()) {
+				queryWrapper.eq("park_area_code", orgCode);
+			}
+		} else {
+			// 市平台账号：如果传了parkAreaCode参数，按参数过滤
+			if (parkAreaCode != null && !parkAreaCode.isEmpty()) {
+				queryWrapper.eq("park_area_code", parkAreaCode);
+			}
+			// 否则返回所有园区
+		}
+
+		// 只查询需要的字段
+		queryWrapper.select("park_code", "park_name", "park_area_code");
+		queryWrapper.orderByAsc("park_code");
+
+		List<Yqjbxx> parks = yqjbxxService.list(queryWrapper);
+
+		// 转换为Map格式，方便前端使用
+		List<Map<String, Object>> result = parks.stream()
+				.map(park -> {
+					Map<String, Object> map = new HashMap<>();
+					map.put("parkCode", park.getParkCode());
+					map.put("parkName", park.getParkName());
+					map.put("parkAreaCode", park.getParkAreaCode());
+					return map;
+				})
+				.collect(Collectors.toList());
+
+		return Result.OK(result);
+	}
+
 	/**
 	 *   添加
 	 *
