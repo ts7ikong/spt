@@ -21,6 +21,7 @@ public class HazardStatisticsController {
      * 获取重大危险源管理统计数据
      * @param countycode 区县编码
      * @param yqType 园区类型
+     * @param parkCode 园区编码
      * @param companyCode 企业编码
      * @param isScqy 是否生产企业
      * @return
@@ -29,10 +30,11 @@ public class HazardStatisticsController {
     @GetMapping("/hazardManagement")
     public Result<?> getHazardManagementStats(@RequestParam(required = false) String countycode,
                                                 @RequestParam(required = false) Integer yqType,
+                                                @RequestParam(required = false) String parkCode,
                                                 @RequestParam(required = false) String companyCode,
                                                 @RequestParam(required = false) Integer isScqy) {
         Map<String, Object> stats = hazardStatisticsService.getHazardManagementStats(
-            countycode, yqType, companyCode, isScqy
+            countycode, yqType, parkCode, companyCode, isScqy
         );
         return Result.OK(stats);
     }

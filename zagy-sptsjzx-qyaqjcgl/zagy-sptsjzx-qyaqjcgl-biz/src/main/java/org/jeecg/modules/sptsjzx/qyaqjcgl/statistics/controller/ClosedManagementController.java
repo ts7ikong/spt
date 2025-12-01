@@ -24,12 +24,13 @@ public class ClosedManagementController {
     @GetMapping("/closedManagement")
     public Result<ClosedManagementStatisticsDTO> getClosedManagementStatistics(
             @ApiParam("园区编码") @RequestParam(required = false) String parkCode,
+            @ApiParam("企业编码") @RequestParam(required = false) String companyCode,
             @ApiParam("区县编码") @RequestParam(required = false) String countycode,
             @ApiParam("时间范围: today-当日, week-近7天, month-近30天")
             @RequestParam(required = false, defaultValue = "today") String timeRange) {
 
         ClosedManagementStatisticsDTO statistics = service.getClosedManagementStatistics(
-                parkCode, countycode, timeRange
+                parkCode, companyCode, countycode, timeRange
         );
 
         return Result.ok(statistics);

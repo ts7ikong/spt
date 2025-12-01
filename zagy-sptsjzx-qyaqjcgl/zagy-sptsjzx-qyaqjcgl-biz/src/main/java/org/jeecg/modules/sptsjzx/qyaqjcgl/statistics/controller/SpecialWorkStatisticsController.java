@@ -25,11 +25,12 @@ public class SpecialWorkStatisticsController {
     public Result<SpecialWorkStatisticsDTO> getSpecialWorkStatistics(
             @ApiParam("区县编码") @RequestParam(required = false) String countycode,
             @ApiParam("园区类型") @RequestParam(required = false) Integer yqType,
+            @ApiParam("园区编码") @RequestParam(required = false) String parkCode,
             @ApiParam("企业编码") @RequestParam(required = false) String companyCode,
             @ApiParam("是否生产企业") @RequestParam(required = false) Integer isScqy) {
 
         SpecialWorkStatisticsDTO statistics = service.getSpecialWorkStatistics(
-                countycode, yqType, companyCode, isScqy
+                countycode, yqType, parkCode, companyCode, isScqy
         );
 
         return Result.ok(statistics);
