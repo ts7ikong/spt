@@ -22,33 +22,33 @@ public class StatisticsServiceImpl implements StatisticsService {
     private TjAcceptCompanyMapper tjAcceptCompanyMapper;
 
     @Override
-    public StatisticsVO getStatistics(String countycode, Integer yqType, Integer isScqy) {
-        log.info("开始获取统计数据, countycode={}, yqType={}, isScqy={}", countycode, yqType, isScqy);
-        
+    public StatisticsVO getStatistics(String countycode, Integer yqType, String parkCode, String companyCode, Integer isScqy) {
+        log.info("开始获取统计数据, countycode={}, yqType={}, parkCode={}, companyCode={}, isScqy={}", countycode, yqType, parkCode, companyCode, isScqy);
+
         StatisticsVO vo = new StatisticsVO();
-        
+
         // 查询区县数
-        Long countyCount = tjAcceptCompanyMapper.countCounties(countycode, yqType, isScqy);
+        Long countyCount = tjAcceptCompanyMapper.countCounties(countycode, yqType, parkCode, companyCode, isScqy);
         vo.setCountyCount(countyCount);
-        
+
         // 查询园区数
         Long parkCount = yqjbxxMapper.countParks(countycode);
         vo.setParkCount(parkCount);
-        
+
         // 查询企业数
-        Long companyCount = tjAcceptCompanyMapper.countCompanies(countycode, yqType, isScqy);
+        Long companyCount = tjAcceptCompanyMapper.countCompanies(countycode, yqType, parkCode, companyCode, isScqy);
         vo.setCompanyCount(companyCount);
-        
+
         // 查询生产企业数
-        Long productionCompanyCount = tjAcceptCompanyMapper.countProductionCompanies(countycode, yqType);
+        Long productionCompanyCount = tjAcceptCompanyMapper.countProductionCompanies(countycode, yqType, parkCode, companyCode);
         vo.setProductionCompanyCount(productionCompanyCount);
-        
+
         // 查询重大危险源企业数
-        Long majorHazardCompanyCount = tjAcceptCompanyMapper.countMajorHazardCompanies(countycode, yqType, isScqy);
+        Long majorHazardCompanyCount = tjAcceptCompanyMapper.countMajorHazardCompanies(countycode, yqType, parkCode, companyCode, isScqy);
         vo.setMajorHazardCompanyCount(majorHazardCompanyCount);
-        
+
         log.info("统计数据获取完成: {}", vo);
-        
+
         return vo;
     }
 }

@@ -4,6 +4,6 @@ import java.util.Map;
 
 public interface IHazardStatisticsService {
     
-    Map<String, Object> getHazardManagementStats(String countycode, Integer yqType, 
-                                                   String companyCode, Integer isScqy);
+    Map<String, Object> getHazardManagementStats(String countycode, Integer yqType,
+                                                   String parkCode, String companyCode, Integer isScqy);
 }

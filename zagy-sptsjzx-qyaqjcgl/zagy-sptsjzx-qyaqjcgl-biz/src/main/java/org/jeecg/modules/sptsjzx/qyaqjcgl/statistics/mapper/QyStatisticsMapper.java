@@ -12,6 +12,7 @@ public interface QyStatisticsMapper {
      */
     Map<String, Object> getDataAccessStats(@Param("countycode") String countycode,
                                            @Param("yqType") Integer yqType,
+                                           @Param("parkCode") String parkCode,
                                            @Param("companyCode") String companyCode,
                                            @Param("isScqy") Integer isScqy);
 
@@ -20,6 +21,7 @@ public interface QyStatisticsMapper {
      */
     List<Map<String, Object>> getDeviceTypeStats(@Param("countycode") String countycode,
                                                  @Param("yqType") Integer yqType,
+                                                 @Param("parkCode") String parkCode,
                                                  @Param("companyCode") String companyCode,
                                                  @Param("isScqy") Integer isScqy);
 
@@ -28,6 +30,7 @@ public interface QyStatisticsMapper {
      */
     Map<String, Object> getOtherStats(@Param("countycode") String countycode,
                                       @Param("yqType") Integer yqType,
+                                      @Param("parkCode") String parkCode,
                                       @Param("companyCode") String companyCode,
                                       @Param("isScqy") Integer isScqy);
 }

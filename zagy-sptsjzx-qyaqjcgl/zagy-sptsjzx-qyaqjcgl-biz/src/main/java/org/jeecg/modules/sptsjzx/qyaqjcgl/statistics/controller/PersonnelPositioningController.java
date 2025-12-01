@@ -25,13 +25,14 @@ public class PersonnelPositioningController {
     public Result<PersonnelPositioningStatisticsDTO> getPersonnelPositioningStatistics(
             @ApiParam("区县编码") @RequestParam(required = false) String countycode,
             @ApiParam("园区类型") @RequestParam(required = false) Integer yqType,
+            @ApiParam("园区编码") @RequestParam(required = false) String parkCode,
             @ApiParam("企业编码") @RequestParam(required = false) String companyCode,
             @ApiParam("是否生产企业") @RequestParam(required = false) Integer isScqy,
             @ApiParam("报警状态: all-全部, alarming-报警中, dispelled-已消警")
             @RequestParam(required = false, defaultValue = "all") String alarmStatus) {
 
         PersonnelPositioningStatisticsDTO statistics = service.getPersonnelPositioningStatistics(
-                countycode, yqType, companyCode, isScqy, alarmStatus
+                countycode, yqType, parkCode, companyCode, isScqy, alarmStatus
         );
 
         return Result.ok(statistics);

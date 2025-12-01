@@ -33,10 +33,12 @@ public class StatisticsController {
     public Result<StatisticsVO> getStatistics(
             @ApiParam(value = "区县编码", required = false) @RequestParam(required = false) String countycode,
             @ApiParam(value = "园区类型", required = false) @RequestParam(required = false) Integer yqType,
+            @ApiParam(value = "园区编码", required = false) @RequestParam(required = false) String parkCode,
+            @ApiParam(value = "企业编码", required = false) @RequestParam(required = false) String companyCode,
             @ApiParam(value = "是否生产企业(0-否,1-是)", required = false) @RequestParam(required = false) Integer isScqy) {
-        
+
         try {
-            StatisticsVO statistics = statisticsService.getStatistics(countycode, yqType, isScqy);
+            StatisticsVO statistics = statisticsService.getStatistics(countycode, yqType, parkCode, companyCode, isScqy);
             return Result.OK(statistics);
         } catch (Exception e) {
             log.error("获取统计数据失败", e);

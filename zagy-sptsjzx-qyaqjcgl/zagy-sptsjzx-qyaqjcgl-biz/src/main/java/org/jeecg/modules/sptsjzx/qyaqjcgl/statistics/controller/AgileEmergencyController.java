@@ -24,11 +24,12 @@ public class AgileEmergencyController {
     @GetMapping("/agileEmergency")
     public Result<AgileEmergencyStatisticsDTO> getAgileEmergencyStatistics(
             @ApiParam("园区编码") @RequestParam(required = false) String parkCode,
+            @ApiParam("企业编码") @RequestParam(required = false) String companyCode,
             @ApiParam("区县编码") @RequestParam(required = false) String countycode,
             @ApiParam("演练类型") @RequestParam(required = false) String drillType) {
 
         AgileEmergencyStatisticsDTO statistics = service.getAgileEmergencyStatistics(
-                parkCode, countycode, drillType
+                parkCode, companyCode, countycode, drillType
         );
 
         return Result.ok(statistics);

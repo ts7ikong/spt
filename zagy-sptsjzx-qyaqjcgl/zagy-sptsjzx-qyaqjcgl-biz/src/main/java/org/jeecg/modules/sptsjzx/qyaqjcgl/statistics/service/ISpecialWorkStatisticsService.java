@@ -10,6 +10,7 @@ public interface ISpecialWorkStatisticsService {
      */
     SpecialWorkStatisticsDTO getSpecialWorkStatistics(String countycode,
                                                       Integer yqType,
+                                                      String parkCode,
                                                       String companyCode,
                                                       Integer isScqy);
 }

@@ -14,6 +14,12 @@
         <if test="yqType != null">
             AND ac.yq_type = #{yqType}
         </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND ac.yqcode = #{parkCode}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND ac.company_code = #{companyCode}
+        </if>
         <if test="isScqy != null">
             AND ac.is_scqy = #{isScqy}
         </if>
@@ -29,6 +35,12 @@
         </if>
         <if test="yqType != null">
             AND ac.yq_type = #{yqType}
+        </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND ac.yqcode = #{parkCode}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND ac.company_code = #{companyCode}
         </if>
         <if test="isScqy != null">
             AND ac.is_scqy = #{isScqy}
@@ -47,6 +59,12 @@
         <if test="yqType != null">
             AND ac.yq_type = #{yqType}
         </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND ac.yqcode = #{parkCode}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND ac.company_code = #{companyCode}
+        </if>
     </select>
 
     <!-- 统计重大危险源企业数量 -->
@@ -60,6 +78,12 @@
         </if>
         <if test="yqType != null">
             AND ac.yq_type = #{yqType}
+        </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND ac.yqcode = #{parkCode}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND ac.company_code = #{companyCode}
         </if>
         <if test="isScqy != null">
             AND ac.is_scqy = #{isScqy}
