@@ -19,50 +19,51 @@ public class PersonnelPositioningServiceImpl implements IPersonnelPositioningSer
     
     @Override
     public PersonnelPositioningStatisticsDTO getPersonnelPositioningStatistics(
-            String countycode, 
+            String countycode,
             Integer yqType,
-            String companyCode, 
+            String parkCode,
+            String companyCode,
             Integer isScqy,
             String alarmStatus) {
-        
+
         PersonnelPositioningStatisticsDTO dto = new PersonnelPositioningStatisticsDTO();
-        
+
         // 1. 接入情况统计
-        Map<String, Object> accessStats = mapper.getPositioningAccessStats(countycode, yqType, companyCode, isScqy);
-        PersonnelPositioningStatisticsDTO.AccessStats positioningAccessStats = 
+        Map<String, Object> accessStats = mapper.getPositioningAccessStats(countycode, yqType, parkCode, companyCode, isScqy);
+        PersonnelPositioningStatisticsDTO.AccessStats positioningAccessStats =
             new PersonnelPositioningStatisticsDTO.AccessStats();
         positioningAccessStats.setFullAccess(((Number) accessStats.get("fullAccess")).intValue());
         positioningAccessStats.setPartialAccess(((Number) accessStats.get("partialAccess")).intValue());
         positioningAccessStats.setNotAccess(((Number) accessStats.get("notAccess")).intValue());
         positioningAccessStats.setTotal(((Number) accessStats.get("total")).intValue());
         dto.setPositioningAccessStats(positioningAccessStats);
-        
+
         // 2. 人员类型统计(饼图)
-        List<Map<String, Object>> personnelTypeStats = mapper.getPersonnelTypeStats(countycode, yqType, companyCode, isScqy);
+        List<Map<String, Object>> personnelTypeStats = mapper.getPersonnelTypeStats(countycode, yqType, parkCode, companyCode, isScqy);
         dto.setPersonnelTypeStats(personnelTypeStats);
-        
+
         // 3. 人员总数
-        Integer personnelTotalCount = mapper.getPersonnelTotalCount(countycode, yqType, companyCode, isScqy);
+        Integer personnelTotalCount = mapper.getPersonnelTotalCount(countycode, yqType, parkCode, companyCode, isScqy);
         dto.setPersonnelTotalCount(personnelTotalCount != null ? personnelTotalCount : 0);
-        
+
         // 4. 区域统计
-        Map<String, Object> zoneStats = mapper.getZoneStats(countycode, yqType, companyCode, isScqy);
+        Map<String, Object> zoneStats = mapper.getZoneStats(countycode, yqType, parkCode, companyCode, isScqy);
         dto.setTemporaryZoneCount(((Number) zoneStats.get("temporaryZoneCount")).intValue());
         dto.setFixedZoneCount(((Number) zoneStats.get("fixedZoneCount")).intValue());
         dto.setTotalZoneCount(((Number) zoneStats.get("totalZoneCount")).intValue());
-        
+
         // 5. 人员聚集报警数量
-        Integer crowdAlarmCount = mapper.getCrowdAlarmCount(countycode, yqType, companyCode, isScqy);
+        Integer crowdAlarmCount = mapper.getCrowdAlarmCount(countycode, yqType, parkCode, companyCode, isScqy);
         dto.setCrowdAlarmCount(crowdAlarmCount != null ? crowdAlarmCount : 0);
-        
+
         // 6. 报警分类统计 - 合并人员报警和区域报警
         // 人员报警(rybjsj): SOS报警, 越界报警, 滞留报警, 静止报警, 离场报警
         List<Map<String, Object>> personnelAlarms = mapper.getPersonnelAlarmStats(
-            countycode, yqType, companyCode, isScqy, alarmStatus);
-        
+            countycode, yqType, parkCode, companyCode, isScqy, alarmStatus);
+
         // 区域报警(qybjsj): 超员报警, 缺员报警, 缺岗报警
         List<Map<String, Object>> zoneAlarms = mapper.getZoneAlarmStats(
-            countycode, yqType, companyCode, isScqy, alarmStatus);
+            countycode, yqType, parkCode, companyCode, isScqy, alarmStatus);
         
         // 合并报警统计,按报警类型名称分组求和
         Map<String, Integer> alarmMap = new HashMap<>();

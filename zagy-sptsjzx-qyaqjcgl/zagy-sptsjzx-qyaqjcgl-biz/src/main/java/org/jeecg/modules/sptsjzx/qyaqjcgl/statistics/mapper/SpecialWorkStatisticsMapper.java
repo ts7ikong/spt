@@ -13,30 +13,34 @@ public interface SpecialWorkStatisticsMapper {
      */
     Map<String, Object> getTicketAccessStats(@Param("countycode") String countycode,
                                              @Param("yqType") Integer yqType,
+                                             @Param("parkCode") String parkCode,
                                              @Param("companyCode") String companyCode,
                                              @Param("isScqy") Integer isScqy);
-    
+
     /**
      * 获取作业票状态统计
      */
     List<Map<String, Object>> getTicketStatusStats(@Param("countycode") String countycode,
                                                    @Param("yqType") Integer yqType,
+                                                   @Param("parkCode") String parkCode,
                                                    @Param("companyCode") String companyCode,
                                                    @Param("isScqy") Integer isScqy);
-    
+
     /**
      * 获取作业大类统计
      */
     List<Map<String, Object>> getTicketTypeStats(@Param("countycode") String countycode,
                                                  @Param("yqType") Integer yqType,
+                                                 @Param("parkCode") String parkCode,
                                                  @Param("companyCode") String companyCode,
                                                  @Param("isScqy") Integer isScqy);
-    
+
     /**
      * 获取作业票总数
      */
     Integer getTicketTotalCount(@Param("countycode") String countycode,
                                @Param("yqType") Integer yqType,
+                               @Param("parkCode") String parkCode,
                                @Param("companyCode") String companyCode,
                                @Param("isScqy") Integer isScqy);
 }
