@@ -2,12 +2,15 @@ package org.jeecg.modules.sptsjzx.mjyj.yjyasj.controller;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
 import org.jeecg.modules.sptsjzx.mjyj.yjyasj.entity.Yjyaxx;
 import org.jeecg.modules.sptsjzx.mjyj.yjyasj.service.IYjyaxxService;
 
@@ -36,6 +39,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/mjyj/yjyasj/yjyaxx")
 @Slf4j
 public class YjyaxxController extends JeecgController<Yjyaxx, IYjyaxxService> {
+
+	@Autowired
+	private IYqjbxxService yqjbxxService;
+
 	@Autowired
 	private IYjyaxxService yjyaxxService;
 	
@@ -67,6 +74,13 @@ public class YjyaxxController extends JeecgController<Yjyaxx, IYjyaxxService> {
         customeRuleMap.put("reviseState", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Yjyaxx> queryWrapper = QueryGenerator.initQueryWrapper(yjyaxx, req.getParameterMap(),customeRuleMap);
+
+		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
+		if (DataScopeHelper.needDataScope()) {
+			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
+			DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
+		}
 		Page<Yjyaxx> page = new Page<Yjyaxx>(pageNo, pageSize);
 		IPage<Yjyaxx> pageList = yjyaxxService.page(page, queryWrapper);
 		return Result.OK(pageList);
