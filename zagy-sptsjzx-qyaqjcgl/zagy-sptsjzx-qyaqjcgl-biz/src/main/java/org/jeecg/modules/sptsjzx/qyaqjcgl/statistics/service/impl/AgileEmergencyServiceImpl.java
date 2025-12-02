@@ -17,6 +17,7 @@ public class AgileEmergencyServiceImpl implements IAgileEmergencyService {
 
     @Override
     public AgileEmergencyStatisticsDTO getAgileEmergencyStatistics(String parkCode,
+                                                                   String companyCode,
                                                                    String countycode,
                                                                    String drillType) {
 

@@ -23,12 +23,14 @@ public class DataScopeHelper {
 
     /**
      * 获取当前登录用户的区县编码（orgCode）
+     *
      * @return 区县编码，如果未登录则返回null
      */
     public static String getCurrentUserOrgCode() {
         try {
             LoginUser loginUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
             if (loginUser != null) {
+                System.out.println("当前登录的用户的orgCode:" + loginUser.getOrgCode());
                 return loginUser.getOrgCode();
             }
         } catch (Exception e) {
@@ -39,6 +41,7 @@ public class DataScopeHelper {
 
     /**
      * 获取当前登录用户
+     *
      * @return 登录用户信息
      */
     public static LoginUser getCurrentUser() {
@@ -53,7 +56,7 @@ public class DataScopeHelper {
     /**
      * 判断当前用户是否是市级平台账号
      * 市级平台账号可以看到所有区县的数据，不受数据权限限制
-     *
+     * <p>
      * 判断规则：
      * 1. orgCode为null或空字符串 → 市级平台
      * 2. orgCode为"500000"或以"0000"结尾 → 市级平台
@@ -119,8 +122,8 @@ public class DataScopeHelper {
      *
      * @param queryWrapper 查询条件包装器
      * @param companyCodes 企业编码列表
-     * @param fieldName 字段名（如：company_code, companyCode, reportCompanyCode等）
-     * @param <T> 实体类型
+     * @param fieldName    字段名（如：company_code, companyCode, reportCompanyCode等）
+     * @param <T>          实体类型
      */
     public static <T> void applyCompanyCodeFilter(QueryWrapper<T> queryWrapper, List<String> companyCodes, String fieldName) {
         if (companyCodes != null && !companyCodes.isEmpty()) {
@@ -135,9 +138,9 @@ public class DataScopeHelper {
      * 为QueryWrapper添加园区编码的数据权限过滤条件
      *
      * @param queryWrapper 查询条件包装器
-     * @param parkCodes 园区编码列表
-     * @param fieldName 字段名（如：park_code, parkCode等）
-     * @param <T> 实体类型
+     * @param parkCodes    园区编码列表
+     * @param fieldName    字段名（如：park_code, parkCode等）
+     * @param <T>          实体类型
      */
     public static <T> void applyParkCodeFilter(QueryWrapper<T> queryWrapper, List<String> parkCodes, String fieldName) {
         if (parkCodes != null && !parkCodes.isEmpty()) {
@@ -153,13 +156,18 @@ public class DataScopeHelper {
      * 用于直接包含countycode字段的表
      *
      * @param queryWrapper 查询条件包装器
-     * @param fieldName 字段名（如：countycode, county_code等）
-     * @param <T> 实体类型
+     * @param fieldName    字段名（如：countycode, county_code等）
+     * @param <T>          实体类型
      */
     public static <T> void applyOrgCodeFilter(QueryWrapper<T> queryWrapper, String fieldName) {
         String orgCode = getCurrentUserOrgCode();
         if (orgCode != null && !orgCode.isEmpty()) {
-            queryWrapper.eq(fieldName, orgCode);
+            if (orgCode.equals("500000")) {
+                queryWrapper.eq("provincecode", orgCode);
+            } else {
+                queryWrapper.eq(fieldName, orgCode);
+            }
+
         }
     }
 }
