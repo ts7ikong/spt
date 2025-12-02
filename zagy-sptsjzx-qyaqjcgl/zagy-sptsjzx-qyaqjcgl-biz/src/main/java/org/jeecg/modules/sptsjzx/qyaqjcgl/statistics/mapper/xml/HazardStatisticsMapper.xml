@@ -20,6 +20,9 @@
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND c.yqcode = #{parkCode}
+        </if>
         <if test="companyCode != null and companyCode != ''">
             AND h.company_code = #{companyCode}
         </if>
@@ -46,6 +49,9 @@
         </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
+        </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND c.yqcode = #{parkCode}
         </if>
         <if test="companyCode != null and companyCode != ''">
             AND h.company_code = #{companyCode}
@@ -75,6 +81,9 @@
         </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
+        </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND c.yqcode = #{parkCode}
         </if>
         <if test="companyCode != null and companyCode != ''">
             AND h.company_code = #{companyCode}
@@ -106,6 +115,9 @@
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND c.yqcode = #{parkCode}
+        </if>
         <if test="companyCode != null and companyCode != ''">
             AND q.company_code = #{companyCode}
         </if>
@@ -129,6 +141,9 @@
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND c.yqcode = #{parkCode}
+        </if>
         <if test="companyCode != null and companyCode != ''">
             AND y.company_code = #{companyCode}
         </if>
@@ -148,6 +163,9 @@
         </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
+        </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND c.yqcode = #{parkCode}
         </if>
         <if test="companyCode != null and companyCode != ''">
             AND j.company_code = #{companyCode}
