@@ -30,7 +30,6 @@ public class DataScopeHelper {
         try {
             LoginUser loginUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
             if (loginUser != null) {
-                System.out.println("当前登录的用户的orgCode:" + loginUser.getOrgCode());
                 return loginUser.getOrgCode();
             }
         } catch (Exception e) {
