@@ -33,8 +33,11 @@
                 AND c.yqcode = #{parkCode}
                 )
             </if>
-            <if test="companyCode != null and companyCode != ''">
-                AND a.company_code = #{companyCode}
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND a.company_code IN
+                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
             </if>
             <if test="isScqy != null">
                 AND EXISTS (
@@ -73,8 +76,11 @@
             <if test="parkCode != null and parkCode != ''">
                 AND c.yqcode = #{parkCode}
             </if>
-            <if test="companyCode != null and companyCode != ''">
-                AND e.company_code = #{companyCode}
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND e.company_code IN
+                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
             </if>
             <if test="isScqy != null">
                 AND c.is_scqy = #{isScqy}
@@ -104,8 +110,11 @@
             <if test="parkCode != null and parkCode != ''">
                 AND c.yqcode = #{parkCode}
             </if>
-            <if test="companyCode != null and companyCode != ''">
-                AND z.company_code = #{companyCode}
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND z.company_code IN
+                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
             </if>
             <if test="isScqy != null">
                 AND c.is_scqy = #{isScqy}
@@ -131,8 +140,11 @@
             <if test="parkCode != null and parkCode != ''">
                 AND c.yqcode = #{parkCode}
             </if>
-            <if test="companyCode != null and companyCode != ''">
-                AND r.company_code = #{companyCode}
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND r.company_code IN
+                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
             </if>
             <if test="isScqy != null">
                 AND c.is_scqy = #{isScqy}
@@ -185,8 +197,11 @@
             <if test="parkCode != null and parkCode != ''">
                 AND c.yqcode = #{parkCode}
             </if>
-            <if test="companyCode != null and companyCode != ''">
-                AND r.company_code = #{companyCode}
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND r.company_code IN
+                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
             </if>
             <if test="isScqy != null">
                 AND c.is_scqy = #{isScqy}
@@ -238,8 +253,11 @@
             <if test="parkCode != null and parkCode != ''">
                 AND c.yqcode = #{parkCode}
             </if>
-            <if test="companyCode != null and companyCode != ''">
-                AND q.company_code = #{companyCode}
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND q.company_code IN
+                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
             </if>
             <if test="isScqy != null">
                 AND c.is_scqy = #{isScqy}
@@ -266,8 +284,11 @@
             <if test="parkCode != null and parkCode != ''">
                 AND c.yqcode = #{parkCode}
             </if>
-            <if test="companyCode != null and companyCode != ''">
-                AND e.company_code = #{companyCode}
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND e.company_code IN
+                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
             </if>
             <if test="isScqy != null">
                 AND c.is_scqy = #{isScqy}
