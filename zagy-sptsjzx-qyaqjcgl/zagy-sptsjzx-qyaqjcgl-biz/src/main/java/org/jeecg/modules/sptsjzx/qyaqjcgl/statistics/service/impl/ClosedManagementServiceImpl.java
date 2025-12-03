@@ -17,6 +17,7 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
     
     @Override
     public ClosedManagementStatisticsDTO getClosedManagementStatistics(String parkCode,
+                                                                       String companyCode,
                                                                        String countycode,
                                                                        String timeRange) {
         
