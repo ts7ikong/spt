@@ -7,14 +7,14 @@ import java.util.Map;
 
 @Mapper
 public interface PersonnelPositioningMapper {
-    
+
     /**
      * 获取人员定位接入情况统计
      */
     Map<String, Object> getPositioningAccessStats(@Param("countycode") String countycode,
                                                   @Param("yqType") Integer yqType,
                                                   @Param("parkCode") String parkCode,
-                                                  @Param("companyCode") String companyCode,
+                                                  @Param("companyCodes") List<String> companyCodes,
                                                   @Param("isScqy") Integer isScqy);
 
     /**
@@ -23,7 +23,7 @@ public interface PersonnelPositioningMapper {
     List<Map<String, Object>> getPersonnelTypeStats(@Param("countycode") String countycode,
                                                     @Param("yqType") Integer yqType,
                                                     @Param("parkCode") String parkCode,
-                                                    @Param("companyCode") String companyCode,
+                                                    @Param("companyCodes") List<String> companyCodes,
                                                     @Param("isScqy") Integer isScqy);
 
     /**
@@ -32,7 +32,7 @@ public interface PersonnelPositioningMapper {
     Map<String, Object> getZoneStats(@Param("countycode") String countycode,
                                      @Param("yqType") Integer yqType,
                                      @Param("parkCode") String parkCode,
-                                     @Param("companyCode") String companyCode,
+                                     @Param("companyCodes") List<String> companyCodes,
                                      @Param("isScqy") Integer isScqy);
 
     /**
@@ -41,7 +41,7 @@ public interface PersonnelPositioningMapper {
     Integer getCrowdAlarmCount(@Param("countycode") String countycode,
                               @Param("yqType") Integer yqType,
                               @Param("parkCode") String parkCode,
-                              @Param("companyCode") String companyCode,
+                              @Param("companyCodes") List<String> companyCodes,
                               @Param("isScqy") Integer isScqy);
 
     /**
@@ -50,7 +50,7 @@ public interface PersonnelPositioningMapper {
     List<Map<String, Object>> getPersonnelAlarmStats(@Param("countycode") String countycode,
                                                      @Param("yqType") Integer yqType,
                                                      @Param("parkCode") String parkCode,
-                                                     @Param("companyCode") String companyCode,
+                                                     @Param("companyCodes") List<String> companyCodes,
                                                      @Param("isScqy") Integer isScqy,
                                                      @Param("alarmStatus") String alarmStatus);
 
@@ -60,7 +60,7 @@ public interface PersonnelPositioningMapper {
     List<Map<String, Object>> getZoneAlarmStats(@Param("countycode") String countycode,
                                                @Param("yqType") Integer yqType,
                                                @Param("parkCode") String parkCode,
-                                               @Param("companyCode") String companyCode,
+                                               @Param("companyCodes") List<String> companyCodes,
                                                @Param("isScqy") Integer isScqy,
                                                @Param("alarmStatus") String alarmStatus);
 
@@ -70,6 +70,6 @@ public interface PersonnelPositioningMapper {
     Integer getPersonnelTotalCount(@Param("countycode") String countycode,
                                   @Param("yqType") Integer yqType,
                                   @Param("parkCode") String parkCode,
-                                  @Param("companyCode") String companyCode,
+                                  @Param("companyCodes") List<String> companyCodes,
                                   @Param("isScqy") Integer isScqy);
 }

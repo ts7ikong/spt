@@ -10,21 +10,21 @@ public interface HazardStatisticsMapper {
     List<Map<String, Object>> getHazardAccessStats(@Param("countycode") String countycode,
                                                              @Param("yqType") Integer yqType,
                                                              @Param("parkCode") String parkCode,
-                                                             @Param("companyCode") String companyCode,
+                                                             @Param("companyCodes") List<String> companyCodes,
                                                              @Param("isScqy") Integer isScqy);
 
     // 获取危险源等级统计
     List<Map<String, Object>> getHazardLevelStats(@Param("countycode") String countycode,
                                                     @Param("yqType") Integer yqType,
                                                     @Param("parkCode") String parkCode,
-                                                    @Param("companyCode") String companyCode,
+                                                    @Param("companyCodes") List<String> companyCodes,
                                                     @Param("isScqy") Integer isScqy);
 
     // 获取当日安全承诺统计
     Map<String, Object> getTodayCommitmentStats(@Param("countycode") String countycode,
                                                  @Param("yqType") Integer yqType,
                                                  @Param("parkCode") String parkCode,
-                                                 @Param("companyCode") String companyCode,
+                                                 @Param("companyCodes") List<String> companyCodes,
                                                  @Param("isScqy") Integer isScqy,
                                                  @Param("today") String today);
 
@@ -32,6 +32,6 @@ public interface HazardStatisticsMapper {
     Map<String, Object> getWarningStats(@Param("countycode") String countycode,
                                          @Param("yqType") Integer yqType,
                                          @Param("parkCode") String parkCode,
-                                         @Param("companyCode") String companyCode,
+                                         @Param("companyCodes") List<String> companyCodes,
                                          @Param("isScqy") Integer isScqy);
 }

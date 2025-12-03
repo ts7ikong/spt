@@ -21,12 +21,12 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
     public SpecialWorkStatisticsDTO getSpecialWorkStatistics(String countycode,
                                                              Integer yqType,
                                                              String parkCode,
-                                                             String companyCode,
+                                                             List<String> companyCodes,
                                                              Integer isScqy) {
         SpecialWorkStatisticsDTO dto = new SpecialWorkStatisticsDTO();
 
         // 1. 接入情况统计
-        Map<String, Object> accessStats = mapper.getTicketAccessStats(countycode, yqType, parkCode, companyCode, isScqy);
+        Map<String, Object> accessStats = mapper.getTicketAccessStats(countycode, yqType, parkCode, companyCodes, isScqy);
         SpecialWorkStatisticsDTO.AccessStats ticketAccessStats = new SpecialWorkStatisticsDTO.AccessStats();
         ticketAccessStats.setFullAccess(((Number) accessStats.get("fullAccess")).intValue());
         ticketAccessStats.setPartialAccess(((Number) accessStats.get("partialAccess")).intValue());
@@ -35,15 +35,15 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
         dto.setTicketAccessStats(ticketAccessStats);
 
         // 2. 作业票状态统计(饼图)
-        List<Map<String, Object>> statusStats = mapper.getTicketStatusStats(countycode, yqType, parkCode, companyCode, isScqy);
+        List<Map<String, Object>> statusStats = mapper.getTicketStatusStats(countycode, yqType, parkCode, companyCodes, isScqy);
         dto.setTicketStatusStats(statusStats);
 
         // 3. 作业大类统计(柱状图)
-        List<Map<String, Object>> typeStats = mapper.getTicketTypeStats(countycode, yqType, parkCode, companyCode, isScqy);
+        List<Map<String, Object>> typeStats = mapper.getTicketTypeStats(countycode, yqType, parkCode, companyCodes, isScqy);
         dto.setTicketTypeStats(typeStats);
 
         // 4. 作业票总数
-        Integer totalCount = mapper.getTicketTotalCount(countycode, yqType, parkCode, companyCode, isScqy);
+        Integer totalCount = mapper.getTicketTotalCount(countycode, yqType, parkCode, companyCodes, isScqy);
         dto.setTicketTotalCount(totalCount != null ? totalCount : 0);
 
         return dto;

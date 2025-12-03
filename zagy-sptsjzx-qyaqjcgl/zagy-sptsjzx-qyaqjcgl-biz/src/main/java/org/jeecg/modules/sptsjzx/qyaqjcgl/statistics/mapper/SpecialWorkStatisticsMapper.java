@@ -7,14 +7,14 @@ import java.util.Map;
 
 @Mapper
 public interface SpecialWorkStatisticsMapper {
-    
+
     /**
      * 获取作业票接入情况统计
      */
     Map<String, Object> getTicketAccessStats(@Param("countycode") String countycode,
                                              @Param("yqType") Integer yqType,
                                              @Param("parkCode") String parkCode,
-                                             @Param("companyCode") String companyCode,
+                                             @Param("companyCodes") List<String> companyCodes,
                                              @Param("isScqy") Integer isScqy);
 
     /**
@@ -23,7 +23,7 @@ public interface SpecialWorkStatisticsMapper {
     List<Map<String, Object>> getTicketStatusStats(@Param("countycode") String countycode,
                                                    @Param("yqType") Integer yqType,
                                                    @Param("parkCode") String parkCode,
-                                                   @Param("companyCode") String companyCode,
+                                                   @Param("companyCodes") List<String> companyCodes,
                                                    @Param("isScqy") Integer isScqy);
 
     /**
@@ -32,7 +32,7 @@ public interface SpecialWorkStatisticsMapper {
     List<Map<String, Object>> getTicketTypeStats(@Param("countycode") String countycode,
                                                  @Param("yqType") Integer yqType,
                                                  @Param("parkCode") String parkCode,
-                                                 @Param("companyCode") String companyCode,
+                                                 @Param("companyCodes") List<String> companyCodes,
                                                  @Param("isScqy") Integer isScqy);
 
     /**
@@ -41,6 +41,6 @@ public interface SpecialWorkStatisticsMapper {
     Integer getTicketTotalCount(@Param("countycode") String countycode,
                                @Param("yqType") Integer yqType,
                                @Param("parkCode") String parkCode,
-                               @Param("companyCode") String companyCode,
+                               @Param("companyCodes") List<String> companyCodes,
                                @Param("isScqy") Integer isScqy);
 }
