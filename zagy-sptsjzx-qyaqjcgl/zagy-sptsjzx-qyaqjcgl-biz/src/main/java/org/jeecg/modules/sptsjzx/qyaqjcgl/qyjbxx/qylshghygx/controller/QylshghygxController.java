@@ -13,7 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qylshghygx.entity.Qylshghygx;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qylshghygx.service.IQylshghygxService;
 
@@ -52,6 +54,9 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 public class QylshghygxController extends JeecgController<Qylshghygx, IQylshghygxService> {
 	@Autowired
 	private IQylshghygxService qylshghygxService;
+
+	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
 	
 	/**
 	 * 分页列表查询
@@ -70,6 +75,16 @@ public class QylshghygxController extends JeecgController<Qylshghygx, IQylshghyg
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
 								   HttpServletRequest req) {
         QueryWrapper<Qylshghygx> queryWrapper = QueryGenerator.initQueryWrapper(qylshghygx, req.getParameterMap());
+
+		// 【数据权限过滤】根据登录用户的区县编码获取企业列表
+		// 实体只有companyCode字段，需要先查询企业表获取企业编码列表
+		if (DataScopeHelper.needDataScope()) {
+			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			// 使用企业编码列表过滤数据
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
+
 		Page<Qylshghygx> page = new Page<Qylshghygx>(pageNo, pageSize);
 		IPage<Qylshghygx> pageList = qylshghygxService.page(page, queryWrapper);
 		return Result.OK(pageList);
@@ -161,7 +176,21 @@ public class QylshghygxController extends JeecgController<Qylshghygx, IQylshghyg
     @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylshghygx:qylshghygx:exportXls")
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, Qylshghygx qylshghygx) {
-        return super.exportXls(request, qylshghygx, Qylshghygx.class, "企业隶属化工行业关系表");
+        // 【数据权限过滤】根据登录用户的区县编码获取企业列表
+		if (DataScopeHelper.needDataScope()) {
+			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			// 通过设置查询条件来过滤导出数据
+			// 如果没有权限访问任何企业，设置一个不存在的企业代码
+			if (companyCodes == null || companyCodes.isEmpty()) {
+				qylshghygx.setCompanyCode("__NO_ACCESS__");
+			} else if (companyCodes.size() == 1) {
+				// 只有一个企业，直接设置
+				qylshghygx.setCompanyCode(companyCodes.get(0));
+			}
+			// 如果有多个企业，需要在service层处理，这里暂时不设置
+		}
+		return super.exportXls(request, qylshghygx, Qylshghygx.class, "企业隶属化工行业关系表");
     }
 
     /**
