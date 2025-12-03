@@ -1,6 +1,12 @@
 server:
   tomcat:
     max-swallow-size: -1
+    connection-timeout: 60000  # Tomcat连接超时时间(毫秒) - 60秒
+    accept-count: 1000  # 最大等待队列长度
+    max-connections: 10000  # 最大连接数
+    threads:
+      max: 200  # 最大工作线程数
+      min-spare: 10  # 最小空闲线程数
   error:
     include-exception: true
     include-stacktrace: ALWAYS
@@ -82,6 +88,8 @@ spring:
     template-loader-path:
       - classpath:/templates
   mvc:
+    async:
+      request-timeout: 60000  # 异步请求超时时间(毫秒) - 60秒
     static-path-pattern: /**
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -100,3 +108,6 @@ mybatis-plus:
       table-underline: true
   configuration:
     call-setters-on-nulls: true
+    default-statement-timeout: 60  # MyBatis SQL执行超时时间(秒) - 60秒
+    jdbc-type-for-null: NULL
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
