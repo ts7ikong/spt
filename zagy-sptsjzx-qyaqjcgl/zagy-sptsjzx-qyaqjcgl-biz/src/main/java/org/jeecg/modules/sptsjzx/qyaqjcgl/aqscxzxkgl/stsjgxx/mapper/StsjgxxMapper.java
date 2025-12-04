@@ -1,9 +1,6 @@
-package org.jeecg.modules.sptsjzx.aqjcgl.aqscxzxkgl.stsjgxx.mapper;
+package org.jeecg.modules.sptsjzx.qyaqjcgl.aqscxzxkgl.stsjgxx.mapper;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Param;
-import org.jeecg.modules.sptsjzx.aqjcgl.aqscxzxkgl.stsjgxx.entity.Stsjgxx;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.aqscxzxkgl.stsjgxx.entity.Stsjgxx;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

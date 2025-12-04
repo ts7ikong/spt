@@ -1,8 +1,8 @@
-package org.jeecg.modules.sptsjzx.aqjcgl.aqscxzxkgl.stsjgxx.service.impl;
+package org.jeecg.modules.sptsjzx.qyaqjcgl.aqscxzxkgl.stsjgxx.service.impl;
 
-import org.jeecg.modules.sptsjzx.aqjcgl.aqscxzxkgl.stsjgxx.entity.Stsjgxx;
-import org.jeecg.modules.sptsjzx.aqjcgl.aqscxzxkgl.stsjgxx.mapper.StsjgxxMapper;
-import org.jeecg.modules.sptsjzx.aqjcgl.aqscxzxkgl.stsjgxx.service.IStsjgxxService;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.aqscxzxkgl.stsjgxx.entity.Stsjgxx;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.aqscxzxkgl.stsjgxx.mapper.StsjgxxMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.aqscxzxkgl.stsjgxx.service.IStsjgxxService;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

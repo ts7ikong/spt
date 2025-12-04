@@ -1,6 +1,6 @@
-package org.jeecg.modules.sptsjzx.aqjcgl.aqscxzxkgl.stsjgxx.service;
+package org.jeecg.modules.sptsjzx.qyaqjcgl.aqscxzxkgl.stsjgxx.service;
 
-import org.jeecg.modules.sptsjzx.aqjcgl.aqscxzxkgl.stsjgxx.entity.Stsjgxx;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.aqscxzxkgl.stsjgxx.entity.Stsjgxx;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
