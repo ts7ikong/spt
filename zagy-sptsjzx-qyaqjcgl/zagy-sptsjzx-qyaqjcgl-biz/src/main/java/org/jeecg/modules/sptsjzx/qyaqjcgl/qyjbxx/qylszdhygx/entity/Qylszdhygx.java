@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableField;
 import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.util.SpringContextUtils;
 import lombok.Data;
@@ -47,6 +48,10 @@ public class Qylszdhygx implements Serializable {
 	@Dict(dictTable = "v_accept_company", dicText = "name", dicCode = "code")
     @ApiModelProperty(value = "企业名称")
     private java.lang.String companyCode;
+	/**区县Code*/
+	@TableField(exist = false)
+    @ApiModelProperty(value = "区县Code")
+    private java.lang.String countyCode;
 	/**重点行业编码*/
 	@Excel(name = "重点行业编码", width = 15)
     @ApiModelProperty(value = "重点行业编码")

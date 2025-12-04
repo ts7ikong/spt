@@ -200,7 +200,7 @@ public class QylshghygxController extends JeecgController<Qylshghygx, IQylshghyg
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, Qylshghygx qylshghygx) {
         // 【数据权限过滤】根据登录用户的区县编码获取企业列表
-        if (DataScopeHelper.needDataScope()) {
+        if (!DataScopeHelper.needDataScope()) {
             // 区县账号：只能导出本区县的企业数据
             String orgCode = DataScopeHelper.getCurrentUserOrgCode();
             List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);

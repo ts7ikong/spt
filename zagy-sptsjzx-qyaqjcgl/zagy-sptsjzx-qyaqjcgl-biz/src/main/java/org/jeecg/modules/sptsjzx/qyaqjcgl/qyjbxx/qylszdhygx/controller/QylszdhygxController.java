@@ -80,7 +80,7 @@ public class QylszdhygxController extends JeecgController<Qylszdhygx, IQylszdhyg
 
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表
 		// 实体只有companyCode字段，需要先查询企业表获取企业编码列表
-		if (DataScopeHelper.needDataScope()) {
+		if (!DataScopeHelper.needDataScope()) {
 			// 区县账号：只能查看本区县的企业数据
 			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
@@ -99,6 +99,16 @@ public class QylszdhygxController extends JeecgController<Qylszdhygx, IQylszdhyg
 			}
 		}
 		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+
+		if (qylszdhygx.getCountyCode() != null) {
+			String orgCode = qylszdhygx.getCountyCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			if (companyCodes == null) {
+				// 请求的企业不在当前区县权限范围内，返回空结果
+				return Result.OK(new Page<>(pageNo, pageSize));
+			}
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<Qylszdhygx> page = new Page<Qylszdhygx>(pageNo, pageSize);
 		IPage<Qylszdhygx> pageList = qylszdhygxService.page(page, queryWrapper);
 		return Result.OK(pageList);
