@@ -87,7 +87,7 @@ public class DataScopeHelper {
      */
     public static boolean needDataScope() {
         // 市级平台账号不需要数据权限过滤
-        return !isCityLevelPlatform();
+        return isCityLevelPlatform();
     }
 
     /**
