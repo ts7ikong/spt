@@ -79,7 +79,7 @@ public class DeviceProcessSafetyController extends JeecgController<DeviceProcess
 
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表
 		// 实体只有companyCode字段，需要先查询企业表获取企业编码列表
-		if (DataScopeHelper.needDataScope()) {
+		if (!DataScopeHelper.needDataScope()) {
 			// 区县账号：只能查看本区县的企业数据
 			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);

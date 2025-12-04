@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
@@ -41,164 +42,164 @@ import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
- /**
+/**
  * @Description: 企业隶属重点行业关系
  * @Author: zagy-cg
- * @Date:   2025-06-20
+ * @Date: 2025-06-20
  * @Version: V1.0
  */
-@Api(tags="企业隶属重点行业关系")
+@Api(tags = "企业隶属重点行业关系")
 @RestController
 @RequestMapping("/sptsjzx/qyaqjcgl/qyjbxx/qylszdhygx/qylszdhygx")
 @Slf4j
 public class QylszdhygxController extends JeecgController<Qylszdhygx, IQylszdhygxService> {
-	
 
-	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
-	
-	@Autowired
-	private IQylszdhygxService qylszdhygxService;
-	
-	/**
-	 * 分页列表查询
-	 *
-	 * @param qylszdhygx
-	 * @param pageNo
-	 * @param pageSize
-	 * @param req
-	 * @return
-	 */
-	//@AutoLog(value = "企业隶属重点行业关系-分页列表查询")
-	@ApiOperation(value="企业隶属重点行业关系-分页列表查询", notes="企业隶属重点行业关系-分页列表查询")
-	@GetMapping(value = "/list")
-	public Result<IPage<Qylszdhygx>> queryPageList(Qylszdhygx qylszdhygx,
-								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
-								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
-								   HttpServletRequest req) {
+
+    @Autowired
+    private IAcceptCompanyService acceptCompanyService;
+
+    @Autowired
+    private IQylszdhygxService qylszdhygxService;
+
+    /**
+     * 分页列表查询
+     *
+     * @param qylszdhygx
+     * @param pageNo
+     * @param pageSize
+     * @param req
+     * @return
+     */
+    //@AutoLog(value = "企业隶属重点行业关系-分页列表查询")
+    @ApiOperation(value = "企业隶属重点行业关系-分页列表查询", notes = "企业隶属重点行业关系-分页列表查询")
+    @GetMapping(value = "/list")
+    public Result<IPage<Qylszdhygx>> queryPageList(Qylszdhygx qylszdhygx,
+                                                   @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                   HttpServletRequest req) {
         QueryWrapper<Qylszdhygx> queryWrapper = QueryGenerator.initQueryWrapper(qylszdhygx, req.getParameterMap());
 
 
-		// 【数据权限过滤】根据登录用户的区县编码获取企业列表
-		// 实体只有companyCode字段，需要先查询企业表获取企业编码列表
-		if (!DataScopeHelper.needDataScope()) {
-			// 区县账号：只能查看本区县的企业数据
-			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+        // 【数据权限过滤】根据登录用户的区县编码获取企业列表
+        // 实体只有companyCode字段，需要先查询企业表获取企业编码列表
+        if (!DataScopeHelper.needDataScope()) {
+            // 区县账号：只能查看本区县的企业数据
+            String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+            List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
 
-			// 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
-			String requestCompanyCode = qylszdhygx.getCompanyCode();
-			if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
-				if (companyCodes == null || !companyCodes.contains(requestCompanyCode)) {
-					// 请求的企业不在当前区县权限范围内，返回空结果
-					return Result.OK(new Page<>(pageNo, pageSize));
-				}
-				// 企业在权限范围内，只查询该企业的数据（QueryGenerator已经添加了companyCode条件）
-			} else {
-				// 没有指定企业，使用企业编码列表过滤数据
-				DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-			}
-		}
-		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+            // 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
+            String requestCompanyCode = qylszdhygx.getCompanyCode();
+            if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
+                if (companyCodes == null || !companyCodes.contains(requestCompanyCode)) {
+                    // 请求的企业不在当前区县权限范围内，返回空结果
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                // 企业在权限范围内，只查询该企业的数据（QueryGenerator已经添加了companyCode条件）
+            } else {
+                // 没有指定企业，使用企业编码列表过滤数据
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+            }
+        }
+        // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
 
-		if (qylszdhygx.getCountyCode() != null) {
-			String orgCode = qylszdhygx.getCountyCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-			if (companyCodes == null) {
-				// 请求的企业不在当前区县权限范围内，返回空结果
-				return Result.OK(new Page<>(pageNo, pageSize));
-			}
-			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-		}
-		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-		Page<Qylszdhygx> page = new Page<Qylszdhygx>(pageNo, pageSize);
-		IPage<Qylszdhygx> pageList = qylszdhygxService.page(page, queryWrapper);
-		return Result.OK(pageList);
-	}
-	
-	/**
-	 *   添加
-	 *
-	 * @param qylszdhygx
-	 * @return
-	 */
-	@AutoLog(value = "企业隶属重点行业关系-添加")
-	@ApiOperation(value="企业隶属重点行业关系-添加", notes="企业隶属重点行业关系-添加")
-	@RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:add")
-	@PostMapping(value = "/add")
-	public Result<String> add(@RequestBody Qylszdhygx qylszdhygx) {
-		qylszdhygxService.save(qylszdhygx);
-		return Result.OK("添加成功！");
-	}
-	
-	/**
-	 *  编辑
-	 *
-	 * @param qylszdhygx
-	 * @return
-	 */
-	@AutoLog(value = "企业隶属重点行业关系-编辑")
-	@ApiOperation(value="企业隶属重点行业关系-编辑", notes="企业隶属重点行业关系-编辑")
-	@RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:edit")
-	@RequestMapping(value = "/edit", method = {RequestMethod.PUT,RequestMethod.POST})
-	public Result<String> edit(@RequestBody Qylszdhygx qylszdhygx) {
-		qylszdhygxService.updateById(qylszdhygx);
-		return Result.OK("编辑成功!");
-	}
-	
-	/**
-	 *   通过id删除
-	 *
-	 * @param id
-	 * @return
-	 */
-	@AutoLog(value = "企业隶属重点行业关系-通过id删除")
-	@ApiOperation(value="企业隶属重点行业关系-通过id删除", notes="企业隶属重点行业关系-通过id删除")
-	@RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:delete")
-	@DeleteMapping(value = "/delete")
-	public Result<String> delete(@RequestParam(name="id",required=true) String id) {
-		qylszdhygxService.removeById(id);
-		return Result.OK("删除成功!");
-	}
-	
-	/**
-	 *  批量删除
-	 *
-	 * @param ids
-	 * @return
-	 */
-	@AutoLog(value = "企业隶属重点行业关系-批量删除")
-	@ApiOperation(value="企业隶属重点行业关系-批量删除", notes="企业隶属重点行业关系-批量删除")
-	@RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:deleteBatch")
-	@DeleteMapping(value = "/deleteBatch")
-	public Result<String> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		this.qylszdhygxService.removeByIds(Arrays.asList(ids.split(",")));
-		return Result.OK("批量删除成功!");
-	}
-	
-	/**
-	 * 通过id查询
-	 *
-	 * @param id
-	 * @return
-	 */
-	//@AutoLog(value = "企业隶属重点行业关系-通过id查询")
-	@ApiOperation(value="企业隶属重点行业关系-通过id查询", notes="企业隶属重点行业关系-通过id查询")
-	@GetMapping(value = "/queryById")
-	public Result<Qylszdhygx> queryById(@RequestParam(name="id",required=true) String id) {
-		Qylszdhygx qylszdhygx = qylszdhygxService.getById(id);
-		if(qylszdhygx==null) {
-			return Result.error("未找到对应数据");
-		}
-		return Result.OK(qylszdhygx);
-	}
+        if (qylszdhygx.getCountyCode() != null) {
+            String orgCode = qylszdhygx.getCountyCode();
+            List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+            if (companyCodes == null) {
+                // 请求的企业不在当前区县权限范围内，返回空结果
+                return Result.OK(new Page<>(pageNo, pageSize));
+            }
+            DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+        }
+        // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+        Page<Qylszdhygx> page = new Page<Qylszdhygx>(pageNo, pageSize);
+        IPage<Qylszdhygx> pageList = qylszdhygxService.page(page, queryWrapper);
+        return Result.OK(pageList);
+    }
 
     /**
-    * 导出excel
-    *
-    * @param request
-    * @param qylszdhygx
-    */
+     * 添加
+     *
+     * @param qylszdhygx
+     * @return
+     */
+    @AutoLog(value = "企业隶属重点行业关系-添加")
+    @ApiOperation(value = "企业隶属重点行业关系-添加", notes = "企业隶属重点行业关系-添加")
+    @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:add")
+    @PostMapping(value = "/add")
+    public Result<String> add(@RequestBody Qylszdhygx qylszdhygx) {
+        qylszdhygxService.save(qylszdhygx);
+        return Result.OK("添加成功！");
+    }
+
+    /**
+     * 编辑
+     *
+     * @param qylszdhygx
+     * @return
+     */
+    @AutoLog(value = "企业隶属重点行业关系-编辑")
+    @ApiOperation(value = "企业隶属重点行业关系-编辑", notes = "企业隶属重点行业关系-编辑")
+    @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:edit")
+    @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result<String> edit(@RequestBody Qylszdhygx qylszdhygx) {
+        qylszdhygxService.updateById(qylszdhygx);
+        return Result.OK("编辑成功!");
+    }
+
+    /**
+     * 通过id删除
+     *
+     * @param id
+     * @return
+     */
+    @AutoLog(value = "企业隶属重点行业关系-通过id删除")
+    @ApiOperation(value = "企业隶属重点行业关系-通过id删除", notes = "企业隶属重点行业关系-通过id删除")
+    @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:delete")
+    @DeleteMapping(value = "/delete")
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
+        qylszdhygxService.removeById(id);
+        return Result.OK("删除成功!");
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param ids
+     * @return
+     */
+    @AutoLog(value = "企业隶属重点行业关系-批量删除")
+    @ApiOperation(value = "企业隶属重点行业关系-批量删除", notes = "企业隶属重点行业关系-批量删除")
+    @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:deleteBatch")
+    @DeleteMapping(value = "/deleteBatch")
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        this.qylszdhygxService.removeByIds(Arrays.asList(ids.split(",")));
+        return Result.OK("批量删除成功!");
+    }
+
+    /**
+     * 通过id查询
+     *
+     * @param id
+     * @return
+     */
+    //@AutoLog(value = "企业隶属重点行业关系-通过id查询")
+    @ApiOperation(value = "企业隶属重点行业关系-通过id查询", notes = "企业隶属重点行业关系-通过id查询")
+    @GetMapping(value = "/queryById")
+    public Result<Qylszdhygx> queryById(@RequestParam(name = "id", required = true) String id) {
+        Qylszdhygx qylszdhygx = qylszdhygxService.getById(id);
+        if (qylszdhygx == null) {
+            return Result.error("未找到对应数据");
+        }
+        return Result.OK(qylszdhygx);
+    }
+
+    /**
+     * 导出excel
+     *
+     * @param request
+     * @param qylszdhygx
+     */
     @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:exportXls")
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, Qylszdhygx qylszdhygx) {
@@ -206,12 +207,12 @@ public class QylszdhygxController extends JeecgController<Qylszdhygx, IQylszdhyg
     }
 
     /**
-      * 通过excel导入数据
-    *
-    * @param request
-    * @param response
-    * @return
-    */
+     * 通过excel导入数据
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx:qylszdhygx:importExcel")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {

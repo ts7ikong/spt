@@ -127,7 +127,7 @@ public class AcceptCompanyController extends JeecgController<AcceptCompany, IAcc
         QueryWrapper<AcceptCompany> queryWrapper = new QueryWrapper<>();
 
         // 【数据权限过滤】根据登录用户权限过滤
-        if (DataScopeHelper.needDataScope()) {
+        if (!DataScopeHelper.needDataScope()) {
             // 区县账号：只能看自己区县的企业
             String orgCode = DataScopeHelper.getCurrentUserOrgCode();
             if (orgCode != null && !orgCode.isEmpty()) {
