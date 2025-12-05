@@ -82,4 +82,9 @@ public class ZoneGeo implements Serializable {
 	/**进表时间*/
     @ApiModelProperty(value = "进表时间")
     private java.lang.String createTime;
+	/**区县Code*/
+	@TableField(exist = false)
+	@ApiModelProperty(value = "区县Code")
+	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+	private java.lang.String countyCode;
 }

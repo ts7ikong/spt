@@ -13,12 +13,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.rydwsj.rydwsssj.entity.Rydwqyzxzt;
 import org.jeecg.modules.sptsjzx.rydwsj.rydwsssj.service.IRydwqyzxztService;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,6 +53,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/rydwsj/rydwsssj/rydwqyzxzt")
 @Slf4j
 public class RydwqyzxztController extends JeecgController<Rydwqyzxzt, IRydwqyzxztService> {
+
+	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IRydwqyzxztService rydwqyzxztService;
 	
@@ -75,8 +82,25 @@ public class RydwqyzxztController extends JeecgController<Rydwqyzxzt, IRydwqyzxz
         customeRuleMap.put("companyCode", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("offlineState", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Rydwqyzxzt> queryWrapper = QueryGenerator.initQueryWrapper(rydwqyzxzt, req.getParameterMap(),customeRuleMap);
+
+		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+		if (rydwqyzxzt.getCountyCode() != null) {
+			String orgCode = rydwqyzxzt.getCountyCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			if (companyCodes == null) {
+				// 请求的企业不在当前区县权限范围内，返回空结果
+				return Result.OK(new Page<>(pageNo, pageSize));
+			}
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<Rydwqyzxzt> page = new Page<Rydwqyzxzt>(pageNo, pageSize);
 		IPage<Rydwqyzxzt> pageList = rydwqyzxztService.page(page, queryWrapper);
+		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+			for (Rydwqyzxzt item : pageList.getRecords()) {
+				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+				item.setCountyCode(item.getCompanyCode());
+			}
+		}
 		return Result.OK(pageList);
 	}
 	

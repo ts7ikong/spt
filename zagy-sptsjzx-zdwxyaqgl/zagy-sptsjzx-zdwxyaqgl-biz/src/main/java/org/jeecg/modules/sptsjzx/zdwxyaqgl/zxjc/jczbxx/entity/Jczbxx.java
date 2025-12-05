@@ -4,10 +4,6 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.math.BigDecimal;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.util.SpringContextUtils;
 import lombok.Data;
@@ -19,6 +15,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import com.baomidou.mybatisplus.annotation.*;
 
 /**
  * @Description: 监测指标信息
@@ -136,5 +133,9 @@ public class Jczbxx implements Serializable {
     @Dict(dictTable = "yqjbxx", dicText = "park_name", dicCode = "park_code")
     @ApiModelProperty(value = "园区编码")
     private String parkCode;
-
+	/**区县Code*/
+	@TableField(exist = false)
+	@ApiModelProperty(value = "区县Code")
+	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+	private java.lang.String countyCode;
 }

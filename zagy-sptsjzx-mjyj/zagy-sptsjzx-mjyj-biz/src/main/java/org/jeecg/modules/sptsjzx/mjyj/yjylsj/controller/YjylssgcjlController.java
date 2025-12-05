@@ -24,6 +24,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
  /**
  * @Description: 应急演练实施过程记录
@@ -36,6 +39,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/mjyj/yjylsj/yjylssgcjl")
 @Slf4j
 public class YjylssgcjlController extends JeecgController<Yjylssgcjl, IYjylssgcjlService> {
+
+	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 	@Autowired
 	private IYjylssgcjlService yjylssgcjlService;
 	
@@ -62,8 +69,24 @@ public class YjylssgcjlController extends JeecgController<Yjylssgcjl, IYjylssgcj
         customeRuleMap.put("drillType", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Yjylssgcjl> queryWrapper = QueryGenerator.initQueryWrapper(yjylssgcjl, req.getParameterMap(),customeRuleMap);
-		Page<Yjylssgcjl> page = new Page<Yjylssgcjl>(pageNo, pageSize);
+		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+		if (yjylssgcjl.getCountyCode() != null) {
+			String orgCode = yjylssgcjl.getCountyCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			if (companyCodes == null) {
+				// 请求的企业不在当前区县权限范围内，返回空结果
+				return Result.OK(new Page<>(pageNo, pageSize));
+			}
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
+				Page<Yjylssgcjl> page = new Page<Yjylssgcjl>(pageNo, pageSize);
 		IPage<Yjylssgcjl> pageList = yjylssgcjlService.page(page, queryWrapper);
+		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+			for (Yjylssgcjl item : pageList.getRecords()) {
+				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+				item.setCountyCode(item.getCompanyCode());
+			}
+		}
 		return Result.OK(pageList);
 	}
 	

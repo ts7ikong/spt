@@ -154,4 +154,9 @@ public class AcceptOperationFormal implements Serializable {
     @Excel(name = "顺口溜", width = 15)
     @ApiModelProperty(value = "顺口溜")
     private java.lang.String doggerel;
+	/**区县Code*/
+	@TableField(exist = false)
+	@ApiModelProperty(value = "区县Code")
+	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+	private java.lang.String countyCode;
 }

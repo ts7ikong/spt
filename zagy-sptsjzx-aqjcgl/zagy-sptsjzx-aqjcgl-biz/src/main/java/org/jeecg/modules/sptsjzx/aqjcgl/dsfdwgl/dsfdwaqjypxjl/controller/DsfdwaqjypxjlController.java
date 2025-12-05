@@ -39,6 +39,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
 /**
  * @Description: 第三方单位安全教育培训记录
@@ -51,6 +54,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/aqjcgl/dsfdwgl/dsfdwaqjypxjl/dsfdwaqjypxjl")
 @Slf4j
 public class DsfdwaqjypxjlController extends JeecgController<Dsfdwaqjypxjl, IDsfdwaqjypxjlService> {
+
+	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
     @Autowired
     private IDsfdwaqjypxjlService dsfdwaqjypxjlService;
 
@@ -77,9 +84,25 @@ public class DsfdwaqjypxjlController extends JeecgController<Dsfdwaqjypxjl, IDsf
         customeRuleMap.put("qualified", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Dsfdwaqjypxjl> queryWrapper = QueryGenerator.initQueryWrapper(dsfdwaqjypxjl, req.getParameterMap(), customeRuleMap);
-        Page<Dsfdwaqjypxjl> page = new Page<Dsfdwaqjypxjl>(pageNo, pageSize);
+		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+		if (dsfdwaqjypxjl.getCountyCode() != null) {
+			String orgCode = dsfdwaqjypxjl.getCountyCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			if (companyCodes == null) {
+				// 请求的企业不在当前区县权限范围内，返回空结果
+				return Result.OK(new Page<>(pageNo, pageSize));
+			}
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
+		        Page<Dsfdwaqjypxjl> page = new Page<Dsfdwaqjypxjl>(pageNo, pageSize);
         IPage<Dsfdwaqjypxjl> pageList = dsfdwaqjypxjlService.page(page, queryWrapper);
-        return Result.OK(pageList);
+		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+			for (Dsfdwaqjypxjl item : pageList.getRecords()) {
+				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+				item.setCountyCode(item.getCompanyCode());
+			}
+		}
+		return Result.OK(pageList);
     }
 
     /**

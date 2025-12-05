@@ -4,10 +4,6 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.math.BigDecimal;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.util.SpringContextUtils;
 import lombok.Data;
@@ -19,6 +15,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import com.baomidou.mybatisplus.annotation.*;
 
 /**
  * @Description: 安全风险事件
@@ -100,4 +97,9 @@ public class AcceptEventFormal implements Serializable {
 	@Excel(name = "应急部返回的批次id", width = 15)
     @ApiModelProperty(value = "应急部返回的批次id")
     private java.lang.String batchId;
+	/**区县Code*/
+	@TableField(exist = false)
+	@ApiModelProperty(value = "区县Code")
+	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+	private java.lang.String countyCode;
 }

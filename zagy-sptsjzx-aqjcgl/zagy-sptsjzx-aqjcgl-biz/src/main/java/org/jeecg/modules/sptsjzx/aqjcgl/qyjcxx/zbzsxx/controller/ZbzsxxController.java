@@ -41,6 +41,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
 /**
  * @Description: 值班值守信息
@@ -53,6 +55,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/aqjcgl/qyjcxx/zbzsxx/zbzsxx")
 @Slf4j
 public class ZbzsxxController extends JeecgController<Zbzsxx, IZbzsxxService> {
+
+	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 
 	@Autowired
 	private IYqjbxxService yqjbxxService;
@@ -105,9 +111,24 @@ public class ZbzsxxController extends JeecgController<Zbzsxx, IZbzsxxService> {
 			}
 		}
 		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-        Page<Zbzsxx> page = new Page<Zbzsxx>(pageNo, pageSize);
+		if (zbzsxx.getCountyCode() != null) {
+			String orgCode = zbzsxx.getCountyCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			if (companyCodes == null) {
+				// 请求的企业不在当前区县权限范围内，返回空结果
+				return Result.OK(new Page<>(pageNo, pageSize));
+			}
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
+		Page<Zbzsxx> page = new Page<Zbzsxx>(pageNo, pageSize);
         IPage<Zbzsxx> pageList = zbzsxxService.page(page, queryWrapper);
-        return Result.OK(pageList);
+		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+			for (Zbzsxx item : pageList.getRecords()) {
+				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+				item.setCountyCode(item.getCompanyCode());
+			}
+		}
+		return Result.OK(pageList);
     }
 
     /**

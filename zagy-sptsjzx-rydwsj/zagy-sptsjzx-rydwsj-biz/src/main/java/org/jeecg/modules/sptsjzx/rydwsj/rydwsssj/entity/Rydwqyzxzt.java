@@ -63,4 +63,9 @@ public class Rydwqyzxzt implements Serializable {
 	@Excel(name = "最新数据上报时间", width = 15)
     @ApiModelProperty(value = "最新数据上报时间")
     private String pushTime;
+	/**区县Code*/
+	@TableField(exist = false)
+	@ApiModelProperty(value = "区县Code")
+	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+	private java.lang.String countyCode;
 }

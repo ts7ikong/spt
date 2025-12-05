@@ -40,6 +40,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 
  /**
  * @Description: 第三方单位基本信息
@@ -90,6 +91,12 @@ public class ContractorBasicInfoController extends JeecgController<ContractorBas
 		}
 		Page<ContractorBasicInfo> page = new Page<ContractorBasicInfo>(pageNo, pageSize);
 		IPage<ContractorBasicInfo> pageList = contractorBasicInfoService.page(page, queryWrapper);
+		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+			for (ContractorBasicInfo item : pageList.getRecords()) {
+				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+				item.setCountyCode(item.getCompanyCode());
+			}
+		}
 		return Result.OK(pageList);
 	}
 	

@@ -27,6 +27,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
  /**
  * @Description: 园区基本信息
@@ -39,6 +41,10 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/aqjcgl/aqscxzxkgl/yqjbxx/yqjbxx")
 @Slf4j
 public class YqjbxxController extends JeecgController<Yqjbxx, IYqjbxxService> {
+
+	@Autowired
+	private IAcceptCompanyService acceptCompanyService;
+
 
 
 	@Autowired
@@ -72,6 +78,12 @@ public class YqjbxxController extends JeecgController<Yqjbxx, IYqjbxxService> {
 
 		Page<Yqjbxx> page = new Page<Yqjbxx>(pageNo, pageSize);
 		IPage<Yqjbxx> pageList = yqjbxxService.page(page, queryWrapper);
+		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+			for (Yqjbxx item : pageList.getRecords()) {
+				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+				item.setCountyCode(item.getCompanyCode());
+			}
+		}
 		return Result.OK(pageList);
 	}
 

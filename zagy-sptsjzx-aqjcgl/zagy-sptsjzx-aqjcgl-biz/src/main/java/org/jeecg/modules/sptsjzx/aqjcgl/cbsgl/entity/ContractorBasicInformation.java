@@ -5,10 +5,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.math.BigDecimal;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.jeecg.common.constant.ProvinceCityArea;
@@ -24,6 +20,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import com.baomidou.mybatisplus.annotation.*;
 
 /**
  * @Description: 承包商基本信息
@@ -188,4 +185,9 @@ public class ContractorBasicInformation implements Serializable {
     @Dict(dicCode = "scbz")
     @ApiModelProperty(value = "删除标志")
     private String deleted;
+	/**区县Code*/
+	@TableField(exist = false)
+	@ApiModelProperty(value = "区县Code")
+	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+	private java.lang.String countyCode;
 }
