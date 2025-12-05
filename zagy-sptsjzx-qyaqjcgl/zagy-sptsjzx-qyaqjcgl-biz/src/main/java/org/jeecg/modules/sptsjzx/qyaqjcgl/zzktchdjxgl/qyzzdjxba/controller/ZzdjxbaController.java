@@ -10,6 +10,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
@@ -83,10 +85,11 @@ public class ZzdjxbaController extends JeecgController<Zzdjxba, IZzdjxbaService>
         QueryWrapper<Zzdjxba> queryWrapper = QueryGenerator.initQueryWrapper(zzdjxba, req.getParameterMap(),customeRuleMap);
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表
 		// 实体只有companyCode字段，需要先查询企业表获取企业编码列表
-		if (DataScopeHelper.needDataScope()) {
+		if (!DataScopeHelper.needDataScope()) {
 			// 区县账号：只能查看本区县的企业数据
 			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+
 			// 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
 			String requestCompanyCode = zzdjxba.getCompanyCode();
 			if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
@@ -101,8 +104,24 @@ public class ZzdjxbaController extends JeecgController<Zzdjxba, IZzdjxbaService>
 			}
 		}
 		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+
+		if (zzdjxba.getCountyCode() != null) {
+			String orgCode = zzdjxba.getCountyCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			if (companyCodes == null) {
+				// 请求的企业不在当前区县权限范围内，返回空结果
+				return Result.OK(new Page<>(pageNo, pageSize));
+			}
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<Zzdjxba> page = new Page<Zzdjxba>(pageNo, pageSize);
 		IPage<Zzdjxba> pageList = zzdjxbaService.page(page, queryWrapper);
+		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+			for (Zzdjxba item : pageList.getRecords()) {
+				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+				item.setCountyCode(item.getCompanyCode());
+			}
+		}
 		return Result.OK(pageList);
 	}
 	

@@ -79,7 +79,7 @@ public class ContractorQualificationInfoController extends JeecgController<Contr
         QueryWrapper<ContractorQualificationInfo> queryWrapper = QueryGenerator.initQueryWrapper(contractorQualificationInfo, req.getParameterMap());
 
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
-		if (DataScopeHelper.needDataScope()) {
+		if (!DataScopeHelper.needDataScope()) {
 			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
 			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "report_company_code");
