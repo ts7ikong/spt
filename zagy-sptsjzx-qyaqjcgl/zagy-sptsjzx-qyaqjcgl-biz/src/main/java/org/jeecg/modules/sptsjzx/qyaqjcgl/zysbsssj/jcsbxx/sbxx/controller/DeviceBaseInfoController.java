@@ -10,12 +10,15 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.wxyhxpxx.entity.Wxyhxpxx;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.zysbsssj.jcsbxx.sbxx.entity.DeviceBaseInfo;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.zysbsssj.jcsbxx.sbxx.service.IDeviceBaseInfoService;
 
@@ -104,8 +107,24 @@ public class DeviceBaseInfoController extends JeecgController<DeviceBaseInfo, ID
 			}
 		}
 		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+
+		if (deviceBaseInfo.getCountyCode() != null) {
+			String orgCode = deviceBaseInfo.getCountyCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			if (companyCodes == null) {
+				// 请求的企业不在当前区县权限范围内，返回空结果
+				return Result.OK(new Page<>(pageNo, pageSize));
+			}
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<DeviceBaseInfo> page = new Page<DeviceBaseInfo>(pageNo, pageSize);
 		IPage<DeviceBaseInfo> pageList = deviceBaseInfoService.page(page, queryWrapper);
+		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+			for (DeviceBaseInfo item : pageList.getRecords()) {
+				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+				item.setCountyCode(item.getCompanyCode());
+			}
+		}
 		return Result.OK(pageList);
 	}
 	

@@ -11,6 +11,7 @@ import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
@@ -114,6 +115,12 @@ public class QylszdhygxController extends JeecgController<Qylszdhygx, IQylszdhyg
         // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
         Page<Qylszdhygx> page = new Page<Qylszdhygx>(pageNo, pageSize);
         IPage<Qylszdhygx> pageList = qylszdhygxService.page(page, queryWrapper);
+        if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+            for (Qylszdhygx item : pageList.getRecords()) {
+                // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+                item.setCountyCode(item.getCompanyCode());
+            }
+        }
         return Result.OK(pageList);
     }
 

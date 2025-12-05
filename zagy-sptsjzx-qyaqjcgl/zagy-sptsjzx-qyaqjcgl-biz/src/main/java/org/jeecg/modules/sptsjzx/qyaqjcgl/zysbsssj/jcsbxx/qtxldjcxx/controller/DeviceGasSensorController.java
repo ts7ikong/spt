@@ -103,6 +103,16 @@ public class DeviceGasSensorController extends JeecgController<DeviceGasSensor, 
 			}
 		}
 		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+
+		if (deviceGasSensor.getCountyCode() != null) {
+			String orgCode = deviceGasSensor.getCountyCode();
+			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+			if (companyCodes == null) {
+				// 请求的企业不在当前区县权限范围内，返回空结果
+				return Result.OK(new Page<>(pageNo, pageSize));
+			}
+			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+		}
 		Page<DeviceGasSensor> page = new Page<DeviceGasSensor>(pageNo, pageSize);
 		IPage<DeviceGasSensor> pageList = deviceGasSensorService.page(page, queryWrapper);
 		return Result.OK(pageList);
