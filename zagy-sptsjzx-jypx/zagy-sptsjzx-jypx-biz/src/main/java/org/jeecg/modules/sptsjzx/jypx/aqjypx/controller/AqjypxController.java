@@ -87,11 +87,25 @@ public class AqjypxController extends JeecgController<Aqjypx, IAqjypxService> {
         QueryWrapper<Aqjypx> queryWrapper = QueryGenerator.initQueryWrapper(aqjypx, req.getParameterMap(),customeRuleMap);
 
 		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
-		if (DataScopeHelper.needDataScope()) {
+		if (!DataScopeHelper.needDataScope()) {
+			// 区县账号：只能查看本区县的园区数据
 			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
-			DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
+
+			// 如果前端传了parkCode参数，需要验证该园区是否属于当前区县
+			String requestParkCode = aqjypx.getParkCode();
+			if (requestParkCode != null && !requestParkCode.isEmpty()) {
+				if (parkCodes == null || !parkCodes.contains(requestParkCode)) {
+					// 请求的园区不在当前区县权限范围内，返回空结果
+					return Result.OK(new Page<>(pageNo, pageSize));
+				}
+				// 园区在权限范围内，只查询该园区的数据（QueryGenerator已经添加了parkCode条件）
+			} else {
+				// 没有指定园区，使用园区编码列表过滤数据
+				DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
+			}
 		}
+		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
 		Page<Aqjypx> page = new Page<Aqjypx>(pageNo, pageSize);
 		IPage<Aqjypx> pageList = aqjypxService.page(page, queryWrapper);
 		return Result.OK(pageList);

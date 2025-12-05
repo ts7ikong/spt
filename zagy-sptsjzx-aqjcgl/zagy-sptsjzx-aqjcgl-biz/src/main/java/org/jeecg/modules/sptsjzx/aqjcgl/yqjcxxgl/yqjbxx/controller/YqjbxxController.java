@@ -92,7 +92,7 @@ public class YqjbxxController extends JeecgController<Yqjbxx, IYqjbxxService> {
 		QueryWrapper<Yqjbxx> queryWrapper = new QueryWrapper<>();
 
 		// 【数据权限过滤】根据登录用户权限过滤
-		if (DataScopeHelper.needDataScope()) {
+		if (!DataScopeHelper.needDataScope()) {
 			// 区县账号：只能看自己区县的园区
 			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			if (orgCode != null && !orgCode.isEmpty()) {
