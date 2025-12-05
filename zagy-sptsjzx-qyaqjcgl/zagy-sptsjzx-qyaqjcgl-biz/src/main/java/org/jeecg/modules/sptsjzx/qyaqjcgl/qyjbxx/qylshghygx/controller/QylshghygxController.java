@@ -11,6 +11,7 @@ import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
@@ -25,6 +26,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qylszdhygx.entity.Qylszdhygx;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.def.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -77,6 +79,8 @@ public class QylshghygxController extends JeecgController<Qylshghygx, IQylshghyg
                                                    HttpServletRequest req) {
         QueryWrapper<Qylshghygx> queryWrapper = QueryGenerator.initQueryWrapper(qylshghygx, req.getParameterMap());
 
+
+
         // 【数据权限过滤】根据登录用户的区县编码获取企业列表
         // 实体只有companyCode字段，需要先查询企业表获取企业编码列表
         if (!DataScopeHelper.needDataScope()) {
@@ -110,6 +114,12 @@ public class QylshghygxController extends JeecgController<Qylshghygx, IQylshghyg
         }
         Page<Qylshghygx> page = new Page<Qylshghygx>(pageNo, pageSize);
         IPage<Qylshghygx> pageList = qylshghygxService.page(page, queryWrapper);
+        if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+            for (Qylshghygx item : pageList.getRecords()) {
+                // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+                item.setCountyCode(item.getCompanyCode());
+            }
+        }
         return Result.OK(pageList);
     }
 

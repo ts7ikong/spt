@@ -5,10 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.math.BigDecimal;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.*;
 import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.util.SpringContextUtils;
 import lombok.Data;
@@ -130,4 +127,9 @@ public class DeviceMediumComponent implements Serializable {
     @Dict(dictTable = "v_accept_company", dicText = "name", dicCode = "code")
     @ApiModelProperty(value = "企业名称")
     private java.lang.String companyCode;
+    /**区县Code*/
+    @TableField(exist = false)
+    @ApiModelProperty(value = "区县Code")
+    @Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+    private java.lang.String countyCode;
 }

@@ -10,6 +10,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
@@ -24,6 +26,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.wxhxpxx.entity.Wxhxpxx;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.def.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -52,14 +55,14 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/qyaqjcgl/qyjbxx/qyzdjggyxx/qyzdjggyxx")
 @Slf4j
 public class QyzdjggyxxController extends JeecgController<Qyzdjggyxx, IQyzdjggyxxService> {
-	
+
 
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
-	
+
 	@Autowired
 	private IQyzdjggyxxService qyzdjggyxxService;
-	
+
 	/**
 	 * 分页列表查询
 	 *
@@ -78,32 +81,49 @@ public class QyzdjggyxxController extends JeecgController<Qyzdjggyxx, IQyzdjggyx
 								   HttpServletRequest req) {
         QueryWrapper<Qyzdjggyxx> queryWrapper = QueryGenerator.initQueryWrapper(qyzdjggyxx, req.getParameterMap());
 
-		// 【数据权限过滤】根据登录用户的区县编码获取企业列表
-		// 实体只有companyCode字段，需要先查询企业表获取企业编码列表
-		if (!DataScopeHelper.needDataScope()) {
-			// 区县账号：只能查看本区县的企业数据
-			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+        // 【数据权限过滤】根据登录用户的区县编码获取企业列表
+        // 实体只有companyCode字段，需要先查询企业表获取企业编码列表
+        if (!DataScopeHelper.needDataScope()) {
+            // 区县账号：只能查看本区县的企业数据
+            String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+            List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
 
-			// 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
-			String requestCompanyCode = qyzdjggyxx.getCompanyCode();
-			if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
-				if (companyCodes == null || !companyCodes.contains(requestCompanyCode)) {
-					// 请求的企业不在当前区县权限范围内，返回空结果
-					return Result.OK(new Page<>(pageNo, pageSize));
-				}
-				// 企业在权限范围内，只查询该企业的数据（QueryGenerator已经添加了companyCode条件）
-			} else {
-				// 没有指定企业，使用企业编码列表过滤数据
-				DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-			}
-		}
+            // 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
+            String requestCompanyCode = qyzdjggyxx.getCompanyCode();
+            if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
+                if (companyCodes == null || !companyCodes.contains(requestCompanyCode)) {
+                    // 请求的企业不在当前区县权限范围内，返回空结果
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                // 企业在权限范围内，只查询该企业的数据（QueryGenerator已经添加了companyCode条件）
+            } else {
+                // 没有指定企业，使用企业编码列表过滤数据
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+            }
+        }
+        // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+
+        if (qyzdjggyxx.getCountyCode() != null) {
+            String orgCode = qyzdjggyxx.getCountyCode();
+            List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+            if (companyCodes == null) {
+                // 请求的企业不在当前区县权限范围内，返回空结果
+                return Result.OK(new Page<>(pageNo, pageSize));
+            }
+            DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+        }
 		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
 		Page<Qyzdjggyxx> page = new Page<Qyzdjggyxx>(pageNo, pageSize);
 		IPage<Qyzdjggyxx> pageList = qyzdjggyxxService.page(page, queryWrapper);
+        if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+            for (Qyzdjggyxx item : pageList.getRecords()) {
+                // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+                item.setCountyCode(item.getCompanyCode());
+            }
+        }
 		return Result.OK(pageList);
 	}
-	
+
 	/**
 	 *   添加
 	 *
@@ -118,7 +138,7 @@ public class QyzdjggyxxController extends JeecgController<Qyzdjggyxx, IQyzdjggyx
 		qyzdjggyxxService.save(qyzdjggyxx);
 		return Result.OK("添加成功！");
 	}
-	
+
 	/**
 	 *  编辑
 	 *
@@ -133,7 +153,7 @@ public class QyzdjggyxxController extends JeecgController<Qyzdjggyxx, IQyzdjggyx
 		qyzdjggyxxService.updateById(qyzdjggyxx);
 		return Result.OK("编辑成功!");
 	}
-	
+
 	/**
 	 *   通过id删除
 	 *
@@ -148,7 +168,7 @@ public class QyzdjggyxxController extends JeecgController<Qyzdjggyxx, IQyzdjggyx
 		qyzdjggyxxService.removeById(id);
 		return Result.OK("删除成功!");
 	}
-	
+
 	/**
 	 *  批量删除
 	 *
@@ -163,7 +183,7 @@ public class QyzdjggyxxController extends JeecgController<Qyzdjggyxx, IQyzdjggyx
 		this.qyzdjggyxxService.removeByIds(Arrays.asList(ids.split(",")));
 		return Result.OK("批量删除成功!");
 	}
-	
+
 	/**
 	 * 通过id查询
 	 *

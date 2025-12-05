@@ -10,12 +10,15 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.wxhxpxx.entity.Wxhxpxx;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx.entity.AcceptHazardCode;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx.service.IAcceptHazardCodeService;
 
@@ -41,157 +44,174 @@ import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
- /**
+/**
  * @Description: 重大危险源信息
  * @Author: zagy-cg
- * @Date:   2025-06-20
+ * @Date: 2025-06-20
  * @Version: V1.0
  */
-@Api(tags="重大危险源信息")
+@Api(tags = "重大危险源信息")
 @RestController
 @RequestMapping("/sptsjzx/qyaqjcgl/qyjbxx/zdwxyxx/acceptHazardCode")
 @Slf4j
 public class AcceptHazardCodeController extends JeecgController<AcceptHazardCode, IAcceptHazardCodeService> {
-	
 
-	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
-	
-	@Autowired
-	private IAcceptHazardCodeService acceptHazardCodeService;
-	
-	/**
-	 * 分页列表查询
-	 *
-	 * @param acceptHazardCode
-	 * @param pageNo
-	 * @param pageSize
-	 * @param req
-	 * @return
-	 */
-	//@AutoLog(value = "重大危险源信息-分页列表查询")
-	@ApiOperation(value="重大危险源信息-分页列表查询", notes="重大危险源信息-分页列表查询")
-	@GetMapping(value = "/list")
-	public Result<IPage<AcceptHazardCode>> queryPageList(AcceptHazardCode acceptHazardCode,
-								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
-								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
-								   HttpServletRequest req) {
+
+    @Autowired
+    private IAcceptCompanyService acceptCompanyService;
+
+    @Autowired
+    private IAcceptHazardCodeService acceptHazardCodeService;
+
+    /**
+     * 分页列表查询
+     *
+     * @param acceptHazardCode
+     * @param pageNo
+     * @param pageSize
+     * @param req
+     * @return
+     */
+    //@AutoLog(value = "重大危险源信息-分页列表查询")
+    @ApiOperation(value = "重大危险源信息-分页列表查询", notes = "重大危险源信息-分页列表查询")
+    @GetMapping(value = "/list")
+    public Result<IPage<AcceptHazardCode>> queryPageList(AcceptHazardCode acceptHazardCode,
+                                                         @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                         @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                         HttpServletRequest req) {
         // 自定义查询规则
         Map<String, QueryRuleEnum> customeRuleMap = new HashMap<>();
         // 自定义多选的查询规则为：LIKE_WITH_OR
         customeRuleMap.put("level", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("hazardFactility", QueryRuleEnum.LIKE_WITH_OR);
-        QueryWrapper<AcceptHazardCode> queryWrapper = QueryGenerator.initQueryWrapper(acceptHazardCode, req.getParameterMap(),customeRuleMap);
+        QueryWrapper<AcceptHazardCode> queryWrapper = QueryGenerator.initQueryWrapper(acceptHazardCode, req.getParameterMap(), customeRuleMap);
 
-		// 【数据权限过滤】根据登录用户的区县编码获取企业列表
-		// 实体只有companyCode字段，需要先查询企业表获取企业编码列表
-		if (!DataScopeHelper.needDataScope()) {
-			// 区县账号：只能查看本区县的企业数据
-			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+        // 【数据权限过滤】根据登录用户的区县编码获取企业列表
+        // 实体只有companyCode字段，需要先查询企业表获取企业编码列表
+        if (!DataScopeHelper.needDataScope()) {
+            // 区县账号：只能查看本区县的企业数据
+            String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+            List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
 
-			// 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
-			String requestCompanyCode = acceptHazardCode.getCompanyCode();
-			if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
-				if (companyCodes == null || !companyCodes.contains(requestCompanyCode)) {
-					// 请求的企业不在当前区县权限范围内，返回空结果
-					return Result.OK(new Page<>(pageNo, pageSize));
-				}
-				// 企业在权限范围内，只查询该企业的数据（QueryGenerator已经添加了companyCode条件）
-			} else {
-				// 没有指定企业，使用企业编码列表过滤数据
-				DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-			}
-		}
-		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-		Page<AcceptHazardCode> page = new Page<AcceptHazardCode>(pageNo, pageSize);
-		IPage<AcceptHazardCode> pageList = acceptHazardCodeService.page(page, queryWrapper);
-		return Result.OK(pageList);
-	}
-	
-	/**
-	 *   添加
-	 *
-	 * @param acceptHazardCode
-	 * @return
-	 */
-	@AutoLog(value = "重大危险源信息-添加")
-	@ApiOperation(value="重大危险源信息-添加", notes="重大危险源信息-添加")
-	@RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:add")
-	@PostMapping(value = "/add")
-	public Result<String> add(@RequestBody AcceptHazardCode acceptHazardCode) {
-		acceptHazardCodeService.save(acceptHazardCode);
-		return Result.OK("添加成功！");
-	}
-	
-	/**
-	 *  编辑
-	 *
-	 * @param acceptHazardCode
-	 * @return
-	 */
-	@AutoLog(value = "重大危险源信息-编辑")
-	@ApiOperation(value="重大危险源信息-编辑", notes="重大危险源信息-编辑")
-	@RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:edit")
-	@RequestMapping(value = "/edit", method = {RequestMethod.PUT,RequestMethod.POST})
-	public Result<String> edit(@RequestBody AcceptHazardCode acceptHazardCode) {
-		acceptHazardCodeService.updateById(acceptHazardCode);
-		return Result.OK("编辑成功!");
-	}
-	
-	/**
-	 *   通过id删除
-	 *
-	 * @param id
-	 * @return
-	 */
-	@AutoLog(value = "重大危险源信息-通过id删除")
-	@ApiOperation(value="重大危险源信息-通过id删除", notes="重大危险源信息-通过id删除")
-	@RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:delete")
-	@DeleteMapping(value = "/delete")
-	public Result<String> delete(@RequestParam(name="id",required=true) String id) {
-		acceptHazardCodeService.removeById(id);
-		return Result.OK("删除成功!");
-	}
-	
-	/**
-	 *  批量删除
-	 *
-	 * @param ids
-	 * @return
-	 */
-	@AutoLog(value = "重大危险源信息-批量删除")
-	@ApiOperation(value="重大危险源信息-批量删除", notes="重大危险源信息-批量删除")
-	@RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:deleteBatch")
-	@DeleteMapping(value = "/deleteBatch")
-	public Result<String> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		this.acceptHazardCodeService.removeByIds(Arrays.asList(ids.split(",")));
-		return Result.OK("批量删除成功!");
-	}
-	
-	/**
-	 * 通过id查询
-	 *
-	 * @param id
-	 * @return
-	 */
-	//@AutoLog(value = "重大危险源信息-通过id查询")
-	@ApiOperation(value="重大危险源信息-通过id查询", notes="重大危险源信息-通过id查询")
-	@GetMapping(value = "/queryById")
-	public Result<AcceptHazardCode> queryById(@RequestParam(name="id",required=true) String id) {
-		AcceptHazardCode acceptHazardCode = acceptHazardCodeService.getById(id);
-		if(acceptHazardCode==null) {
-			return Result.error("未找到对应数据");
-		}
-		return Result.OK(acceptHazardCode);
-	}
+            // 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
+            String requestCompanyCode = acceptHazardCode.getCompanyCode();
+            if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
+                if (companyCodes == null || !companyCodes.contains(requestCompanyCode)) {
+                    // 请求的企业不在当前区县权限范围内，返回空结果
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                // 企业在权限范围内，只查询该企业的数据（QueryGenerator已经添加了companyCode条件）
+            } else {
+                // 没有指定企业，使用企业编码列表过滤数据
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+            }
+        }
+        // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+
+        if (acceptHazardCode.getCountyCode() != null) {
+            String orgCode = acceptHazardCode.getCountyCode();
+            List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+            if (companyCodes == null) {
+                // 请求的企业不在当前区县权限范围内，返回空结果
+                return Result.OK(new Page<>(pageNo, pageSize));
+            }
+            DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+        }
+        // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+        Page<AcceptHazardCode> page = new Page<AcceptHazardCode>(pageNo, pageSize);
+        IPage<AcceptHazardCode> pageList = acceptHazardCodeService.page(page, queryWrapper);
+        if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+            for (AcceptHazardCode item : pageList.getRecords()) {
+                // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+                item.setCountyCode(item.getCompanyCode());
+            }
+        }
+        return Result.OK(pageList);
+    }
 
     /**
-    * 导出excel
-    *
-    * @param request
-    * @param acceptHazardCode
-    */
+     * 添加
+     *
+     * @param acceptHazardCode
+     * @return
+     */
+    @AutoLog(value = "重大危险源信息-添加")
+    @ApiOperation(value = "重大危险源信息-添加", notes = "重大危险源信息-添加")
+    @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:add")
+    @PostMapping(value = "/add")
+    public Result<String> add(@RequestBody AcceptHazardCode acceptHazardCode) {
+        acceptHazardCodeService.save(acceptHazardCode);
+        return Result.OK("添加成功！");
+    }
+
+    /**
+     * 编辑
+     *
+     * @param acceptHazardCode
+     * @return
+     */
+    @AutoLog(value = "重大危险源信息-编辑")
+    @ApiOperation(value = "重大危险源信息-编辑", notes = "重大危险源信息-编辑")
+    @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:edit")
+    @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result<String> edit(@RequestBody AcceptHazardCode acceptHazardCode) {
+        acceptHazardCodeService.updateById(acceptHazardCode);
+        return Result.OK("编辑成功!");
+    }
+
+    /**
+     * 通过id删除
+     *
+     * @param id
+     * @return
+     */
+    @AutoLog(value = "重大危险源信息-通过id删除")
+    @ApiOperation(value = "重大危险源信息-通过id删除", notes = "重大危险源信息-通过id删除")
+    @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:delete")
+    @DeleteMapping(value = "/delete")
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
+        acceptHazardCodeService.removeById(id);
+        return Result.OK("删除成功!");
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param ids
+     * @return
+     */
+    @AutoLog(value = "重大危险源信息-批量删除")
+    @ApiOperation(value = "重大危险源信息-批量删除", notes = "重大危险源信息-批量删除")
+    @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:deleteBatch")
+    @DeleteMapping(value = "/deleteBatch")
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        this.acceptHazardCodeService.removeByIds(Arrays.asList(ids.split(",")));
+        return Result.OK("批量删除成功!");
+    }
+
+    /**
+     * 通过id查询
+     *
+     * @param id
+     * @return
+     */
+    //@AutoLog(value = "重大危险源信息-通过id查询")
+    @ApiOperation(value = "重大危险源信息-通过id查询", notes = "重大危险源信息-通过id查询")
+    @GetMapping(value = "/queryById")
+    public Result<AcceptHazardCode> queryById(@RequestParam(name = "id", required = true) String id) {
+        AcceptHazardCode acceptHazardCode = acceptHazardCodeService.getById(id);
+        if (acceptHazardCode == null) {
+            return Result.error("未找到对应数据");
+        }
+        return Result.OK(acceptHazardCode);
+    }
+
+    /**
+     * 导出excel
+     *
+     * @param request
+     * @param acceptHazardCode
+     */
     @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:exportXls")
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, AcceptHazardCode acceptHazardCode) {
@@ -199,12 +219,12 @@ public class AcceptHazardCodeController extends JeecgController<AcceptHazardCode
     }
 
     /**
-      * 通过excel导入数据
-    *
-    * @param request
-    * @param response
-    * @return
-    */
+     * 通过excel导入数据
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     @RequiresPermissions("sptsjzx.qyaqjcgl.qyjbxx.zdwxyxx:accept_hazard_code:importExcel")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {
