@@ -111,9 +111,15 @@ public class Pjpgbgsj implements Serializable {
 	@Excel(name = "更新人_企业", width = 15)
     @ApiModelProperty(value = "更新人_企业")
     private java.lang.String updateByCompany;
+
 	/**区县Code*/
 	@TableField(exist = false)
 	@ApiModelProperty(value = "区县Code")
-	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+	@Dict(dictTable = "v_accept_park", dicText = "county_name", dicCode = "code")
 	private java.lang.String countyCode;
+
+	/**园区编号*/
+	@Excel(name = "园区编号", width = 15)
+	@ApiModelProperty(value = "园区编号")
+	private java.lang.String parkCode;
 }

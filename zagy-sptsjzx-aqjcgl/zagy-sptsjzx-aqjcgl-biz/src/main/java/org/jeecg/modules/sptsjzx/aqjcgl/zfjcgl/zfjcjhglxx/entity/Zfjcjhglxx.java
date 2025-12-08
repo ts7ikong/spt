@@ -44,19 +44,6 @@ public class Zfjcjhglxx implements Serializable {
 	@Dict(dictTable = "yqjbxx", dicText = "park_name", dicCode = "park_code")
     @ApiModelProperty(value = "园区编码")
     private java.lang.String parkCode;
-	/**
-	 * 区县名称
-	 */
-	@Excel(name = "区县名称", width = 15, dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-	@Dict(dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-	@ApiModelProperty(value = "区县名称")
-	private java.lang.String countyname;
-	/**
-	 * 所属区县区县编码
-	 */
-	@Excel(name = "所属区县区县编码", width = 15)
-	@ApiModelProperty(value = "所属区县区县编码")
-	private java.lang.String countycode;
 	/**执法检查单位*/
 	@Excel(name = "执法检查单位", width = 15)
     @ApiModelProperty(value = "执法检查单位")
@@ -159,6 +146,6 @@ public class Zfjcjhglxx implements Serializable {
 	/**区县Code*/
 	@TableField(exist = false)
 	@ApiModelProperty(value = "区县Code")
-	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+	@Dict(dictTable = "v_accept_park", dicText = "county_name", dicCode = "code")
 	private java.lang.String countyCode;
 }

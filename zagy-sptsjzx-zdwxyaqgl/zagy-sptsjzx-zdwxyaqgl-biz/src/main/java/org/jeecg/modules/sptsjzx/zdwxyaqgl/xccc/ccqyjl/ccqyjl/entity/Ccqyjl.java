@@ -44,19 +44,6 @@ public class Ccqyjl implements Serializable {
     @ApiModelProperty(value = "企业编码")
     private java.lang.String companyCode;
 
-	/**
-	 * 区县名称
-	 */
-	@Excel(name = "区县名称", width = 15, dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-	@Dict(dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-	@ApiModelProperty(value = "区县名称")
-	private java.lang.String countyname;
-	/**
-	 * 所属区县区县编码
-	 */
-	@Excel(name = "所属区县区县编码", width = 15)
-	@ApiModelProperty(value = "所属区县区县编码")
-	private java.lang.String countycode;
 	/**抽查日期*/
 	@Excel(name = "抽查日期", width = 15, format = "yyyy-MM-dd")
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd")

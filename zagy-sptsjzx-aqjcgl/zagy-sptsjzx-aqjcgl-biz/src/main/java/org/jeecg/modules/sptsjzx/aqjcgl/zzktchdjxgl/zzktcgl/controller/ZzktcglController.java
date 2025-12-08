@@ -40,7 +40,6 @@ import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.util.DataScopeHelper;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
  /**
  * @Description: 装置开停车管理
@@ -54,8 +53,6 @@ import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanySe
 @Slf4j
 public class ZzktcglController extends JeecgController<Zzktcgl, IZzktcglService> {
 
-	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
 
 	@Autowired
 	private IZzktcglService zzktcglService;
@@ -84,24 +81,8 @@ public class ZzktcglController extends JeecgController<Zzktcgl, IZzktcglService>
         customeRuleMap.put("operationStatus", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Zzktcgl> queryWrapper = QueryGenerator.initQueryWrapper(zzktcgl, req.getParameterMap(),customeRuleMap);
-		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-		if (zzktcgl.getCountyCode() != null) {
-			String orgCode = zzktcgl.getCountyCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-			if (companyCodes == null) {
-				// 请求的企业不在当前区县权限范围内，返回空结果
-				return Result.OK(new Page<>(pageNo, pageSize));
-			}
-			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-		}
 				Page<Zzktcgl> page = new Page<Zzktcgl>(pageNo, pageSize);
 		IPage<Zzktcgl> pageList = zzktcglService.page(page, queryWrapper);
-		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
-			for (Zzktcgl item : pageList.getRecords()) {
-				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
-				item.setCountyCode(item.getCompanyCode());
-			}
-		}
 		return Result.OK(pageList);
 	}
 	

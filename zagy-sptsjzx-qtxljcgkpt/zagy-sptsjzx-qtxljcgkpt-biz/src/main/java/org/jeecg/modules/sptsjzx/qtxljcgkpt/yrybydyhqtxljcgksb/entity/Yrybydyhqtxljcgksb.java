@@ -44,19 +44,6 @@ public class Yrybydyhqtxljcgksb implements Serializable {
 	@Dict(dictTable = "yqjbxx", dicText = "park_name", dicCode = "park_code")
     @ApiModelProperty(value = "园区编码")
     private java.lang.String parkCode;
-    /**
-     * 区县名称
-     */
-    @Excel(name = "区县名称", width = 15, dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-    @Dict(dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-    @ApiModelProperty(value = "区县名称")
-    private java.lang.String countyname;
-    /**
-     * 所属区县区县编码
-     */
-    @Excel(name = "所属区县区县编码", width = 15)
-    @ApiModelProperty(value = "所属区县区县编码")
-    private java.lang.String countycode;
 	/**设备名称*/
 	@Excel(name = "设备名称", width = 15)
     @ApiModelProperty(value = "设备名称")
@@ -139,9 +126,9 @@ public class Yrybydyhqtxljcgksb implements Serializable {
 	@Excel(name = "更新人_企业", width = 15)
     @ApiModelProperty(value = "更新人_企业")
     private java.lang.String updateByCompany;
-	/**区县Code*/
-	@TableField(exist = false)
-	@ApiModelProperty(value = "区县Code")
-	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
-	private java.lang.String countyCode;
+    /**区县Code*/
+    @TableField(exist = false)
+    @ApiModelProperty(value = "区县Code")
+    @Dict(dictTable = "v_accept_park", dicText = "county_name", dicCode = "code")
+    private java.lang.String countyCode;
 }

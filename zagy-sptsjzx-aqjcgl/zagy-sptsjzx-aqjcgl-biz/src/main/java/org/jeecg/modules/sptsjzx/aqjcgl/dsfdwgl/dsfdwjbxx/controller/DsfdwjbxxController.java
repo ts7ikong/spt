@@ -23,6 +23,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 
+import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.def.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -41,7 +42,6 @@ import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.util.DataScopeHelper;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
 /**
  * @Description: 第三方单位基本信息
@@ -56,7 +56,7 @@ import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanySe
 public class DsfdwjbxxController extends JeecgController<Dsfdwjbxx, IDsfdwjbxxService> {
 
 	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
+	private IYqjbxxService yqjbxxService;
 
     @Autowired
     private IDsfdwjbxxService dsfdwjbxxService;
@@ -86,23 +86,9 @@ public class DsfdwjbxxController extends JeecgController<Dsfdwjbxx, IDsfdwjbxxSe
         customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Dsfdwjbxx> queryWrapper = QueryGenerator.initQueryWrapper(dsfdwjbxx, req.getParameterMap(), customeRuleMap);
 		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-		if (dsfdwjbxx.getCountyCode() != null) {
-			String orgCode = dsfdwjbxx.getCountyCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-			if (companyCodes == null) {
-				// 请求的企业不在当前区县权限范围内，返回空结果
-				return Result.OK(new Page<>(pageNo, pageSize));
-			}
-			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-		}
+        DataScopeHelper.applyOrgCodeFilter(queryWrapper, "park_area_code");
 		        Page<Dsfdwjbxx> page = new Page<Dsfdwjbxx>(pageNo, pageSize);
         IPage<Dsfdwjbxx> pageList = dsfdwjbxxService.page(page, queryWrapper);
-		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
-			for (Dsfdwjbxx item : pageList.getRecords()) {
-				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
-				item.setCountyCode(item.getCompanyCode());
-			}
-		}
 		return Result.OK(pageList);
     }
 

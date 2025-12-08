@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.jeecg.common.system.base.controller.JeecgController;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qylshghygx.entity.Qylshghygx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -77,11 +79,10 @@ public class StsjgxxController extends JeecgController<Stsjgxx, IStsjgxxService>
 
         // 【数据权限过滤】根据登录用户的区县编码获取企业列表
         // 实体只有companyCode字段，需要先查询企业表获取企业编码列表
-        if (DataScopeHelper.needDataScope()) {
+        if (!DataScopeHelper.needDataScope()) {
             // 区县账号：只能查看本区县的企业数据
             String orgCode = DataScopeHelper.getCurrentUserOrgCode();
             List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-
             // 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
             String requestCompanyCode = stsjgxx.getCompanyCode();
             if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
@@ -94,12 +95,26 @@ public class StsjgxxController extends JeecgController<Stsjgxx, IStsjgxxService>
                 // 没有指定企业，使用企业编码列表过滤数据
                 DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
             }
+        } else {
+            if (stsjgxx.getCountyCode() != null) {
+                String orgCode = stsjgxx.getCountyCode();
+                List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+                if (companyCodes == null) {
+                    // 请求的企业不在当前区县权限范围内，返回空结果
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+            }
         }
         // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-
-
         Page<Stsjgxx> page = new Page<Stsjgxx>(pageNo, pageSize);
         IPage<Stsjgxx> pageList = stsjgxxService.page(page, queryWrapper);
+        if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+            for (Stsjgxx item : pageList.getRecords()) {
+                // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+                item.setCountyCode(item.getCompanyCode());
+            }
+        }
         return Result.OK(pageList);
     }
 

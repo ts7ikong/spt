@@ -29,4 +29,6 @@ public interface IYqjbxxService extends IService<Yqjbxx> {
      * @return 园区编码列表
      */
     List<String> getParkCodesByAreaCode(String parkAreaCode);
+
+    List<String> getYqCodesByCountyCode(String orgCode);
 }

@@ -61,7 +61,9 @@ public class Qycnxq implements Serializable {
 	 */
 	@Excel(name = "所属区县区县编码", width = 15)
 	@ApiModelProperty(value = "所属区县区县编码")
-	private java.lang.String countycode;
+	@Dict(dictTable = "v_accept_park", dicText = "county_name", dicCode = "code")
+	@TableField(exist = false)
+	private java.lang.String countyCode;
 	/**承诺日期*/
 	@Excel(name = "承诺日期", width = 20, format = "yyyy-MM-dd HH:mm:ss")
 	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
@@ -247,9 +249,4 @@ public class Qycnxq implements Serializable {
 	@Excel(name = "更新人_企业", width = 15)
     @ApiModelProperty(value = "更新人_企业")
     private java.lang.String updateByCompany;
-	/**区县Code*/
-	@TableField(exist = false)
-	@ApiModelProperty(value = "区县Code")
-	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
-	private java.lang.String countyCode;
 }

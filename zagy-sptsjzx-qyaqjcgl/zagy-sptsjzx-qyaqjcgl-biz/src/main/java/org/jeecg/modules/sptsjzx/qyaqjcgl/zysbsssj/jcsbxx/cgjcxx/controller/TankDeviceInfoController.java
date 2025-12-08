@@ -94,7 +94,6 @@ public class TankDeviceInfoController extends JeecgController<TankDeviceInfo, IT
 			// 区县账号：只能查看本区县的企业数据
 			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-
 			// 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
 			String requestCompanyCode = tankDeviceInfo.getCompanyCode();
 			if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
@@ -107,18 +106,18 @@ public class TankDeviceInfoController extends JeecgController<TankDeviceInfo, IT
 				// 没有指定企业，使用企业编码列表过滤数据
 				DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
 			}
+		} else {
+			if (tankDeviceInfo.getCountyCode() != null) {
+				String orgCode = tankDeviceInfo.getCountyCode();
+				List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+				if (companyCodes == null) {
+					// 请求的企业不在当前区县权限范围内，返回空结果
+					return Result.OK(new Page<>(pageNo, pageSize));
+				}
+				DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+			}
 		}
 		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-
-		if (tankDeviceInfo.getCountyCode() != null) {
-			String orgCode = tankDeviceInfo.getCountyCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-			if (companyCodes == null) {
-				// 请求的企业不在当前区县权限范围内，返回空结果
-				return Result.OK(new Page<>(pageNo, pageSize));
-			}
-			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-		}
 		Page<TankDeviceInfo> page = new Page<TankDeviceInfo>(pageNo, pageSize);
 		IPage<TankDeviceInfo> pageList = tankDeviceInfoService.page(page, queryWrapper);
 		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {

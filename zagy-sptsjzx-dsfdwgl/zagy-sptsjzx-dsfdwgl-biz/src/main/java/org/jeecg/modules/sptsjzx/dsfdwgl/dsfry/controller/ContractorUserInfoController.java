@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
@@ -42,148 +43,172 @@ import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 
- /**
+/**
  * @Description: 第三方人员
  * @Author: zagy-cg
- * @Date:   2025-06-23
+ * @Date: 2025-06-23
  * @Version: V1.0
  */
-@Api(tags="第三方人员")
+@Api(tags = "第三方人员")
 @RestController
 @RequestMapping("/sptsjzx/dsfdwgl/dsfry/contractorUserInfo")
 @Slf4j
 public class ContractorUserInfoController extends JeecgController<ContractorUserInfo, IContractorUserInfoService> {
-	
 
-	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
-	
-	@Autowired
-	private IContractorUserInfoService contractorUserInfoService;
-	
-	/**
-	 * 分页列表查询
-	 *
-	 * @param contractorUserInfo
-	 * @param pageNo
-	 * @param pageSize
-	 * @param req
-	 * @return
-	 */
-	//@AutoLog(value = "第三方人员-分页列表查询")
-	@ApiOperation(value="第三方人员-分页列表查询", notes="第三方人员-分页列表查询")
-	@GetMapping(value = "/list")
-	public Result<IPage<ContractorUserInfo>> queryPageList(ContractorUserInfo contractorUserInfo,
-								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
-								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
-								   HttpServletRequest req) {
+
+    @Autowired
+    private IAcceptCompanyService acceptCompanyService;
+
+    @Autowired
+    private IContractorUserInfoService contractorUserInfoService;
+
+    /**
+     * 分页列表查询
+     *
+     * @param contractorUserInfo
+     * @param pageNo
+     * @param pageSize
+     * @param req
+     * @return
+     */
+    //@AutoLog(value = "第三方人员-分页列表查询")
+    @ApiOperation(value = "第三方人员-分页列表查询", notes = "第三方人员-分页列表查询")
+    @GetMapping(value = "/list")
+    public Result<IPage<ContractorUserInfo>> queryPageList(ContractorUserInfo contractorUserInfo,
+                                                           @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                           @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                           HttpServletRequest req) {
         // 自定义查询规则
         Map<String, QueryRuleEnum> customeRuleMap = new HashMap<>();
         // 自定义多选的查询规则为：LIKE_WITH_OR
         customeRuleMap.put("status", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("highRiskPosition", QueryRuleEnum.LIKE_WITH_OR);
-        QueryWrapper<ContractorUserInfo> queryWrapper = QueryGenerator.initQueryWrapper(contractorUserInfo, req.getParameterMap(),customeRuleMap);
+        QueryWrapper<ContractorUserInfo> queryWrapper = QueryGenerator.initQueryWrapper(contractorUserInfo, req.getParameterMap(), customeRuleMap);
 
-		// 【数据权限过滤】根据登录用户的区县编码获取企业列表，然后过滤
-		if (!DataScopeHelper.needDataScope()) {
-			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "report_company_code");
-		}
-		Page<ContractorUserInfo> page = new Page<ContractorUserInfo>(pageNo, pageSize);
-		IPage<ContractorUserInfo> pageList = contractorUserInfoService.page(page, queryWrapper);
-		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
-			for (ContractorUserInfo item : pageList.getRecords()) {
-				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
-				item.setCountyCode(item.getCompanyCode());
-			}
-		}
-		return Result.OK(pageList);
-	}
-	
-	/**
-	 *   添加
-	 *
-	 * @param contractorUserInfo
-	 * @return
-	 */
-	@AutoLog(value = "第三方人员-添加")
-	@ApiOperation(value="第三方人员-添加", notes="第三方人员-添加")
-	@RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:add")
-	@PostMapping(value = "/add")
-	public Result<String> add(@RequestBody ContractorUserInfo contractorUserInfo) {
-		contractorUserInfoService.save(contractorUserInfo);
-		return Result.OK("添加成功！");
-	}
-	
-	/**
-	 *  编辑
-	 *
-	 * @param contractorUserInfo
-	 * @return
-	 */
-	@AutoLog(value = "第三方人员-编辑")
-	@ApiOperation(value="第三方人员-编辑", notes="第三方人员-编辑")
-	@RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:edit")
-	@RequestMapping(value = "/edit", method = {RequestMethod.PUT,RequestMethod.POST})
-	public Result<String> edit(@RequestBody ContractorUserInfo contractorUserInfo) {
-		contractorUserInfoService.updateById(contractorUserInfo);
-		return Result.OK("编辑成功!");
-	}
-	
-	/**
-	 *   通过id删除
-	 *
-	 * @param id
-	 * @return
-	 */
-	@AutoLog(value = "第三方人员-通过id删除")
-	@ApiOperation(value="第三方人员-通过id删除", notes="第三方人员-通过id删除")
-	@RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:delete")
-	@DeleteMapping(value = "/delete")
-	public Result<String> delete(@RequestParam(name="id",required=true) String id) {
-		contractorUserInfoService.removeById(id);
-		return Result.OK("删除成功!");
-	}
-	
-	/**
-	 *  批量删除
-	 *
-	 * @param ids
-	 * @return
-	 */
-	@AutoLog(value = "第三方人员-批量删除")
-	@ApiOperation(value="第三方人员-批量删除", notes="第三方人员-批量删除")
-	@RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:deleteBatch")
-	@DeleteMapping(value = "/deleteBatch")
-	public Result<String> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		this.contractorUserInfoService.removeByIds(Arrays.asList(ids.split(",")));
-		return Result.OK("批量删除成功!");
-	}
-	
-	/**
-	 * 通过id查询
-	 *
-	 * @param id
-	 * @return
-	 */
-	//@AutoLog(value = "第三方人员-通过id查询")
-	@ApiOperation(value="第三方人员-通过id查询", notes="第三方人员-通过id查询")
-	@GetMapping(value = "/queryById")
-	public Result<ContractorUserInfo> queryById(@RequestParam(name="id",required=true) String id) {
-		ContractorUserInfo contractorUserInfo = contractorUserInfoService.getById(id);
-		if(contractorUserInfo==null) {
-			return Result.error("未找到对应数据");
-		}
-		return Result.OK(contractorUserInfo);
-	}
+        // 【数据权限过滤】根据登录用户的区县编码获取企业列表
+        // 实体只有companyCode字段，需要先查询企业表获取企业编码列表
+        if (!DataScopeHelper.needDataScope()) {
+            // 区县账号：只能查看本区县的企业数据
+            String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+            List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+            // 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
+            String requestCompanyCode = contractorUserInfo.getSociaCode();
+            if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
+                if (companyCodes == null || !companyCodes.contains(requestCompanyCode)) {
+                    // 请求的企业不在当前区县权限范围内，返回空结果
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                // 企业在权限范围内，只查询该企业的数据（QueryGenerator已经添加了companyCode条件）
+            } else {
+                // 没有指定企业，使用企业编码列表过滤数据
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "social_code");
+            }
+        } else {
+            if (contractorUserInfo.getCountyCode() != null) {
+                String orgCode = contractorUserInfo.getCountyCode();
+                List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+                if (companyCodes == null) {
+                    // 请求的企业不在当前区县权限范围内，返回空结果
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "social_code");
+            }
+        }
+        // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+        Page<ContractorUserInfo> page = new Page<ContractorUserInfo>(pageNo, pageSize);
+        IPage<ContractorUserInfo> pageList = contractorUserInfoService.page(page, queryWrapper);
+        if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+            for (ContractorUserInfo item : pageList.getRecords()) {
+                // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+                item.setCountyCode(item.getSociaCode());
+            }
+        }
+        return Result.OK(pageList);
+    }
 
     /**
-    * 导出excel
-    *
-    * @param request
-    * @param contractorUserInfo
-    */
+     * 添加
+     *
+     * @param contractorUserInfo
+     * @return
+     */
+    @AutoLog(value = "第三方人员-添加")
+    @ApiOperation(value = "第三方人员-添加", notes = "第三方人员-添加")
+    @RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:add")
+    @PostMapping(value = "/add")
+    public Result<String> add(@RequestBody ContractorUserInfo contractorUserInfo) {
+        contractorUserInfoService.save(contractorUserInfo);
+        return Result.OK("添加成功！");
+    }
+
+    /**
+     * 编辑
+     *
+     * @param contractorUserInfo
+     * @return
+     */
+    @AutoLog(value = "第三方人员-编辑")
+    @ApiOperation(value = "第三方人员-编辑", notes = "第三方人员-编辑")
+    @RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:edit")
+    @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result<String> edit(@RequestBody ContractorUserInfo contractorUserInfo) {
+        contractorUserInfoService.updateById(contractorUserInfo);
+        return Result.OK("编辑成功!");
+    }
+
+    /**
+     * 通过id删除
+     *
+     * @param id
+     * @return
+     */
+    @AutoLog(value = "第三方人员-通过id删除")
+    @ApiOperation(value = "第三方人员-通过id删除", notes = "第三方人员-通过id删除")
+    @RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:delete")
+    @DeleteMapping(value = "/delete")
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
+        contractorUserInfoService.removeById(id);
+        return Result.OK("删除成功!");
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param ids
+     * @return
+     */
+    @AutoLog(value = "第三方人员-批量删除")
+    @ApiOperation(value = "第三方人员-批量删除", notes = "第三方人员-批量删除")
+    @RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:deleteBatch")
+    @DeleteMapping(value = "/deleteBatch")
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        this.contractorUserInfoService.removeByIds(Arrays.asList(ids.split(",")));
+        return Result.OK("批量删除成功!");
+    }
+
+    /**
+     * 通过id查询
+     *
+     * @param id
+     * @return
+     */
+    //@AutoLog(value = "第三方人员-通过id查询")
+    @ApiOperation(value = "第三方人员-通过id查询", notes = "第三方人员-通过id查询")
+    @GetMapping(value = "/queryById")
+    public Result<ContractorUserInfo> queryById(@RequestParam(name = "id", required = true) String id) {
+        ContractorUserInfo contractorUserInfo = contractorUserInfoService.getById(id);
+        if (contractorUserInfo == null) {
+            return Result.error("未找到对应数据");
+        }
+        return Result.OK(contractorUserInfo);
+    }
+
+    /**
+     * 导出excel
+     *
+     * @param request
+     * @param contractorUserInfo
+     */
     @RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:exportXls")
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, ContractorUserInfo contractorUserInfo) {
@@ -191,12 +216,12 @@ public class ContractorUserInfoController extends JeecgController<ContractorUser
     }
 
     /**
-      * 通过excel导入数据
-    *
-    * @param request
-    * @param response
-    * @return
-    */
+     * 通过excel导入数据
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     @RequiresPermissions("sptsjzx.dsfdwgl.dsfry:contractor_user_info:importExcel")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {

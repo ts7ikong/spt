@@ -10,10 +10,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.modules.sptsjzx.zdwxyaqgl.xccc.xtsyqk.fjxzjl.entity.Fjxzjl;
 import org.jeecg.modules.sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl.entity.Xtyhdljl;
 import org.jeecg.modules.sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl.service.IXtyhdljlService;
 
@@ -42,40 +44,40 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
- /**
+/**
  * @Description: 系统用户登录记录
  * @Author: zagy-cg
- * @Date:   2025-05-30
+ * @Date: 2025-05-30
  * @Version: V1.0
  */
-@Api(tags="系统用户登录记录")
+@Api(tags = "系统用户登录记录")
 @RestController
 @RequestMapping("/sptsjzx/zdwxyaqgl/xccc/xtsyqk/xtyhdljl/xtyhdljl")
 @Slf4j
 public class XtyhdljlController extends JeecgController<Xtyhdljl, IXtyhdljlService> {
 
-	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
+    @Autowired
+    private IAcceptCompanyService acceptCompanyService;
 
-	@Autowired
-	private IXtyhdljlService xtyhdljlService;
-	
-	/**
-	 * 分页列表查询
-	 *
-	 * @param xtyhdljl
-	 * @param pageNo
-	 * @param pageSize
-	 * @param req
-	 * @return
-	 */
-	//@AutoLog(value = "系统用户登录记录-分页列表查询")
-	@ApiOperation(value="系统用户登录记录-分页列表查询", notes="系统用户登录记录-分页列表查询")
-	@GetMapping(value = "/list")
-	public Result<IPage<Xtyhdljl>> queryPageList(Xtyhdljl xtyhdljl,
-								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
-								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
-								   HttpServletRequest req) {
+    @Autowired
+    private IXtyhdljlService xtyhdljlService;
+
+    /**
+     * 分页列表查询
+     *
+     * @param xtyhdljl
+     * @param pageNo
+     * @param pageSize
+     * @param req
+     * @return
+     */
+    //@AutoLog(value = "系统用户登录记录-分页列表查询")
+    @ApiOperation(value = "系统用户登录记录-分页列表查询", notes = "系统用户登录记录-分页列表查询")
+    @GetMapping(value = "/list")
+    public Result<IPage<Xtyhdljl>> queryPageList(Xtyhdljl xtyhdljl,
+                                                 @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                 HttpServletRequest req) {
         // 自定义查询规则
         Map<String, QueryRuleEnum> customeRuleMap = new HashMap<>();
         // 自定义多选的查询规则为：LIKE_WITH_OR
@@ -83,111 +85,95 @@ public class XtyhdljlController extends JeecgController<Xtyhdljl, IXtyhdljlServi
         customeRuleMap.put("personType", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("clientType", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("status", QueryRuleEnum.LIKE_WITH_OR);
-        QueryWrapper<Xtyhdljl> queryWrapper = QueryGenerator.initQueryWrapper(xtyhdljl, req.getParameterMap(),customeRuleMap);
-		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-		if (xtyhdljl.getCountyCode() != null) {
-			String orgCode = xtyhdljl.getCountyCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-			if (companyCodes == null) {
-				// 请求的企业不在当前区县权限范围内，返回空结果
-				return Result.OK(new Page<>(pageNo, pageSize));
-			}
-			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-		}
-				Page<Xtyhdljl> page = new Page<Xtyhdljl>(pageNo, pageSize);
-		IPage<Xtyhdljl> pageList = xtyhdljlService.page(page, queryWrapper);
-		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
-			for (Xtyhdljl item : pageList.getRecords()) {
-				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
-				item.setCountyCode(item.getCompanyCode());
-			}
-		}
-		return Result.OK(pageList);
-	}
-	
-	/**
-	 *   添加
-	 *
-	 * @param xtyhdljl
-	 * @return
-	 */
-	@AutoLog(value = "系统用户登录记录-添加")
-	@ApiOperation(value="系统用户登录记录-添加", notes="系统用户登录记录-添加")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:add")
-	@PostMapping(value = "/add")
-	public Result<String> add(@RequestBody Xtyhdljl xtyhdljl) {
-		xtyhdljlService.save(xtyhdljl);
-		return Result.XZ(xtyhdljl.getId(),"添加成功！");
-	}
-	
-	/**
-	 *  编辑
-	 *
-	 * @param xtyhdljl
-	 * @return
-	 */
-	@AutoLog(value = "系统用户登录记录-编辑")
-	@ApiOperation(value="系统用户登录记录-编辑", notes="系统用户登录记录-编辑")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:edit")
-	@RequestMapping(value = "/edit", method = {RequestMethod.PUT,RequestMethod.POST})
-	public Result<String> edit(@RequestBody Xtyhdljl xtyhdljl) {
-		xtyhdljlService.updateById(xtyhdljl);
-		return Result.OK("编辑成功!");
-	}
-	
-	/**
-	 *   通过id删除
-	 *
-	 * @param id
-	 * @return
-	 */
-	@AutoLog(value = "系统用户登录记录-通过id删除")
-	@ApiOperation(value="系统用户登录记录-通过id删除", notes="系统用户登录记录-通过id删除")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:delete")
-	@DeleteMapping(value = "/delete")
-	public Result<String> delete(@RequestParam(name="id",required=true) String id) {
-		xtyhdljlService.removeById(id);
-		return Result.OK("删除成功!");
-	}
-	
-	/**
-	 *  批量删除
-	 *
-	 * @param ids
-	 * @return
-	 */
-	@AutoLog(value = "系统用户登录记录-批量删除")
-	@ApiOperation(value="系统用户登录记录-批量删除", notes="系统用户登录记录-批量删除")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:deleteBatch")
-	@DeleteMapping(value = "/deleteBatch")
-	public Result<String> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		this.xtyhdljlService.removeByIds(Arrays.asList(ids.split(",")));
-		return Result.OK("批量删除成功!");
-	}
-	
-	/**
-	 * 通过id查询
-	 *
-	 * @param id
-	 * @return
-	 */
-	//@AutoLog(value = "系统用户登录记录-通过id查询")
-	@ApiOperation(value="系统用户登录记录-通过id查询", notes="系统用户登录记录-通过id查询")
-	@GetMapping(value = "/queryById")
-	public Result<Xtyhdljl> queryById(@RequestParam(name="id",required=true) String id) {
-		Xtyhdljl xtyhdljl = xtyhdljlService.getById(id);
-		if(xtyhdljl==null) {
-			return Result.error("未找到对应数据");
-		}
-		return Result.OK(xtyhdljl);
-	}
+        QueryWrapper<Xtyhdljl> queryWrapper = QueryGenerator.initQueryWrapper(xtyhdljl, req.getParameterMap(), customeRuleMap);
+        Page<Xtyhdljl> page = new Page<Xtyhdljl>(pageNo, pageSize);
+        IPage<Xtyhdljl> pageList = xtyhdljlService.page(page, queryWrapper);
+        return Result.OK(pageList);
+    }
 
     /**
-    * 导出excel
-    *
-    * @param request
-    * @param xtyhdljl
-    */
+     * 添加
+     *
+     * @param xtyhdljl
+     * @return
+     */
+    @AutoLog(value = "系统用户登录记录-添加")
+    @ApiOperation(value = "系统用户登录记录-添加", notes = "系统用户登录记录-添加")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:add")
+    @PostMapping(value = "/add")
+    public Result<String> add(@RequestBody Xtyhdljl xtyhdljl) {
+        xtyhdljlService.save(xtyhdljl);
+        return Result.XZ(xtyhdljl.getId(), "添加成功！");
+    }
+
+    /**
+     * 编辑
+     *
+     * @param xtyhdljl
+     * @return
+     */
+    @AutoLog(value = "系统用户登录记录-编辑")
+    @ApiOperation(value = "系统用户登录记录-编辑", notes = "系统用户登录记录-编辑")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:edit")
+    @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result<String> edit(@RequestBody Xtyhdljl xtyhdljl) {
+        xtyhdljlService.updateById(xtyhdljl);
+        return Result.OK("编辑成功!");
+    }
+
+    /**
+     * 通过id删除
+     *
+     * @param id
+     * @return
+     */
+    @AutoLog(value = "系统用户登录记录-通过id删除")
+    @ApiOperation(value = "系统用户登录记录-通过id删除", notes = "系统用户登录记录-通过id删除")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:delete")
+    @DeleteMapping(value = "/delete")
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
+        xtyhdljlService.removeById(id);
+        return Result.OK("删除成功!");
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param ids
+     * @return
+     */
+    @AutoLog(value = "系统用户登录记录-批量删除")
+    @ApiOperation(value = "系统用户登录记录-批量删除", notes = "系统用户登录记录-批量删除")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:deleteBatch")
+    @DeleteMapping(value = "/deleteBatch")
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        this.xtyhdljlService.removeByIds(Arrays.asList(ids.split(",")));
+        return Result.OK("批量删除成功!");
+    }
+
+    /**
+     * 通过id查询
+     *
+     * @param id
+     * @return
+     */
+    //@AutoLog(value = "系统用户登录记录-通过id查询")
+    @ApiOperation(value = "系统用户登录记录-通过id查询", notes = "系统用户登录记录-通过id查询")
+    @GetMapping(value = "/queryById")
+    public Result<Xtyhdljl> queryById(@RequestParam(name = "id", required = true) String id) {
+        Xtyhdljl xtyhdljl = xtyhdljlService.getById(id);
+        if (xtyhdljl == null) {
+            return Result.error("未找到对应数据");
+        }
+        return Result.OK(xtyhdljl);
+    }
+
+    /**
+     * 导出excel
+     *
+     * @param request
+     * @param xtyhdljl
+     */
     //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:exportXls")
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, Xtyhdljl xtyhdljl) {
@@ -195,12 +181,12 @@ public class XtyhdljlController extends JeecgController<Xtyhdljl, IXtyhdljlServi
     }
 
     /**
-      * 通过excel导入数据
-    *
-    * @param request
-    * @param response
-    * @return
-    */
+     * 通过excel导入数据
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xtsyqk.xtyhdljl:xtyhdljl:importExcel")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {

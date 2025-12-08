@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
@@ -43,170 +44,133 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
- /**
+/**
  * @Description: 警示通报数据
  * @Author: zagy-cg
- * @Date:   2025-05-30
+ * @Date: 2025-05-30
  * @Version: V1.0
  */
-@Api(tags="警示通报数据")
+@Api(tags = "警示通报数据")
 @RestController
 @RequestMapping("/sptsjzx/zdwxyaqgl/yjtssj/jstbsj/jstbsj")
 @Slf4j
 public class JstbsjController extends JeecgController<Jstbsj, IJstbsjService> {
 
-	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
+    @Autowired
+    private IAcceptCompanyService acceptCompanyService;
 
-	
 
-	@Autowired
-	private IYqjbxxService yqjbxxService;
-	
-	@Autowired
-	private IJstbsjService jstbsjService;
-	
-	/**
-	 * 分页列表查询
-	 *
-	 * @param jstbsj
-	 * @param pageNo
-	 * @param pageSize
-	 * @param req
-	 * @return
-	 */
-	//@AutoLog(value = "警示通报数据-分页列表查询")
-	@ApiOperation(value="警示通报数据-分页列表查询", notes="警示通报数据-分页列表查询")
-	@GetMapping(value = "/list")
-	public Result<IPage<Jstbsj>> queryPageList(Jstbsj jstbsj,
-								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
-								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
-								   HttpServletRequest req) {
-        QueryWrapper<Jstbsj> queryWrapper = QueryGenerator.initQueryWrapper(jstbsj, req.getParameterMap());
+    @Autowired
+    private IYqjbxxService yqjbxxService;
 
-		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
-		if (!DataScopeHelper.needDataScope()) {
-			// 区县账号：只能查看本区县的园区数据
-			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
-
-			// 如果前端传了parkCode参数，需要验证该园区是否属于当前区县
-			String requestParkCode = jstbsj.getParkCode();
-			if (requestParkCode != null && !requestParkCode.isEmpty()) {
-				if (parkCodes == null || !parkCodes.contains(requestParkCode)) {
-					// 请求的园区不在当前区县权限范围内，返回空结果
-					return Result.OK(new Page<>(pageNo, pageSize));
-				}
-				// 园区在权限范围内，只查询该园区的数据（QueryGenerator已经添加了parkCode条件）
-			} else {
-				// 没有指定园区，使用园区编码列表过滤数据
-				DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
-			}
-		}
-		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-		if (jstbsj.getCountyCode() != null) {
-			String orgCode = jstbsj.getCountyCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-			if (companyCodes == null) {
-				// 请求的企业不在当前区县权限范围内，返回空结果
-				return Result.OK(new Page<>(pageNo, pageSize));
-			}
-			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-		}
-		Page<Jstbsj> page = new Page<Jstbsj>(pageNo, pageSize);
-		IPage<Jstbsj> pageList = jstbsjService.page(page, queryWrapper);
-		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
-			for (Jstbsj item : pageList.getRecords()) {
-				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
-				item.setCountyCode(item.getCompanyCode());
-			}
-		}
-		return Result.OK(pageList);
-	}
-	
-	/**
-	 *   添加
-	 *
-	 * @param jstbsj
-	 * @return
-	 */
-	@AutoLog(value = "警示通报数据-添加")
-	@ApiOperation(value="警示通报数据-添加", notes="警示通报数据-添加")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:add")
-	@PostMapping(value = "/add")
-	public Result<String> add(@RequestBody Jstbsj jstbsj) {
-		jstbsjService.save(jstbsj);
-		return Result.XZ(jstbsj.getId(),"添加成功！");
-	}
-	
-	/**
-	 *  编辑
-	 *
-	 * @param jstbsj
-	 * @return
-	 */
-	@AutoLog(value = "警示通报数据-编辑")
-	@ApiOperation(value="警示通报数据-编辑", notes="警示通报数据-编辑")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:edit")
-	@RequestMapping(value = "/edit", method = {RequestMethod.PUT,RequestMethod.POST})
-	public Result<String> edit(@RequestBody Jstbsj jstbsj) {
-		jstbsjService.updateById(jstbsj);
-		return Result.OK("编辑成功!");
-	}
-	
-	/**
-	 *   通过id删除
-	 *
-	 * @param id
-	 * @return
-	 */
-	@AutoLog(value = "警示通报数据-通过id删除")
-	@ApiOperation(value="警示通报数据-通过id删除", notes="警示通报数据-通过id删除")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:delete")
-	@DeleteMapping(value = "/delete")
-	public Result<String> delete(@RequestParam(name="id",required=true) String id) {
-		jstbsjService.removeById(id);
-		return Result.OK("删除成功!");
-	}
-	
-	/**
-	 *  批量删除
-	 *
-	 * @param ids
-	 * @return
-	 */
-	@AutoLog(value = "警示通报数据-批量删除")
-	@ApiOperation(value="警示通报数据-批量删除", notes="警示通报数据-批量删除")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:deleteBatch")
-	@DeleteMapping(value = "/deleteBatch")
-	public Result<String> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		this.jstbsjService.removeByIds(Arrays.asList(ids.split(",")));
-		return Result.OK("批量删除成功!");
-	}
-	
-	/**
-	 * 通过id查询
-	 *
-	 * @param id
-	 * @return
-	 */
-	//@AutoLog(value = "警示通报数据-通过id查询")
-	@ApiOperation(value="警示通报数据-通过id查询", notes="警示通报数据-通过id查询")
-	@GetMapping(value = "/queryById")
-	public Result<Jstbsj> queryById(@RequestParam(name="id",required=true) String id) {
-		Jstbsj jstbsj = jstbsjService.getById(id);
-		if(jstbsj==null) {
-			return Result.error("未找到对应数据");
-		}
-		return Result.OK(jstbsj);
-	}
+    @Autowired
+    private IJstbsjService jstbsjService;
 
     /**
-    * 导出excel
-    *
-    * @param request
-    * @param jstbsj
-    */
+     * 分页列表查询
+     *
+     * @param jstbsj
+     * @param pageNo
+     * @param pageSize
+     * @param req
+     * @return
+     */
+    //@AutoLog(value = "警示通报数据-分页列表查询")
+    @ApiOperation(value = "警示通报数据-分页列表查询", notes = "警示通报数据-分页列表查询")
+    @GetMapping(value = "/list")
+    public Result<IPage<Jstbsj>> queryPageList(Jstbsj jstbsj,
+                                               @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                               HttpServletRequest req) {
+        QueryWrapper<Jstbsj> queryWrapper = QueryGenerator.initQueryWrapper(jstbsj, req.getParameterMap());
+        Page<Jstbsj> page = new Page<Jstbsj>(pageNo, pageSize);
+        IPage<Jstbsj> pageList = jstbsjService.page(page, queryWrapper);
+        return Result.OK(pageList);
+    }
+
+    /**
+     * 添加
+     *
+     * @param jstbsj
+     * @return
+     */
+    @AutoLog(value = "警示通报数据-添加")
+    @ApiOperation(value = "警示通报数据-添加", notes = "警示通报数据-添加")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:add")
+    @PostMapping(value = "/add")
+    public Result<String> add(@RequestBody Jstbsj jstbsj) {
+        jstbsjService.save(jstbsj);
+        return Result.XZ(jstbsj.getId(), "添加成功！");
+    }
+
+    /**
+     * 编辑
+     *
+     * @param jstbsj
+     * @return
+     */
+    @AutoLog(value = "警示通报数据-编辑")
+    @ApiOperation(value = "警示通报数据-编辑", notes = "警示通报数据-编辑")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:edit")
+    @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result<String> edit(@RequestBody Jstbsj jstbsj) {
+        jstbsjService.updateById(jstbsj);
+        return Result.OK("编辑成功!");
+    }
+
+    /**
+     * 通过id删除
+     *
+     * @param id
+     * @return
+     */
+    @AutoLog(value = "警示通报数据-通过id删除")
+    @ApiOperation(value = "警示通报数据-通过id删除", notes = "警示通报数据-通过id删除")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:delete")
+    @DeleteMapping(value = "/delete")
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
+        jstbsjService.removeById(id);
+        return Result.OK("删除成功!");
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param ids
+     * @return
+     */
+    @AutoLog(value = "警示通报数据-批量删除")
+    @ApiOperation(value = "警示通报数据-批量删除", notes = "警示通报数据-批量删除")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:deleteBatch")
+    @DeleteMapping(value = "/deleteBatch")
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        this.jstbsjService.removeByIds(Arrays.asList(ids.split(",")));
+        return Result.OK("批量删除成功!");
+    }
+
+    /**
+     * 通过id查询
+     *
+     * @param id
+     * @return
+     */
+    //@AutoLog(value = "警示通报数据-通过id查询")
+    @ApiOperation(value = "警示通报数据-通过id查询", notes = "警示通报数据-通过id查询")
+    @GetMapping(value = "/queryById")
+    public Result<Jstbsj> queryById(@RequestParam(name = "id", required = true) String id) {
+        Jstbsj jstbsj = jstbsjService.getById(id);
+        if (jstbsj == null) {
+            return Result.error("未找到对应数据");
+        }
+        return Result.OK(jstbsj);
+    }
+
+    /**
+     * 导出excel
+     *
+     * @param request
+     * @param jstbsj
+     */
     //@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:exportXls")
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, Jstbsj jstbsj) {
@@ -214,12 +178,12 @@ public class JstbsjController extends JeecgController<Jstbsj, IJstbsjService> {
     }
 
     /**
-      * 通过excel导入数据
-    *
-    * @param request
-    * @param response
-    * @return
-    */
+     * 通过excel导入数据
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     //@RequiresPermissions("sptsjzx.zdwxyaqgl.yjtssj.jstbsj:jstbsj:importExcel")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {

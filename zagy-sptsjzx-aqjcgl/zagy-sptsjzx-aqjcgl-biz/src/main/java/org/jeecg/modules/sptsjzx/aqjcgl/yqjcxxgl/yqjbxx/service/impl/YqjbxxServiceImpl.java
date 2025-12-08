@@ -22,10 +22,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -127,6 +124,23 @@ public class YqjbxxServiceImpl extends ServiceImpl<YqjbxxMapper, Yqjbxx> impleme
 
         List<Yqjbxx> parks = this.list(wrapper);
         return parks.stream()
+                .map(Yqjbxx::getParkCode)
+                .filter(code -> code != null && !code.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getYqCodesByCountyCode(String countycode) {
+        if (countycode == null || countycode.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        QueryWrapper<Yqjbxx> wrapper = new QueryWrapper<>();
+        wrapper.eq("park_area_code", countycode);
+        wrapper.select("park_code");
+
+        List<Yqjbxx> companies = this.list(wrapper);
+        return companies.stream()
                 .map(Yqjbxx::getParkCode)
                 .filter(code -> code != null && !code.isEmpty())
                 .collect(Collectors.toList());

@@ -125,9 +125,4 @@ public class Qylxyy implements Serializable {
 	@Excel(name = "更新人_企业", width = 15)
     @ApiModelProperty(value = "更新人_企业")
     private java.lang.String updateByCompany;
-	/**区县Code*/
-	@TableField(exist = false)
-	@ApiModelProperty(value = "区县Code")
-	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
-	private java.lang.String countyCode;
 }

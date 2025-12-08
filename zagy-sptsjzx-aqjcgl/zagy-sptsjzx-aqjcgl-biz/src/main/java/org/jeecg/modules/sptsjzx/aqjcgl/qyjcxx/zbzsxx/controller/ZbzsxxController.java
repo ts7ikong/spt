@@ -15,6 +15,7 @@ import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.jxkml.entity.Jxkml;
 import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.sptsjzx.aqjcgl.qyjcxx.zbzsxx.entity.Zbzsxx;
@@ -42,7 +43,6 @@ import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
 /**
  * @Description: 值班值守信息
@@ -56,12 +56,9 @@ import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanySe
 @Slf4j
 public class ZbzsxxController extends JeecgController<Zbzsxx, IZbzsxxService> {
 
-	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
 
-
-	@Autowired
-	private IYqjbxxService yqjbxxService;
+    @Autowired
+    private IYqjbxxService yqjbxxService;
 
     @Autowired
     private IZbzsxxService zbzsxxService;
@@ -90,45 +87,45 @@ public class ZbzsxxController extends JeecgController<Zbzsxx, IZbzsxxService> {
         customeRuleMap.put("workerType", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("parkWorkerStatus", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Zbzsxx> queryWrapper = QueryGenerator.initQueryWrapper(zbzsxx, req.getParameterMap(), customeRuleMap);
-
-		// 【数据权限过滤】根据登录用户的区县编码获取园区列表，然后过滤
-		if (!DataScopeHelper.needDataScope()) {
-			// 区县账号：只能查看本区县的园区数据
-			String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-			List<String> parkCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
-
-			// 如果前端传了parkCode参数，需要验证该园区是否属于当前区县
-			String requestParkCode = zbzsxx.getParkCode();
-			if (requestParkCode != null && !requestParkCode.isEmpty()) {
-				if (parkCodes == null || !parkCodes.contains(requestParkCode)) {
-					// 请求的园区不在当前区县权限范围内，返回空结果
-					return Result.OK(new Page<>(pageNo, pageSize));
-				}
-				// 园区在权限范围内，只查询该园区的数据（QueryGenerator已经添加了parkCode条件）
-			} else {
-				// 没有指定园区，使用园区编码列表过滤数据
-				DataScopeHelper.applyParkCodeFilter(queryWrapper, parkCodes, "park_code");
-			}
-		}
-		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-		if (zbzsxx.getCountyCode() != null) {
-			String orgCode = zbzsxx.getCountyCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-			if (companyCodes == null) {
-				// 请求的企业不在当前区县权限范围内，返回空结果
-				return Result.OK(new Page<>(pageNo, pageSize));
-			}
-			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-		}
-		Page<Zbzsxx> page = new Page<Zbzsxx>(pageNo, pageSize);
+        // 【数据权限过滤】根据登录用户的区县编码获取企业列表
+        // 实体只有companyCode字段，需要先查询企业表获取企业编码列表
+        if (!DataScopeHelper.needDataScope()) {
+            // 区县账号：只能查看本区县的企业数据
+            String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+            List<String> yqCodes = yqjbxxService.getYqCodesByCountyCode(orgCode);
+            // 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
+            String requestParkCode = zbzsxx.getParkCode();
+            if (requestParkCode != null && !requestParkCode.isEmpty()) {
+                if (yqCodes == null || !yqCodes.contains(requestParkCode)) {
+                    // 请求的企业不在当前区县权限范围内，返回空结果
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                // 企业在权限范围内，只查询该企业的数据（QueryGenerator已经添加了companyCode条件）
+            } else {
+                // 没有指定企业，使用企业编码列表过滤数据
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, yqCodes, "park_code");
+            }
+        } else {
+            if (zbzsxx.getCountyCode() != null) {
+                String orgCode = zbzsxx.getCountyCode();
+                List<String> yqCodes = yqjbxxService.getParkCodesByAreaCode(orgCode);
+                if (yqCodes == null) {
+                    // 请求的企业不在当前区县权限范围内，返回空结果
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, yqCodes, "park_code");
+            }
+        }
+        // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
+        Page<Zbzsxx> page = new Page<Zbzsxx>(pageNo, pageSize);
         IPage<Zbzsxx> pageList = zbzsxxService.page(page, queryWrapper);
-		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
-			for (Zbzsxx item : pageList.getRecords()) {
-				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
-				item.setCountyCode(item.getCompanyCode());
-			}
-		}
-		return Result.OK(pageList);
+        if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
+            for (Zbzsxx item : pageList.getRecords()) {
+                // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+                item.setCountyCode(item.getParkCode());
+            }
+        }
+        return Result.OK(pageList);
     }
 
     /**

@@ -129,7 +129,7 @@ public class DataScopeHelper {
             queryWrapper.in(fieldName, companyCodes);
         } else {
             // 如果没有符合条件的企业，则返回空结果
-            queryWrapper.apply("1=0");
+            queryWrapper.in(fieldName, "zagy");
         }
     }
 
@@ -161,12 +161,9 @@ public class DataScopeHelper {
     public static <T> void applyOrgCodeFilter(QueryWrapper<T> queryWrapper, String fieldName) {
         String orgCode = getCurrentUserOrgCode();
         if (orgCode != null && !orgCode.isEmpty()) {
-            if (orgCode.equals("500000")) {
-                queryWrapper.eq("provincecode", orgCode);
-            } else {
+            if (!orgCode.equals("500000")) {
                 queryWrapper.eq(fieldName, orgCode);
             }
-
         }
     }
 }

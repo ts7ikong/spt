@@ -48,19 +48,6 @@ public class Gggljcxx implements Serializable {
 	@Excel(name = "管理单位编码", width = 15)
     @ApiModelProperty(value = "管理单位编码")
     private java.lang.String companyCode;
-    /**
-     * 区县名称
-     */
-    @Excel(name = "区县名称", width = 15, dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-    @Dict(dictTable = "j_position_county", dicText = "county_name", dicCode = "county_id")
-    @ApiModelProperty(value = "区县名称")
-    private java.lang.String countyname;
-    /**
-     * 所属区县区县编码
-     */
-    @Excel(name = "所属区县区县编码", width = 15)
-    @ApiModelProperty(value = "所属区县区县编码")
-    private java.lang.String countycode;
 	/**管理单位*/
 	@Excel(name = "管理单位", width = 15)
     @ApiModelProperty(value = "管理单位")
@@ -166,9 +153,9 @@ public class Gggljcxx implements Serializable {
 	@Excel(name = "删除标志", width = 15)
     @ApiModelProperty(value = "删除标志")
     private java.lang.String deleted;
-	/**区县Code*/
-	@TableField(exist = false)
-	@ApiModelProperty(value = "区县Code")
-	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
-	private java.lang.String countyCode;
+    /**区县Code*/
+    @TableField(exist = false)
+    @ApiModelProperty(value = "区县Code")
+    @Dict(dictTable = "v_accept_park", dicText = "county_name", dicCode = "code")
+    private java.lang.String countyCode;
 }

@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.math.BigDecimal;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.TableLogic;
+
+import com.baomidou.mybatisplus.annotation.*;
 import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.util.SpringContextUtils;
 import lombok.Data;
@@ -46,14 +44,6 @@ public class Rydwqyzxzt implements Serializable {
 	@Excel(name = "企业编码", width = 15)
     @ApiModelProperty(value = "企业编码")
     private String companyCode;
-	/**所属区县编码*/
-	@Excel(name = "所属区县编码", width = 15)
-    @ApiModelProperty(value = "所属区县编码")
-    private String countycode;
-	/**区县名称*/
-	@Excel(name = "区县名称", width = 15)
-    @ApiModelProperty(value = "区县名称")
-    private String countryname;
 	/**离线状态*/
 	@Excel(name = "离线状态", width = 15, dicCode = "rydwlxzt")
 	@Dict(dicCode = "rydwlxzt")

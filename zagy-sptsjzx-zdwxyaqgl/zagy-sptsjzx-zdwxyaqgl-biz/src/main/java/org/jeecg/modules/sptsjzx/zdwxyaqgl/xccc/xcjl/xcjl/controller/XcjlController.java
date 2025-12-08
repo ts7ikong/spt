@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
@@ -42,150 +43,134 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 
- /**
+/**
  * @Description: 巡查记录
  * @Author: zagy-cg
- * @Date:   2025-05-30
+ * @Date: 2025-05-30
  * @Version: V1.0
  */
-@Api(tags="巡查记录")
+@Api(tags = "巡查记录")
 @RestController
 @RequestMapping("/sptsjzx/zdwxyaqgl/xccc/xcjl/xcjl/xcjl")
 @Slf4j
 public class XcjlController extends JeecgController<Xcjl, IXcjlService> {
 
-	@Autowired
-	private IAcceptCompanyService acceptCompanyService;
+    @Autowired
+    private IAcceptCompanyService acceptCompanyService;
 
-	@Autowired
-	private IXcjlService xcjlService;
-	
-	/**
-	 * 分页列表查询
-	 *
-	 * @param xcjl
-	 * @param pageNo
-	 * @param pageSize
-	 * @param req
-	 * @return
-	 */
-	//@AutoLog(value = "巡查记录-分页列表查询")
-	@ApiOperation(value="巡查记录-分页列表查询", notes="巡查记录-分页列表查询")
-	@GetMapping(value = "/list")
-	public Result<IPage<Xcjl>> queryPageList(Xcjl xcjl,
-								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
-								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
-								   HttpServletRequest req) {
+    @Autowired
+    private IXcjlService xcjlService;
+
+    /**
+     * 分页列表查询
+     *
+     * @param xcjl
+     * @param pageNo
+     * @param pageSize
+     * @param req
+     * @return
+     */
+    //@AutoLog(value = "巡查记录-分页列表查询")
+    @ApiOperation(value = "巡查记录-分页列表查询", notes = "巡查记录-分页列表查询")
+    @GetMapping(value = "/list")
+    public Result<IPage<Xcjl>> queryPageList(Xcjl xcjl,
+                                             @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                             @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                             HttpServletRequest req) {
         // 自定义查询规则
         Map<String, QueryRuleEnum> customeRuleMap = new HashMap<>();
         // 自定义多选的查询规则为：LIKE_WITH_OR
         customeRuleMap.put("inspectStatus", QueryRuleEnum.LIKE_WITH_OR);
         customeRuleMap.put("status", QueryRuleEnum.LIKE_WITH_OR);
-        QueryWrapper<Xcjl> queryWrapper = QueryGenerator.initQueryWrapper(xcjl, req.getParameterMap(),customeRuleMap);
-		// 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-		if (xcjl.getCountyCode() != null) {
-			String orgCode = xcjl.getCountyCode();
-			List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-			if (companyCodes == null) {
-				// 请求的企业不在当前区县权限范围内，返回空结果
-				return Result.OK(new Page<>(pageNo, pageSize));
-			}
-			DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
-		}
-				Page<Xcjl> page = new Page<Xcjl>(pageNo, pageSize);
-		IPage<Xcjl> pageList = xcjlService.page(page, queryWrapper);
-		if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
-			for (Xcjl item : pageList.getRecords()) {
-				// 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
-				item.setCountyCode(item.getCompanyCode());
-			}
-		}
-		return Result.OK(pageList);
-	}
-	
-	/**
-	 *   添加
-	 *
-	 * @param xcjl
-	 * @return
-	 */
-	@AutoLog(value = "巡查记录-添加")
-	@ApiOperation(value="巡查记录-添加", notes="巡查记录-添加")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:add")
-	@PostMapping(value = "/add")
-	public Result<String> add(@RequestBody Xcjl xcjl) {
-		xcjlService.save(xcjl);
-		return Result.XZ(xcjl.getId(),"添加成功！");
-	}
-	
-	/**
-	 *  编辑
-	 *
-	 * @param xcjl
-	 * @return
-	 */
-	@AutoLog(value = "巡查记录-编辑")
-	@ApiOperation(value="巡查记录-编辑", notes="巡查记录-编辑")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:edit")
-	@RequestMapping(value = "/edit", method = {RequestMethod.PUT,RequestMethod.POST})
-	public Result<String> edit(@RequestBody Xcjl xcjl) {
-		xcjlService.updateById(xcjl);
-		return Result.OK("编辑成功!");
-	}
-	
-	/**
-	 *   通过id删除
-	 *
-	 * @param id
-	 * @return
-	 */
-	@AutoLog(value = "巡查记录-通过id删除")
-	@ApiOperation(value="巡查记录-通过id删除", notes="巡查记录-通过id删除")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:delete")
-	@DeleteMapping(value = "/delete")
-	public Result<String> delete(@RequestParam(name="id",required=true) String id) {
-		xcjlService.removeById(id);
-		return Result.OK("删除成功!");
-	}
-	
-	/**
-	 *  批量删除
-	 *
-	 * @param ids
-	 * @return
-	 */
-	@AutoLog(value = "巡查记录-批量删除")
-	@ApiOperation(value="巡查记录-批量删除", notes="巡查记录-批量删除")
-	//@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:deleteBatch")
-	@DeleteMapping(value = "/deleteBatch")
-	public Result<String> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		this.xcjlService.removeByIds(Arrays.asList(ids.split(",")));
-		return Result.OK("批量删除成功!");
-	}
-	
-	/**
-	 * 通过id查询
-	 *
-	 * @param id
-	 * @return
-	 */
-	//@AutoLog(value = "巡查记录-通过id查询")
-	@ApiOperation(value="巡查记录-通过id查询", notes="巡查记录-通过id查询")
-	@GetMapping(value = "/queryById")
-	public Result<Xcjl> queryById(@RequestParam(name="id",required=true) String id) {
-		Xcjl xcjl = xcjlService.getById(id);
-		if(xcjl==null) {
-			return Result.error("未找到对应数据");
-		}
-		return Result.OK(xcjl);
-	}
+        QueryWrapper<Xcjl> queryWrapper = QueryGenerator.initQueryWrapper(xcjl, req.getParameterMap(), customeRuleMap);
+        Page<Xcjl> page = new Page<Xcjl>(pageNo, pageSize);
+        IPage<Xcjl> pageList = xcjlService.page(page, queryWrapper);
+        return Result.OK(pageList);
+    }
 
     /**
-    * 导出excel
-    *
-    * @param request
-    * @param xcjl
-    */
+     * 添加
+     *
+     * @param xcjl
+     * @return
+     */
+    @AutoLog(value = "巡查记录-添加")
+    @ApiOperation(value = "巡查记录-添加", notes = "巡查记录-添加")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:add")
+    @PostMapping(value = "/add")
+    public Result<String> add(@RequestBody Xcjl xcjl) {
+        xcjlService.save(xcjl);
+        return Result.XZ(xcjl.getId(), "添加成功！");
+    }
+
+    /**
+     * 编辑
+     *
+     * @param xcjl
+     * @return
+     */
+    @AutoLog(value = "巡查记录-编辑")
+    @ApiOperation(value = "巡查记录-编辑", notes = "巡查记录-编辑")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:edit")
+    @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result<String> edit(@RequestBody Xcjl xcjl) {
+        xcjlService.updateById(xcjl);
+        return Result.OK("编辑成功!");
+    }
+
+    /**
+     * 通过id删除
+     *
+     * @param id
+     * @return
+     */
+    @AutoLog(value = "巡查记录-通过id删除")
+    @ApiOperation(value = "巡查记录-通过id删除", notes = "巡查记录-通过id删除")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:delete")
+    @DeleteMapping(value = "/delete")
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
+        xcjlService.removeById(id);
+        return Result.OK("删除成功!");
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param ids
+     * @return
+     */
+    @AutoLog(value = "巡查记录-批量删除")
+    @ApiOperation(value = "巡查记录-批量删除", notes = "巡查记录-批量删除")
+    //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:deleteBatch")
+    @DeleteMapping(value = "/deleteBatch")
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+        this.xcjlService.removeByIds(Arrays.asList(ids.split(",")));
+        return Result.OK("批量删除成功!");
+    }
+
+    /**
+     * 通过id查询
+     *
+     * @param id
+     * @return
+     */
+    //@AutoLog(value = "巡查记录-通过id查询")
+    @ApiOperation(value = "巡查记录-通过id查询", notes = "巡查记录-通过id查询")
+    @GetMapping(value = "/queryById")
+    public Result<Xcjl> queryById(@RequestParam(name = "id", required = true) String id) {
+        Xcjl xcjl = xcjlService.getById(id);
+        if (xcjl == null) {
+            return Result.error("未找到对应数据");
+        }
+        return Result.OK(xcjl);
+    }
+
+    /**
+     * 导出excel
+     *
+     * @param request
+     * @param xcjl
+     */
     //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:exportXls")
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, Xcjl xcjl) {
@@ -193,12 +178,12 @@ public class XcjlController extends JeecgController<Xcjl, IXcjlService> {
     }
 
     /**
-      * 通过excel导入数据
-    *
-    * @param request
-    * @param response
-    * @return
-    */
+     * 通过excel导入数据
+     *
+     * @param request
+     * @param response
+     * @return
+     */
     //@RequiresPermissions("sptsjzx.zdwxyaqgl.xccc.xcjl.xcjl:xcjl:importExcel")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {
