@@ -13,7 +13,7 @@
             AND device=1 AND tank=1 AND process=1 AND gas_sensor=1
             AND warehouse=1 AND platfor=1 AND stop_record=1 AND camera=1
             AND device_medium=1 AND medium_component=1 AND chemical=1
-            AND stsjgxx=1 AND qyzzdjxba=1
+            AND qyzzdjxba=1
             THEN 1 ELSE 0
             END) AS fullAccess,
             SUM(CASE
@@ -22,13 +22,13 @@
             OR device=1 OR tank=1 OR process=1 OR gas_sensor=1
             OR warehouse=1 OR platfor=1 OR stop_record=1 OR camera=1
             OR device_medium=1 OR medium_component=1 OR chemical=1
-            OR stsjgxx=1 OR qyzzdjxba=1)
+            OR qyzzdjxba=1)
             AND NOT (qylshghygx=1 AND qylszdhygx=1 AND wxhxpxx=1 AND qyzdjggyxx=1
             AND wxyhxpxx=1 AND wxybbfzrxx=1 AND ryxxk=1 AND qysgsj=1
             AND device=1 AND tank=1 AND process=1 AND gas_sensor=1
             AND warehouse=1 AND platfor=1 AND stop_record=1 AND camera=1
             AND device_medium=1 AND medium_component=1 AND chemical=1
-            AND stsjgxx=1 AND qyzzdjxba=1)
+            AND qyzzdjxba=1)
             THEN 1 ELSE 0
             END) AS partialAccess,
             SUM(CASE
@@ -38,7 +38,7 @@
             AND COALESCE(tank,0)=0 AND COALESCE(process,0)=0 AND COALESCE(gas_sensor,0)=0
             AND COALESCE(warehouse,0)=0 AND COALESCE(platfor,0)=0 AND COALESCE(stop_record,0)=0
             AND COALESCE(camera,0)=0 AND COALESCE(device_medium,0)=0 AND COALESCE(medium_component,0)=0
-            AND COALESCE(chemical,0)=0 AND COALESCE(stsjgxx,0)=0 AND COALESCE(qyzzdjxba,0)=0
+            AND COALESCE(chemical,0)=0 AND COALESCE(qyzzdjxba,0)=0
             THEN 1 ELSE 0
             END) AS notAccess
             FROM zlkj_danger_data_accept.all_access_status a
