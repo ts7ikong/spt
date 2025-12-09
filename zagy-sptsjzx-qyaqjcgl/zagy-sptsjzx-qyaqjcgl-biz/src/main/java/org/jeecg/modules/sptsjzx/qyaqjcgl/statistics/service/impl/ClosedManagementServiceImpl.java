@@ -17,14 +17,14 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
     
     @Override
     public ClosedManagementStatisticsDTO getClosedManagementStatistics(String parkCode,
-                                                                       String companyCode,
+                                                                       List<String> companyCodes,
                                                                        String countycode,
                                                                        String timeRange) {
-        
+
         ClosedManagementStatisticsDTO dto = new ClosedManagementStatisticsDTO();
-        
+
         // 1. 接入情况统计
-        Map<String, Object> accessData = mapper.getClosedAccessStats(parkCode, countycode);
+        Map<String, Object> accessData = mapper.getClosedAccessStats(parkCode, companyCodes, countycode);
         
         // 判断10张表是否有数据
         int kkmjCount = ((Number) accessData.get("kkmjCount")).intValue();
@@ -74,22 +74,22 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
         dto.setClosedAccessStats(closedAccessStats);
         
         // 2. 报警类型统计(饼图)
-        List<Map<String, Object>> alarmTypeStats = mapper.getAlarmTypeStats(parkCode, countycode);
+        List<Map<String, Object>> alarmTypeStats = mapper.getAlarmTypeStats(parkCode, companyCodes, countycode);
         dto.setAlarmTypeStats(alarmTypeStats);
-        
+
         // 3. 报警基本信息统计
-        Map<String, Object> basicInfo = mapper.getBasicInfoStats(parkCode, countycode);
-        ClosedManagementStatisticsDTO.BasicInfoStats basicInfoStats = 
+        Map<String, Object> basicInfo = mapper.getBasicInfoStats(parkCode, companyCodes, countycode);
+        ClosedManagementStatisticsDTO.BasicInfoStats basicInfoStats =
             new ClosedManagementStatisticsDTO.BasicInfoStats();
         basicInfoStats.setGateCount(((Number) basicInfo.get("gateCount")).intValue());
         basicInfoStats.setHazardousVehicleCount(((Number) basicInfo.get("hazardousVehicleCount")).intValue());
         basicInfoStats.setOtherVehicleCount(((Number) basicInfo.get("otherVehicleCount")).intValue());
         basicInfoStats.setVisitorCount(((Number) basicInfo.get("visitorCount")).intValue());
         dto.setBasicInfoStats(basicInfoStats);
-        
+
         // 4. 通行数据统计
-        Map<String, Object> vehicleTraffic = mapper.getVehicleTrafficStats(parkCode, countycode, timeRange);
-        Map<String, Object> personnelTraffic = mapper.getPersonnelTrafficStats(parkCode, countycode, timeRange);
+        Map<String, Object> vehicleTraffic = mapper.getVehicleTrafficStats(parkCode, companyCodes, countycode, timeRange);
+        Map<String, Object> personnelTraffic = mapper.getPersonnelTrafficStats(parkCode, companyCodes, countycode, timeRange);
         
         ClosedManagementStatisticsDTO.TrafficStats trafficStats = 
             new ClosedManagementStatisticsDTO.TrafficStats();
