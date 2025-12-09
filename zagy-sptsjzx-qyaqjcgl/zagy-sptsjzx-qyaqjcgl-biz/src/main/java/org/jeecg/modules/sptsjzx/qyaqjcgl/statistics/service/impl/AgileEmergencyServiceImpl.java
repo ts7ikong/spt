@@ -17,14 +17,14 @@ public class AgileEmergencyServiceImpl implements IAgileEmergencyService {
 
     @Override
     public AgileEmergencyStatisticsDTO getAgileEmergencyStatistics(String parkCode,
-                                                                   String companyCode,
+                                                                   List<String> companyCodes,
                                                                    String countycode,
                                                                    String drillType) {
 
         AgileEmergencyStatisticsDTO dto = new AgileEmergencyStatisticsDTO();
 
         // 1. 接入情况统计
-        Map<String, Object> accessData = mapper.getEmergencyAccessStats(parkCode, countycode);
+        Map<String, Object> accessData = mapper.getEmergencyAccessStats(parkCode, companyCodes, countycode);
 
         // 判断12张表是否有数据
         int yjyaCount = ((Number) accessData.get("yjyaCount")).intValue();
@@ -78,15 +78,15 @@ public class AgileEmergencyServiceImpl implements IAgileEmergencyService {
         dto.setEmergencyAccessStats(emergencyAccessStats);
 
         // 2. 应急预案等级统计
-        List<Map<String, Object>> planLevelStats = mapper.getEmergencyPlanLevelStats(parkCode, countycode);
+        List<Map<String, Object>> planLevelStats = mapper.getEmergencyPlanLevelStats(parkCode, companyCodes, countycode);
         dto.setEmergencyPlanLevelStats(planLevelStats);
 
         // 3. 应急演练级别统计(带演练类型筛选)
-        List<Map<String, Object>> drillLevelStats = mapper.getEmergencyDrillLevelStats(parkCode, countycode, drillType);
+        List<Map<String, Object>> drillLevelStats = mapper.getEmergencyDrillLevelStats(parkCode, companyCodes, countycode, drillType);
         dto.setEmergencyDrillLevelStats(drillLevelStats);
 
         // 4. 应急资源统计
-        Map<String, Object> resourceData = mapper.getEmergencyResourceStats(parkCode, countycode);
+        Map<String, Object> resourceData = mapper.getEmergencyResourceStats(parkCode, companyCodes, countycode);
         AgileEmergencyStatisticsDTO.ResourceStats resourceStats =
                 new AgileEmergencyStatisticsDTO.ResourceStats();
         resourceStats.setMaterialCount(((Number) resourceData.get("materialCount")).intValue());

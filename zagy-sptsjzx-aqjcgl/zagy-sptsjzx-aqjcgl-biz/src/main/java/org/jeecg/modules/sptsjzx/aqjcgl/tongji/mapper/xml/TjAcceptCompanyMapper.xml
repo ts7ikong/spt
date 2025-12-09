@@ -17,8 +17,11 @@
         <if test="parkCode != null and parkCode != ''">
             AND ac.yqcode = #{parkCode}
         </if>
-        <if test="companyCode != null and companyCode != ''">
-            AND ac.company_code = #{companyCode}
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND ac.company_code IN
+            <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
         <if test="isScqy != null">
             AND ac.is_scqy = #{isScqy}
@@ -39,8 +42,11 @@
         <if test="parkCode != null and parkCode != ''">
             AND ac.yqcode = #{parkCode}
         </if>
-        <if test="companyCode != null and companyCode != ''">
-            AND ac.company_code = #{companyCode}
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND ac.company_code IN
+            <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
         <if test="isScqy != null">
             AND ac.is_scqy = #{isScqy}
@@ -62,8 +68,11 @@
         <if test="parkCode != null and parkCode != ''">
             AND ac.yqcode = #{parkCode}
         </if>
-        <if test="companyCode != null and companyCode != ''">
-            AND ac.company_code = #{companyCode}
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND ac.company_code IN
+            <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
     </select>
 
@@ -82,8 +91,11 @@
         <if test="parkCode != null and parkCode != ''">
             AND ac.yqcode = #{parkCode}
         </if>
-        <if test="companyCode != null and companyCode != ''">
-            AND ac.company_code = #{companyCode}
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND ac.company_code IN
+            <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
         <if test="isScqy != null">
             AND ac.is_scqy = #{isScqy}

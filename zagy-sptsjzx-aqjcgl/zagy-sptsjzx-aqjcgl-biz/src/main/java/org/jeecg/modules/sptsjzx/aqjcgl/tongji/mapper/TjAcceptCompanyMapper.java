@@ -4,6 +4,7 @@ import com.baomidou.dynamic.datasource.annotation.DS;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,14 +19,14 @@ public interface TjAcceptCompanyMapper {
      * @param countycode 区县编码
      * @param yqType 园区类型
      * @param parkCode 园区编码
-     * @param companyCode 企业编码
+     * @param companyCodes 企业编码列表
      * @param isScqy 是否生产企业
      * @return 区县数量
      */
     Long countCounties(@Param("countycode") String countycode,
                        @Param("yqType") Integer yqType,
                        @Param("parkCode") String parkCode,
-                       @Param("companyCode") String companyCode,
+                       @Param("companyCodes") List<String> companyCodes,
                        @Param("isScqy") Integer isScqy);
 
     /**
@@ -33,14 +34,14 @@ public interface TjAcceptCompanyMapper {
      * @param countycode 区县编码
      * @param yqType 园区类型
      * @param parkCode 园区编码
-     * @param companyCode 企业编码
+     * @param companyCodes 企业编码列表
      * @param isScqy 是否生产企业
      * @return 企业数量
      */
     Long countCompanies(@Param("countycode") String countycode,
                         @Param("yqType") Integer yqType,
                         @Param("parkCode") String parkCode,
-                        @Param("companyCode") String companyCode,
+                        @Param("companyCodes") List<String> companyCodes,
                         @Param("isScqy") Integer isScqy);
 
     /**
@@ -48,27 +49,27 @@ public interface TjAcceptCompanyMapper {
      * @param countycode 区县编码
      * @param yqType 园区类型
      * @param parkCode 园区编码
-     * @param companyCode 企业编码
+     * @param companyCodes 企业编码列表
      * @return 生产企业数量
      */
     Long countProductionCompanies(@Param("countycode") String countycode,
                                    @Param("yqType") Integer yqType,
                                    @Param("parkCode") String parkCode,
-                                   @Param("companyCode") String companyCode);
+                                   @Param("companyCodes") List<String> companyCodes);
 
     /**
      * 统计重大危险源企业数量
      * @param countycode 区县编码
      * @param yqType 园区类型
      * @param parkCode 园区编码
-     * @param companyCode 企业编码
+     * @param companyCodes 企业编码列表
      * @param isScqy 是否生产企业
      * @return 重大危险源企业数量
      */
     Long countMajorHazardCompanies(@Param("countycode") String countycode,
                                     @Param("yqType") Integer yqType,
                                     @Param("parkCode") String parkCode,
-                                    @Param("companyCode") String companyCode,
+                                    @Param("companyCodes") List<String> companyCodes,
                                     @Param("isScqy") Integer isScqy);
 
     Map<String, Object> getAccessStats(@Param("countycode") String countycode,

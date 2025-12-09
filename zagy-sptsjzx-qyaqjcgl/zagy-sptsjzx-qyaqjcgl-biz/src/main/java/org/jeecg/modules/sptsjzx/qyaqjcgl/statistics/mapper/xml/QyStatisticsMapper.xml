@@ -53,8 +53,11 @@
             <if test="parkCode != null and parkCode != ''">
                 AND c.yqcode = #{parkCode}
             </if>
-            <if test="companyCode != null and companyCode != ''">
-                AND a.company_code = #{companyCode}
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND a.company_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
             <if test="isScqy != null">
                 AND c.is_scqy = #{isScqy}
@@ -78,8 +81,11 @@
             <if test="parkCode != null and parkCode != ''">
                 AND c.yqcode = #{parkCode}
             </if>
-            <if test="companyCode != null and companyCode != ''">
-                AND d.company_code = #{companyCode}
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND d.company_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
             <if test="isScqy != null">
                 AND c.is_scqy = #{isScqy}
@@ -97,7 +103,12 @@
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
-            <if test="companyCode != null and companyCode != ''">AND q.company_code = #{companyCode}</if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND q.company_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS keyProcessCount,
 
@@ -107,7 +118,12 @@
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
-            <if test="companyCode != null and companyCode != ''">AND h.company_code = #{companyCode}</if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND h.company_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS hazardCount,
 
@@ -117,7 +133,12 @@
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
-            <if test="companyCode != null and companyCode != ''">AND s.company_code = #{companyCode}</if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND s.company_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS stsCount,
 
@@ -127,7 +148,12 @@
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
-            <if test="companyCode != null and companyCode != ''">AND z.company_code = #{companyCode}</if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND z.company_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS maintenanceCount,
 
@@ -137,7 +163,12 @@
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
-            <if test="companyCode != null and companyCode != ''">AND j.company_code = #{companyCode}</if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND j.company_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS restrictionCount,
 
@@ -147,7 +178,12 @@
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
-            <if test="companyCode != null and companyCode != ''">AND z.company_code = #{companyCode}</if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND z.company_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS hazardInspectionCount,
 
@@ -157,7 +193,12 @@
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
-            <if test="companyCode != null and companyCode != ''">AND d.social_code = #{companyCode}</if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND d.social_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS thirdPartyCount,
 
@@ -167,7 +208,12 @@
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
-            <if test="companyCode != null and companyCode != ''">AND dw.company_code = #{companyCode}</if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND d.socia_code IN
+                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS thirdPartyPersonCount
         </select>
