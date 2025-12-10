@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.util.DataScopeHelper;
-import org.jeecg.modules.sptsjzx.aqjcgl.qyjbxx.service.IAqAcceptCompanyService;
 import org.jeecg.modules.sptsjzx.aqjcgl.tongji.service.StatisticsService;
 import org.jeecg.modules.sptsjzx.aqjcgl.tongji.vo.StatisticsVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * 数据统计Controller
@@ -29,9 +26,6 @@ public class StatisticsController {
     @Autowired
     private StatisticsService statisticsService;
 
-    @Autowired
-    private IAqAcceptCompanyService aqAcceptCompanyService;
-
     /**
      * 获取统计数据
      */
@@ -41,30 +35,29 @@ public class StatisticsController {
             @ApiParam(value = "区县编码", required = false) @RequestParam(required = false) String countycode,
             @ApiParam(value = "园区类型", required = false) @RequestParam(required = false) Integer yqType,
             @ApiParam(value = "园区编码", required = false) @RequestParam(required = false) String parkCode,
-            @ApiParam(value = "企业编码", required = false) @RequestParam(required = false) String companyCode,
             @ApiParam(value = "是否生产企业(0-否,1-是)", required = false) @RequestParam(required = false) Integer isScqy) {
 
         try {
-            // 【数据权限过滤】根据登录用户的区县编码获取企业列表
-            List<String> companyCodes = null;
+            // 【数据权限过滤】
+            // 1. 市平台账号：可以查询所有企业，前端传countycode和parkCode筛选
+            // 2. 区县账号：只能查询自己区县的数据，如果前端传了其他区县code就返回空数据
             if (DataScopeHelper.needDataScope()) {
                 String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-                companyCodes = aqAcceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-                // 如果前端传了companyCode,验证是否在权限范围内
-                if (companyCode != null && !companyCode.isEmpty()) {
-                    if (!companyCodes.contains(companyCode)) {
-                        // 前端传的企业不在权限范围内,返回空数据
-                        return Result.OK(null);
+                // 区县账号
+                if (countycode != null && !countycode.isEmpty()) {
+                    // 前端传了countycode，验证是否与当前用户的区县一致
+                    if (!orgCode.equals(countycode)) {
+                        // 传的区县code与当前用户区县不一致，返回空数据
+                        return Result.OK(new StatisticsVO());
                     }
-                    // 前端传的企业在权限范围内,只查询该企业
-                    companyCodes = java.util.Collections.singletonList(companyCode);
+                } else {
+                    // 前端没传countycode，使用当前用户的区县code
+                    countycode = orgCode;
                 }
-            } else if (companyCode != null && !companyCode.isEmpty()) {
-                // 市级账号且指定了企业,只查询该企业
-                companyCodes = java.util.Collections.singletonList(companyCode);
             }
+            // 市级账号：直接使用前端传入的参数（countycode可能为空，表示查询全部）
 
-            StatisticsVO statistics = statisticsService.getStatistics(countycode, yqType, parkCode, companyCodes, isScqy);
+            StatisticsVO statistics = statisticsService.getStatistics(countycode, yqType, parkCode, null, isScqy);
             return Result.OK(statistics);
         } catch (Exception e) {
             log.error("获取统计数据失败", e);
