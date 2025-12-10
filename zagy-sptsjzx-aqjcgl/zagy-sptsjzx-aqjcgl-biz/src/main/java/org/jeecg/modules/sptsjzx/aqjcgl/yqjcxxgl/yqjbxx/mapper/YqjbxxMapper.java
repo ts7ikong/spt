@@ -15,8 +15,9 @@ public interface YqjbxxMapper extends BaseMapper<Yqjbxx> {
 
     /**
      * 统计园区数量
+     * @param citycode 城市编码
      * @param countycode 区县编码
      * @return 园区数量
      */
-    Long countParks(@Param("countycode") String countycode);
+    Long countParks(@Param("citycode") String citycode, @Param("countycode") String countycode);
 }

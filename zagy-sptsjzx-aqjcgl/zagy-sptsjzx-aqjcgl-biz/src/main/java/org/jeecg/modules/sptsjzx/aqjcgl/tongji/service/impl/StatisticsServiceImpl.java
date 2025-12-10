@@ -34,7 +34,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         vo.setCountyCount(countyCount);
 
         // 查询园区数
-        Long parkCount = yqjbxxMapper.countParks(countycode);
+        Long parkCount = yqjbxxMapper.countParks(citycode, countycode);
         vo.setParkCount(parkCount);
 
         // 查询企业数
