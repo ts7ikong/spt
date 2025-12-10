@@ -24,13 +24,13 @@ public class StatisticsServiceImpl implements StatisticsService {
     private TjAcceptCompanyMapper tjAcceptCompanyMapper;
 
     @Override
-    public StatisticsVO getStatistics(String countycode, Integer yqType, String parkCode, List<String> companyCodes, Integer isScqy) {
-        log.info("开始获取统计数据, countycode={}, yqType={}, parkCode={}, companyCodes={}, isScqy={}", countycode, yqType, parkCode, companyCodes, isScqy);
+    public StatisticsVO getStatistics(String citycode, String countycode, Integer yqType, String parkCode, List<String> companyCodes, Integer isScqy) {
+        log.info("开始获取统计数据, citycode={}, countycode={}, yqType={}, parkCode={}, companyCodes={}, isScqy={}", citycode, countycode, yqType, parkCode, companyCodes, isScqy);
 
         StatisticsVO vo = new StatisticsVO();
 
         // 查询区县数
-        Long countyCount = tjAcceptCompanyMapper.countCounties(countycode, yqType, parkCode, companyCodes, isScqy);
+        Long countyCount = tjAcceptCompanyMapper.countCounties(citycode, countycode, yqType, parkCode, companyCodes, isScqy);
         vo.setCountyCount(countyCount);
 
         // 查询园区数
@@ -38,15 +38,15 @@ public class StatisticsServiceImpl implements StatisticsService {
         vo.setParkCount(parkCount);
 
         // 查询企业数
-        Long companyCount = tjAcceptCompanyMapper.countCompanies(countycode, yqType, parkCode, companyCodes, isScqy);
+        Long companyCount = tjAcceptCompanyMapper.countCompanies(citycode, countycode, yqType, parkCode, companyCodes, isScqy);
         vo.setCompanyCount(companyCount);
 
         // 查询生产企业数
-        Long productionCompanyCount = tjAcceptCompanyMapper.countProductionCompanies(countycode, yqType, parkCode, companyCodes);
+        Long productionCompanyCount = tjAcceptCompanyMapper.countProductionCompanies(citycode, countycode, yqType, parkCode, companyCodes);
         vo.setProductionCompanyCount(productionCompanyCount);
 
         // 查询重大危险源企业数
-        Long majorHazardCompanyCount = tjAcceptCompanyMapper.countMajorHazardCompanies(countycode, yqType, parkCode, companyCodes, isScqy);
+        Long majorHazardCompanyCount = tjAcceptCompanyMapper.countMajorHazardCompanies(citycode, countycode, yqType, parkCode, companyCodes, isScqy);
         vo.setMajorHazardCompanyCount(majorHazardCompanyCount);
 
         log.info("统计数据获取完成: {}", vo);

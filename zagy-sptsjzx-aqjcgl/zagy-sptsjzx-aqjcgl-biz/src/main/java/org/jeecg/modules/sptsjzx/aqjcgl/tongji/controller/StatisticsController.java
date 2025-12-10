@@ -39,25 +39,32 @@ public class StatisticsController {
 
         try {
             // 【数据权限过滤】
-            // 1. 市平台账号：可以查询所有企业，前端传countycode和parkCode筛选
-            // 2. 区县账号：只能查询自己区县的数据，如果前端传了其他区县code就返回空数据
+            String citycode = null;
+
             if (DataScopeHelper.needDataScope()) {
                 String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-                // 区县账号
-                if (countycode != null && !countycode.isEmpty()) {
-                    // 前端传了countycode，验证是否与当前用户的区县一致
-                    if (!orgCode.equals(countycode)) {
-                        // 传的区县code与当前用户区县不一致，返回空数据
-                        return Result.OK(new StatisticsVO());
-                    }
+
+                if ("500000".equals(orgCode)) {
+                    // 1. 市级平台账号（orgCode = 500000）：使用 citycode 过滤
+                    citycode = "500000";
+                    // 前端可以传 countycode 进一步筛选，使用前端传入的值
                 } else {
-                    // 前端没传countycode，使用当前用户的区县code
-                    countycode = orgCode;
+                    // 2. 区县账号：只能查询自己区县的数据
+                    if (countycode != null && !countycode.isEmpty()) {
+                        // 前端传了countycode，验证是否与当前用户的区县一致
+                        if (!orgCode.equals(countycode)) {
+                            // 传的区县code与当前用户区县不一致，返回空数据
+                            return Result.OK(new StatisticsVO());
+                        }
+                    } else {
+                        // 前端没传countycode，使用当前用户的区县code
+                        countycode = orgCode;
+                    }
                 }
             }
-            // 市级账号：直接使用前端传入的参数（countycode可能为空，表示查询全部）
+            // 如果不需要数据权限过滤（needDataScope() = false），citycode 和 countycode 都使用前端传入的值
 
-            StatisticsVO statistics = statisticsService.getStatistics(countycode, yqType, parkCode, null, isScqy);
+            StatisticsVO statistics = statisticsService.getStatistics(citycode, countycode, yqType, parkCode, null, isScqy);
             return Result.OK(statistics);
         } catch (Exception e) {
             log.error("获取统计数据失败", e);

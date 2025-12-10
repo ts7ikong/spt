@@ -12,6 +12,7 @@ public interface StatisticsService {
     /**
      * 获取统计数据
      *
+     * @param citycode 城市编码
      * @param countycode 区县编码
      * @param yqType     园区类型
      * @param parkCode   园区编码
@@ -19,5 +20,5 @@ public interface StatisticsService {
      * @param isScqy     是否生产企业
      * @return 统计结果
      */
-    StatisticsVO getStatistics(String countycode, Integer yqType, String parkCode, List<String> companyCodes, Integer isScqy);
+    StatisticsVO getStatistics(String citycode, String countycode, Integer yqType, String parkCode, List<String> companyCodes, Integer isScqy);
 }

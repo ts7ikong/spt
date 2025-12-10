@@ -8,6 +8,9 @@
         SELECT COUNT(DISTINCT ac.countycode)
         FROM accept_company ac
         WHERE ac.deleted = 0
+        <if test="citycode != null and citycode != ''">
+            AND ac.citycode = #{citycode}
+        </if>
         <if test="countycode != null and countycode != ''">
             AND ac.countycode = #{countycode}
         </if>
@@ -33,6 +36,9 @@
         SELECT COUNT(ac.id)
         FROM accept_company ac
         WHERE ac.deleted = 0
+        <if test="citycode != null and citycode != ''">
+            AND ac.citycode = #{citycode}
+        </if>
         <if test="countycode != null and countycode != ''">
             AND ac.countycode = #{countycode}
         </if>
@@ -59,6 +65,9 @@
         FROM accept_company ac
         WHERE ac.deleted = 0
         AND ac.is_scqy = 1
+        <if test="citycode != null and citycode != ''">
+            AND ac.citycode = #{citycode}
+        </if>
         <if test="countycode != null and countycode != ''">
             AND ac.countycode = #{countycode}
         </if>
@@ -82,6 +91,9 @@
         FROM accept_company ac
         WHERE ac.deleted = 0
         AND ac.is_zdwxy = 1
+        <if test="citycode != null and citycode != ''">
+            AND ac.citycode = #{citycode}
+        </if>
         <if test="countycode != null and countycode != ''">
             AND ac.countycode = #{countycode}
         </if>
