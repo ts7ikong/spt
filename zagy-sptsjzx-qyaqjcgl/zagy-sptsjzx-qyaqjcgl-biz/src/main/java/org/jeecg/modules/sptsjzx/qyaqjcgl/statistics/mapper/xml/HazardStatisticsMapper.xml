@@ -143,18 +143,18 @@
         SELECT
         (SELECT COUNT(*)
         FROM shipingtaishujuzhongxin.yjsjsj y
-        <if test="yqType != null or isScqy != null">
+        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON y.company_code = c.code
         </if>
         WHERE 1=1
         <if test="countycode != null and countycode != ''">
-            AND y.countycode = #{countycode}
+            AND c.countycode = #{countycode}
         </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
         <if test="parkCode != null and parkCode != ''">
-            AND y.park_code = #{parkCode}
+            AND c.yqcode = #{parkCode}
         </if>
         <if test="companyCodes != null and companyCodes.size() > 0">
             AND y.company_code IN
