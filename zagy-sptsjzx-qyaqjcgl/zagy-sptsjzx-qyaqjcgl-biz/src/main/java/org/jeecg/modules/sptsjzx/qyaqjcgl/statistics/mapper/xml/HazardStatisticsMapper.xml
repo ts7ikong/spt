@@ -10,13 +10,8 @@
         0 AS notAccess,
         COUNT(DISTINCT h.company_code) AS total
         FROM zlkj_danger_data_accept.accept_hazard_code h
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
-        </if>
+        LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
         WHERE 1=1
-        <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
-        </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
@@ -43,13 +38,8 @@
         ELSE h.hazard_factility
         END AS name
         FROM zlkj_danger_data_accept.accept_hazard_code h
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
-        </if>
+        LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
         WHERE 1=1
-        <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
-        </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
@@ -78,13 +68,8 @@
         h.level AS level,
         COUNT(*) AS count
         FROM zlkj_danger_data_accept.accept_hazard_code h
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
-        </if>
+        LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
         WHERE h.level IS NOT NULL
-        <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
-        </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
@@ -114,13 +99,8 @@
         SUM(CASE WHEN q.risk_grade = '3' THEN 1 ELSE 0 END) AS todayGeneralRisk,
         SUM(CASE WHEN q.risk_grade = '4' THEN 1 ELSE 0 END) AS todayLowRisk
         FROM shipingtaishujuzhongxin.qycnxq q
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON q.company_code = c.code
-        </if>
+        LEFT JOIN zlkj_danger_data_accept.accept_company c ON q.company_code = c.code
         WHERE DATE(q.commit_date) = #{today}
-        <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
-        </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
@@ -143,13 +123,8 @@
         SELECT
         (SELECT COUNT(*)
         FROM shipingtaishujuzhongxin.yjsjsj y
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON y.company_code = c.code
-        </if>
+        LEFT JOIN zlkj_danger_data_accept.accept_company c ON y.company_code = c.code
         WHERE 1=1
-        <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
-        </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
@@ -169,13 +144,8 @@
 
         (SELECT COUNT(*)
         FROM shipingtaishujuzhongxin.jstbsj j
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON j.company_code = c.code
-        </if>
+        LEFT JOIN zlkj_danger_data_accept.accept_company c ON j.company_code = c.code
         WHERE 1=1
-        <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
-        </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
