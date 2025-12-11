@@ -44,6 +44,9 @@
             FROM zlkj_danger_data_accept.all_access_status a
             LEFT JOIN accept_company c ON a.company_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">
+                AND c.citycode = #{citycode}
+            </if>
             <if test="countycode != null and countycode != ''">
                 AND c.countycode = #{countycode}
             </if>
@@ -72,6 +75,9 @@
             FROM device_base_info d
             LEFT JOIN accept_company c ON d.company_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">
+                AND c.citycode = #{citycode}
+            </if>
             <if test="countycode != null and countycode != ''">
                 AND c.countycode = #{countycode}
             </if>
@@ -100,6 +106,7 @@
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.qyzdjggyxx q
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON q.company_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
@@ -115,6 +122,7 @@
             (SELECT COUNT(*) FROM zlkj_danger_data_accept.accept_hazard_code h
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
@@ -130,6 +138,7 @@
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.stsjgxx s
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON s.company_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
@@ -145,6 +154,7 @@
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.qyzzdjxba z
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON z.company_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
@@ -160,6 +170,7 @@
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.jxkml j
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON j.company_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
@@ -175,6 +186,7 @@
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.zfjcyhxx z
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON z.company_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
@@ -190,6 +202,7 @@
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.dsfdwjbxx d
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON d.social_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
@@ -205,6 +218,7 @@
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.dsfdwryxx d
             LEFT JOIN accept_company c ON d.socia_code = c.code
             WHERE 1=1
+            <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
             <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>

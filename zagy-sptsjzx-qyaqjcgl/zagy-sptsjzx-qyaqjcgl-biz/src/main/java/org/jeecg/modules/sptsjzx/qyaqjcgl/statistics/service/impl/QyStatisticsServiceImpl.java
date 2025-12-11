@@ -20,25 +20,25 @@ public class QyStatisticsServiceImpl implements IQyStatisticsService {
     private QyStatisticsMapper qyStatisticsMapper;
 
     @Override
-    public Map<String, Object> getComprehensiveStats(String countycode, Integer yqType,
+    public Map<String, Object> getComprehensiveStats(String citycode, String countycode, Integer yqType,
                                                      String parkCode, List<String> companyCodes, Integer isScqy) {
         Map<String, Object> result = new HashMap<>();
 
         // 1. 企业安全基础管理数据接入情况
         Map<String, Object> dataAccess = qyStatisticsMapper.getDataAccessStats(
-                countycode, yqType, parkCode, companyCodes, isScqy
+                citycode, countycode, yqType, parkCode, companyCodes, isScqy
         );
         result.put("dataAccess", dataAccess);
 
         // 2. 设备类型统计
         List<Map<String, Object>> deviceTypes = qyStatisticsMapper.getDeviceTypeStats(
-                countycode, yqType, parkCode, companyCodes, isScqy
+                citycode, countycode, yqType, parkCode, companyCodes, isScqy
         );
         result.put("deviceTypes", deviceTypes);
 
         // 3. 其他统计项
         Map<String, Object> otherStats = qyStatisticsMapper.getOtherStats(
-                countycode, yqType, parkCode, companyCodes, isScqy
+                citycode, countycode, yqType, parkCode, companyCodes, isScqy
         );
         result.putAll(otherStats);
 
