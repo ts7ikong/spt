@@ -2,12 +2,14 @@ package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.controller;
 
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.util.DataScopeHelper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.IQyStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import java.util.List;
 import java.util.Map;
 
 @Api(tags="企业统计")
@@ -17,6 +19,9 @@ public class QyStatisticsController {
 
     @Autowired
     private IQyStatisticsService statisticsService;
+
+    @Autowired
+    private IAcceptCompanyService acceptCompanyService;
 
 
     /**
@@ -33,35 +38,35 @@ public class QyStatisticsController {
                                            @RequestParam(required = false) Integer yqType,
                                            @RequestParam(required = false) String parkCode,
                                            @RequestParam(required = false) Integer isScqy) {
-        // 【数据权限过滤】
-        String citycode = null;
+        // 【数据权限过滤】先查询用户有权限的企业列表
         String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+        List<String> companyCodes = null;
 
         if ("500000".equals(orgCode)) {
             // 市级账号
             if (countycode != null && !countycode.isEmpty()) {
-                // 前端传了countycode，查询该区县的数据
-                // countycode使用前端传入的值
+                // 前端传了countycode，查询该区县的企业列表
+                companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(countycode);
             } else {
-                // 前端没传countycode，查询全市数据
-                citycode = "500000";
+                // 前端没传countycode，不过滤（查询所有）
+                companyCodes = null;
             }
         } else {
-            // 区县账号
+            // 区县账号：查询自己区县的企业列表
+            companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+
+            // 如果前端传了countycode，验证是否是自己的区县
             if (countycode != null && !countycode.isEmpty()) {
-                // 前端传了countycode，验证是否是自己的区县
                 if (!orgCode.equals(countycode)) {
                     // 不是自己的区县，返回空数据
                     return Result.OK(null);
                 }
-            } else {
-                // 前端没传countycode，使用自己的区县code
-                countycode = orgCode;
             }
         }
 
+        // 使用企业列表过滤统计数据
         Map<String, Object> stats = statisticsService.getComprehensiveStats(
-                citycode, countycode, yqType, parkCode, null, isScqy
+                null, null, yqType, parkCode, companyCodes, isScqy
         );
         return Result.OK(stats);
     }
