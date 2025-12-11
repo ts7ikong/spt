@@ -169,7 +169,7 @@
             ) AS maintenanceCount,
 
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.jxkml j
-            LEFT JOIN zlkj_danger_data_accept.yqjbxx yq ON j.park_code = yq.park_code
+            LEFT JOIN shipingtaishujuzhongxin.yqjbxx yq ON j.park_code = yq.park_code
             WHERE 1=1
             <if test="citycode != null and citycode != ''">AND yq.park_city_code = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND yq.park_area_code = #{countycode}</if>
