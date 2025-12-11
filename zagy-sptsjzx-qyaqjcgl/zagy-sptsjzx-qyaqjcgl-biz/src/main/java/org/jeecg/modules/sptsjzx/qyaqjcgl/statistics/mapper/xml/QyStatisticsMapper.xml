@@ -70,17 +70,18 @@
         <!-- 设备类型统计 -->
         <select id="getDeviceTypeStats" resultType="java.util.HashMap">
             SELECT
-            d.equip_type AS name,
+            CASE d.equip_type
+                WHEN 'G0' THEN '罐'
+                WHEN 'Q0' THEN '气体监测仪'
+                WHEN 'P0' THEN '生产装置'
+                WHEN 'K0' THEN '仓库'
+                WHEN 'Z0' THEN '装卸区设备'
+                ELSE d.equip_type
+            END AS name,
             COUNT(*) AS value
-            FROM device_base_info d
-            LEFT JOIN accept_company c ON d.company_code = c.code
+            FROM zlkj_danger_data_accept.device_base_info d
+            LEFT JOIN zlkj_danger_data_accept.accept_company c ON d.company_code = c.code
             WHERE 1=1
-            <if test="citycode != null and citycode != ''">
-                AND c.citycode = #{citycode}
-            </if>
-            <if test="countycode != null and countycode != ''">
-                AND c.countycode = #{countycode}
-            </if>
             <if test="yqType != null">
                 AND c.yq_type = #{yqType}
             </if>
