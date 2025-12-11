@@ -28,7 +28,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         log.info("开始获取统计数据, citycode={}, countycode={}, yqType={}, parkCode={}, companyCodes={}, isScqy={}", citycode, countycode, yqType, parkCode, companyCodes, isScqy);
 
         StatisticsVO vo = new StatisticsVO();
-
         // 查询区县数
         Long countyCount = tjAcceptCompanyMapper.countCounties(citycode, countycode, yqType, parkCode, companyCodes, isScqy);
         vo.setCountyCount(countyCount);
