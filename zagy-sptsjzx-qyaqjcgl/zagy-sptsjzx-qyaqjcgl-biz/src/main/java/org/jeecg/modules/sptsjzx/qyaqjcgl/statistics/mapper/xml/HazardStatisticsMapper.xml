@@ -143,18 +143,18 @@
         SELECT
         (SELECT COUNT(*)
         FROM shipingtaishujuzhongxin.yjsjsj y
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
+        <if test="yqType != null or isScqy != null">
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON y.company_code = c.code
         </if>
         WHERE 1=1
         <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
+            AND y.countycode = #{countycode}
         </if>
         <if test="yqType != null">
             AND c.yq_type = #{yqType}
         </if>
         <if test="parkCode != null and parkCode != ''">
-            AND c.yqcode = #{parkCode}
+            AND y.park_code = #{parkCode}
         </if>
         <if test="companyCodes != null and companyCodes.size() > 0">
             AND y.company_code IN
@@ -169,27 +169,16 @@
 
         (SELECT COUNT(*)
         FROM shipingtaishujuzhongxin.jstbsj j
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON j.company_code = c.code
-        </if>
+        LEFT JOIN shipingtaishujuzhongxin.yqjbxx yq ON j.park_code = yq.park_code
         WHERE 1=1
         <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
+            AND yq.park_area_code = #{countycode}
         </if>
         <if test="yqType != null">
-            AND c.yq_type = #{yqType}
+            AND yq.yq_type = #{yqType}
         </if>
         <if test="parkCode != null and parkCode != ''">
-            AND c.yqcode = #{parkCode}
-        </if>
-        <if test="companyCodes != null and companyCodes.size() > 0">
-            AND j.company_code IN
-            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
-                #{code}
-            </foreach>
-        </if>
-        <if test="isScqy != null">
-            AND c.is_scqy = #{isScqy}
+            AND j.park_code = #{parkCode}
         </if>
         ) AS alertReportCount
     </select>
