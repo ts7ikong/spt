@@ -38,22 +38,28 @@ public class QyStatisticsController {
                                            @RequestParam(required = false) Integer yqType,
                                            @RequestParam(required = false) String parkCode,
                                            @RequestParam(required = false) Integer isScqy) {
-        // 【数据权限过滤】先查询用户有权限的企业列表
+        // 【数据权限过滤】
+        // 企业表用 companyCodes 过滤
+        // 园区表用 countycode 过滤
         String orgCode = DataScopeHelper.getCurrentUserOrgCode();
         List<String> companyCodes = null;
+        String filterCountycode = null;
 
         if ("500000".equals(orgCode)) {
             // 市级账号
             if (countycode != null && !countycode.isEmpty()) {
-                // 前端传了countycode，查询该区县的企业列表
+                // 前端传了countycode，查询该区县的企业列表和园区
                 companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(countycode);
+                filterCountycode = countycode;
             } else {
                 // 前端没传countycode，不过滤（查询所有）
                 companyCodes = null;
+                filterCountycode = null;
             }
         } else {
-            // 区县账号：查询自己区县的企业列表
+            // 区县账号：查询自己区县的企业列表和园区
             companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+            filterCountycode = orgCode;
 
             // 如果前端传了countycode，验证是否是自己的区县
             if (countycode != null && !countycode.isEmpty()) {
@@ -64,9 +70,9 @@ public class QyStatisticsController {
             }
         }
 
-        // 使用企业列表过滤统计数据
+        // companyCodes用于企业表过滤，filterCountycode用于园区表过滤
         Map<String, Object> stats = statisticsService.getComprehensiveStats(
-                null, null, yqType, parkCode, companyCodes, isScqy
+                null, filterCountycode, yqType, parkCode, companyCodes, isScqy
         );
         return Result.OK(stats);
     }
