@@ -168,19 +168,12 @@
             ) AS maintenanceCount,
 
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.jxkml j
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON j.company_code = c.code
+            LEFT JOIN zlkj_danger_data_accept.yqjbxx yq ON j.park_code = yq.park_code
             WHERE 1=1
-            <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
-            <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
-            <if test="yqType != null">AND c.yq_type = #{yqType}</if>
-            <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
-            <if test="companyCodes != null and companyCodes.size() > 0">
-                AND j.company_code IN
-                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
-            </if>
-            <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
+            <if test="citycode != null and citycode != ''">AND yq.park_city_code = #{citycode}</if>
+            <if test="countycode != null and countycode != ''">AND yq.park_area_code = #{countycode}</if>
+            <if test="yqType != null">AND yq.yq_type = #{yqType}</if>
+            <if test="parkCode != null and parkCode != ''">AND j.park_code = #{parkCode}</if>
             ) AS restrictionCount,
 
             (SELECT COUNT(*) FROM shipingtaishujuzhongxin.zfjcyhxx z
