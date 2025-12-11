@@ -151,7 +151,7 @@
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS stsCount,
 
-            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.qyzzdjxba z
+            (SELECT COUNT(*) FROM zlkj_danger_data_accept.zzdjxba z
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON z.company_code = c.code
             WHERE 1=1
             <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>

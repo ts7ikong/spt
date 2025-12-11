@@ -10,7 +10,7 @@ import io.swagger.annotations.ApiOperation;
 
 import java.util.Map;
 
-@Api(tags="企业统计")
+@Api(tags = "企业统计")
 @RestController
 @RequestMapping("/qyaqjcgl/statistics")
 public class QyStatisticsController {
@@ -21,10 +21,11 @@ public class QyStatisticsController {
 
     /**
      * 获取综合统计数据
+     *
      * @param countycode 区县编码
-     * @param yqType 园区类型
-     * @param parkCode 园区编码
-     * @param isScqy 是否生产企业
+     * @param yqType     园区类型
+     * @param parkCode   园区编码
+     * @param isScqy     是否生产企业
      * @return
      */
     @GetMapping("/comprehensive")
@@ -36,25 +37,23 @@ public class QyStatisticsController {
         // 【数据权限过滤】
         String citycode = null;
 
-        if (DataScopeHelper.needDataScope()) {
-            String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+        String orgCode = DataScopeHelper.getCurrentUserOrgCode();
 
-            if ("500000".equals(orgCode)) {
-                // 1. 市级平台账号（orgCode = 500000）：使用 citycode 过滤
-                citycode = "500000";
-                // 前端可以传 countycode 进一步筛选，使用前端传入的值
-            } else {
-                // 2. 区县账号：只能查询自己区县的数据
-                if (countycode != null && !countycode.isEmpty()) {
-                    // 前端传了countycode，验证是否与当前用户的区县一致
-                    if (!orgCode.equals(countycode)) {
-                        // 传的区县code与当前用户区县不一致，返回空数据
-                        return Result.OK(null);
-                    }
-                } else {
-                    // 前端没传countycode，使用当前用户的区县code
-                    countycode = orgCode;
+        if ("500000".equals(orgCode)) {
+            // 1. 市级平台账号（orgCode = 500000）：使用 citycode 过滤
+            citycode = "500000";
+            // 前端可以传 countycode 进一步筛选，使用前端传入的值
+        } else {
+            // 2. 区县账号：只能查询自己区县的数据
+            if (countycode != null && !countycode.isEmpty()) {
+                // 前端传了countycode，验证是否与当前用户的区县一致
+                if (!orgCode.equals(countycode)) {
+                    // 传的区县code与当前用户区县不一致，返回空数据
+                    return Result.OK(null);
                 }
+            } else {
+                // 前端没传countycode，使用当前用户的区县code
+                countycode = orgCode;
             }
         }
         // 如果不需要数据权限过滤（needDataScope() = false），citycode 和 countycode 都使用前端传入的值
