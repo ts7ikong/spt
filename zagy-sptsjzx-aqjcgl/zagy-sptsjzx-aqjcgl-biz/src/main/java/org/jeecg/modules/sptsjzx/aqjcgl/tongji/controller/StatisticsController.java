@@ -41,24 +41,29 @@ public class StatisticsController {
             // 【数据权限过滤】
             String citycode = null;
             String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+
             if ("500000".equals(orgCode)) {
-                // 1. 市级平台账号（orgCode = 500000）：使用 citycode 过滤
-                citycode = "500000";
-                // 前端可以传 countycode 进一步筛选，使用前端传入的值
-            } else {
-                // 2. 区县账号：只能查询自己区县的数据
+                // 市级账号
                 if (countycode != null && !countycode.isEmpty()) {
-                    // 前端传了countycode，验证是否与当前用户的区县一致
+                    // 前端传了countycode，查询该区县的数据
+                    // countycode使用前端传入的值
+                } else {
+                    // 前端没传countycode，查询全市数据
+                    citycode = "500000";
+                }
+            } else {
+                // 区县账号
+                if (countycode != null && !countycode.isEmpty()) {
+                    // 前端传了countycode，验证是否是自己的区县
                     if (!orgCode.equals(countycode)) {
-                        // 传的区县code与当前用户区县不一致，返回空数据
+                        // 不是自己的区县，返回空数据
                         return Result.OK(new StatisticsVO());
                     }
                 } else {
-                    // 前端没传countycode，使用当前用户的区县code
+                    // 前端没传countycode，使用自己的区县code
                     countycode = orgCode;
                 }
             }
-            // 如果不需要数据权限过滤（needDataScope() = false），citycode 和 countycode 都使用前端传入的值
 
             StatisticsVO statistics = statisticsService.getStatistics(citycode, countycode, yqType, parkCode, null, isScqy);
             return Result.OK(statistics);
