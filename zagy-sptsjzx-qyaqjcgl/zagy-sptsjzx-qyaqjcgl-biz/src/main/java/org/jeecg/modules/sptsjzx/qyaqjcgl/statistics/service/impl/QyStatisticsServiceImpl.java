@@ -25,7 +25,7 @@ public class QyStatisticsServiceImpl implements IQyStatisticsService {
         Map<String, Object> result = new HashMap<>();
 
         // 1. 企业安全基础管理数据接入情况
-        Map<String, Object> dataAccess = qyStatisticsMapper.getDataAccessStats(
+        List<Map<String, Object>> dataAccess = qyStatisticsMapper.getDataAccessStats(
                 citycode, countycode, yqType, parkCode, companyCodes, isScqy
         );
         result.put("dataAccess", dataAccess);

@@ -10,12 +10,12 @@ public interface QyStatisticsMapper {
     /**
      * 获取企业安全基础管理数据接入情况
      */
-    Map<String, Object> getDataAccessStats(@Param("citycode") String citycode,
-                                           @Param("countycode") String countycode,
-                                           @Param("yqType") Integer yqType,
-                                           @Param("parkCode") String parkCode,
-                                           @Param("companyCodes") List<String> companyCodes,
-                                           @Param("isScqy") Integer isScqy);
+    List<Map<String, Object>> getDataAccessStats(@Param("citycode") String citycode,
+                                                 @Param("countycode") String countycode,
+                                                 @Param("yqType") Integer yqType,
+                                                 @Param("parkCode") String parkCode,
+                                                 @Param("companyCodes") List<String> companyCodes,
+                                                 @Param("isScqy") Integer isScqy);
 
     /**
      * 获取设备类型统计
