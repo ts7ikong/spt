@@ -80,7 +80,7 @@
     <!-- 危险源等级统计 - 柱状图 -->
     <select id="getHazardLevelStats" resultType="java.util.HashMap">
         SELECT
-        h.level AS level,
+        CONCAT(h.level, '级') AS level,
         COUNT(*) AS count
         FROM zlkj_danger_data_accept.accept_hazard_code h
         <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
