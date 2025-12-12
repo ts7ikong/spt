@@ -67,9 +67,6 @@ public class HazardStatisticsController {
                     // 不是自己的区县，返回空数据
                     return Result.OK(null);
                 }
-            } else {
-                // 前端没传countycode，使用当前用户的区县code
-                countycode = orgCode;
             }
         }
 
