@@ -33,30 +33,43 @@ public class SpecialWorkStatisticsController {
             @ApiParam("区县编码") @RequestParam(required = false) String countycode,
             @ApiParam("园区类型") @RequestParam(required = false) Integer yqType,
             @ApiParam("园区编码") @RequestParam(required = false) String parkCode,
-            @ApiParam("企业编码") @RequestParam(required = false) String companyCode,
             @ApiParam("是否生产企业") @RequestParam(required = false) Integer isScqy) {
 
-        // 【数据权限过滤】根据登录用户的区县编码获取企业列表
+        // 【数据权限过滤】
+        // 企业表用 companyCodes 过滤
+        // 园区表用 countycode 过滤
+        String orgCode = DataScopeHelper.getCurrentUserOrgCode();
         List<String> companyCodes = null;
-        if (DataScopeHelper.needDataScope()) {
-            String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+        String filterCountycode = null;
+
+        if ("500000".equals(orgCode)) {
+            // 市级账号
+            if (countycode != null && !countycode.isEmpty()) {
+                // 前端传了countycode，查询该区县的企业列表和园区
+                companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(countycode);
+                filterCountycode = countycode;
+            } else {
+                // 前端没传countycode，不过滤（查询所有）
+                companyCodes = null;
+                filterCountycode = null;
+            }
+        } else {
+            // 区县账号：查询自己区县的企业列表和园区
             companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-            // 如果前端传了companyCode，验证是否在权限范围内
-            if (companyCode != null && !companyCode.isEmpty()) {
-                if (!companyCodes.contains(companyCode)) {
-                    // 前端传的企业不在权限范围内，返回空数据
+            filterCountycode = orgCode;
+
+            // 如果前端传了countycode，验证是否是自己的区县
+            if (countycode != null && !countycode.isEmpty()) {
+                if (!orgCode.equals(countycode)) {
+                    // 不是自己的区县，返回空数据
                     return Result.ok(null);
                 }
-                // 前端传的企业在权限范围内，只查询该企业
-                companyCodes = java.util.Collections.singletonList(companyCode);
             }
-        } else if (companyCode != null && !companyCode.isEmpty()) {
-            // 市级账号且指定了企业，只查询该企业
-            companyCodes = java.util.Collections.singletonList(companyCode);
         }
 
+        // companyCodes用于企业表过滤，filterCountycode用于园区表过滤
         SpecialWorkStatisticsDTO statistics = service.getSpecialWorkStatistics(
-                countycode, yqType, parkCode, companyCodes, isScqy
+                filterCountycode, yqType, parkCode, companyCodes, isScqy
         );
 
         return Result.ok(statistics);
