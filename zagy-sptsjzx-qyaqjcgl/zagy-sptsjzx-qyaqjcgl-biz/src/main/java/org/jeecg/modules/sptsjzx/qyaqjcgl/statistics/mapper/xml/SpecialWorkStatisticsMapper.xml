@@ -5,9 +5,9 @@
     <!-- 1. 作业票接入情况统计 -->
     <select id="getTicketAccessStats" resultType="map">
         SELECT
-        COUNT(CASE WHEN ticket_state = '1' AND ticket_activity = '1' THEN 1 END) as fullAccess,
-        COUNT(CASE WHEN (ticket_state = '0' AND ticket_activity = '1') OR (ticket_state = '1' AND ticket_activity = '0') THEN 1 END) as partialAccess,
-        COUNT(CASE WHEN ticket_state = '0' AND ticket_activity = '0' THEN 1 END) as notAccess,
+        COUNT(CASE WHEN tickek_state = '1' AND ticket_activity = '1' THEN 1 END) as fullAccess,
+        COUNT(CASE WHEN (tickek_state = '0' AND ticket_activity = '1') OR (tickek_state = '1' AND ticket_activity = '0') THEN 1 END) as partialAccess,
+        COUNT(CASE WHEN tickek_state = '0' AND ticket_activity = '0' THEN 1 END) as notAccess,
         COUNT(*) as total
         FROM zlkj_danger_data_accept.all_access_status a
         <where>
