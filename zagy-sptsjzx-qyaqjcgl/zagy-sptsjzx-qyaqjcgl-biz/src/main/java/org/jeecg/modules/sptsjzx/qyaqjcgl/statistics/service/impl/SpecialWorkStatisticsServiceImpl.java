@@ -25,13 +25,8 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
                                                              Integer isScqy) {
         SpecialWorkStatisticsDTO dto = new SpecialWorkStatisticsDTO();
 
-        // 1. 接入情况统计
-        Map<String, Object> accessStats = mapper.getTicketAccessStats(countycode, yqType, parkCode, companyCodes, isScqy);
-        SpecialWorkStatisticsDTO.AccessStats ticketAccessStats = new SpecialWorkStatisticsDTO.AccessStats();
-        ticketAccessStats.setFullAccess(((Number) accessStats.get("fullAccess")).intValue());
-        ticketAccessStats.setPartialAccess(((Number) accessStats.get("partialAccess")).intValue());
-        ticketAccessStats.setNotAccess(((Number) accessStats.get("notAccess")).intValue());
-        ticketAccessStats.setTotal(((Number) accessStats.get("total")).intValue());
+        // 1. 接入情况统计（返回 name/value 列表）
+        List<Map<String, Object>> ticketAccessStats = mapper.getTicketAccessStats(countycode, yqType, parkCode, companyCodes, isScqy);
         dto.setTicketAccessStats(ticketAccessStats);
 
         // 2. 作业票状态统计(饼图)
