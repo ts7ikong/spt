@@ -32,61 +32,11 @@
 
         UNION ALL
 
-        SELECT '部分接入' AS name,
-        0 AS value
-        FROM zlkj_danger_data_accept.accept_hazard_code h
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
-        </if>
-        WHERE 1=1
-        <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
-        </if>
-        <if test="yqType != null">
-            AND c.yq_type = #{yqType}
-        </if>
-        <if test="parkCode != null and parkCode != ''">
-            AND c.yqcode = #{parkCode}
-        </if>
-        <if test="companyCodes != null and companyCodes.size() > 0">
-            AND h.company_code IN
-            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
-                #{code}
-            </foreach>
-        </if>
-        <if test="isScqy != null">
-            AND c.is_scqy = #{isScqy}
-        </if>
-        LIMIT 1
+        SELECT '部分接入' AS name, 0 AS value
 
         UNION ALL
 
-        SELECT '未接入' AS name,
-        0 AS value
-        FROM zlkj_danger_data_accept.accept_hazard_code h
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
-        </if>
-        WHERE 1=1
-        <if test="countycode != null and countycode != ''">
-            AND c.countycode = #{countycode}
-        </if>
-        <if test="yqType != null">
-            AND c.yq_type = #{yqType}
-        </if>
-        <if test="parkCode != null and parkCode != ''">
-            AND c.yqcode = #{parkCode}
-        </if>
-        <if test="companyCodes != null and companyCodes.size() > 0">
-            AND h.company_code IN
-            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
-                #{code}
-            </foreach>
-        </if>
-        <if test="isScqy != null">
-            AND c.is_scqy = #{isScqy}
-        </if>
-        LIMIT 1
+        SELECT '未接入' AS name, 0 AS value
     </select>
 
     <!-- 危险源分类统计 - 饼图 -->
