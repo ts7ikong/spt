@@ -69,7 +69,6 @@ public class HazardStatisticsController {
                 }
             }
         }
-
         // companyCodes用于企业表过滤，filterCountycode用于园区表过滤
         Map<String, Object> stats = hazardStatisticsService.getHazardManagementStats(
             filterCountycode, yqType, parkCode, companyCodes, isScqy

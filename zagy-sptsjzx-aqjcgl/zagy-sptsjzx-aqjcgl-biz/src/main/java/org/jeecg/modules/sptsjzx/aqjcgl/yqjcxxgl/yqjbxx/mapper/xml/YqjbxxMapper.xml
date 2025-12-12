@@ -8,9 +8,6 @@
         SELECT COUNT(*)
         FROM yqjbxx yq
         WHERE yq.status = '0'
-        <if test="citycode != null and citycode != ''">
-            AND yq.park_city_code = #{citycode}
-        </if>
         <if test="countycode != null and countycode != ''">
             AND yq.park_area_code = #{countycode}
         </if>
