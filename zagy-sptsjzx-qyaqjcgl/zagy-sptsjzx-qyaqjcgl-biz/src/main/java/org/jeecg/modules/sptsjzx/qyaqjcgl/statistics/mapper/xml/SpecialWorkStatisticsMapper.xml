@@ -4,11 +4,92 @@
 
     <!-- 1. 作业票接入情况统计 -->
     <select id="getTicketAccessStats" resultType="map">
-        SELECT
-        COUNT(CASE WHEN tickek_state = '1' AND ticket_activity = '1' THEN 1 END) as fullAccess,
-        COUNT(CASE WHEN (tickek_state = '0' AND ticket_activity = '1') OR (tickek_state = '1' AND ticket_activity = '0') THEN 1 END) as partialAccess,
-        COUNT(CASE WHEN tickek_state = '0' AND ticket_activity = '0' THEN 1 END) as notAccess,
-        COUNT(*) as total
+        SELECT '全部接入' AS name,
+        COUNT(CASE WHEN ticket_state = '1' AND ticket_activity = '1' THEN 1 END) as value
+        FROM zlkj_danger_data_accept.all_access_status a
+        <where>
+            <if test="countycode != null and countycode != ''">
+                EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.countycode = #{countycode}
+                )
+            </if>
+            <if test="yqType != null">
+                AND EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.yq_type = #{yqType}
+                )
+            </if>
+            <if test="parkCode != null and parkCode != ''">
+                AND EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.yqcode = #{parkCode}
+                )
+            </if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND a.company_code IN
+                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
+            </if>
+            <if test="isScqy != null">
+                AND EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.is_scqy = #{isScqy}
+                )
+            </if>
+        </where>
+
+        UNION ALL
+
+        SELECT '部分接入' AS name,
+        COUNT(CASE WHEN (ticket_state = '0' AND ticket_activity = '1') OR (ticket_state = '1' AND ticket_activity = '0') THEN 1 END) as value
+        FROM zlkj_danger_data_accept.all_access_status a
+        <where>
+            <if test="countycode != null and countycode != ''">
+                EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.countycode = #{countycode}
+                )
+            </if>
+            <if test="yqType != null">
+                AND EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.yq_type = #{yqType}
+                )
+            </if>
+            <if test="parkCode != null and parkCode != ''">
+                AND EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.yqcode = #{parkCode}
+                )
+            </if>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND a.company_code IN
+                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
+            </if>
+            <if test="isScqy != null">
+                AND EXISTS (
+                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
+                WHERE c.code = a.company_code
+                AND c.is_scqy = #{isScqy}
+                )
+            </if>
+        </where>
+
+        UNION ALL
+
+        SELECT '未接入' AS name,
+        COUNT(CASE WHEN ticket_state = '0' AND ticket_activity = '0' THEN 1 END) as value
         FROM zlkj_danger_data_accept.all_access_status a
         <where>
             <if test="countycode != null and countycode != ''">
