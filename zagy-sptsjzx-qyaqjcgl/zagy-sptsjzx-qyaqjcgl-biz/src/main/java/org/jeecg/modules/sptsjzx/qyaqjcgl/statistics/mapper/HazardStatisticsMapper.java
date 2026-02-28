@@ -20,13 +20,14 @@ public interface HazardStatisticsMapper {
                                                     @Param("companyCodes") List<String> companyCodes,
                                                     @Param("isScqy") Integer isScqy);
 
-    // 获取当日安全承诺统计
+    // 获取当日安全承诺统计（使用范围条件避免 DATE() 函数导致索引失效）
     Map<String, Object> getTodayCommitmentStats(@Param("countycode") String countycode,
                                                  @Param("yqType") Integer yqType,
                                                  @Param("parkCode") String parkCode,
                                                  @Param("companyCodes") List<String> companyCodes,
                                                  @Param("isScqy") Integer isScqy,
-                                                 @Param("today") String today);
+                                                 @Param("today") String today,
+                                                 @Param("tomorrow") String tomorrow);
 
     // 获取预警和警示统计
     Map<String, Object> getWarningStats(@Param("countycode") String countycode,

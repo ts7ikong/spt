@@ -230,6 +230,39 @@
         </if>
     </select>
 
+    <!-- 合并统计分析单元、风险事件、管控措施、排查任务（4 次独立查询 → 1 次，减少 DB 往返） -->
+    <select id="countRiskControlStats" resultType="java.util.HashMap">
+        SELECT
+        (SELECT COUNT(*) FROM accept_unit_formal
+         WHERE deleted = 0 AND is_activation = 1
+         <if test="companyCodes != null and companyCodes.size() > 0">
+             AND company_code IN
+             <foreach collection="companyCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+         </if>
+        ) AS unitCount,
+        (SELECT COUNT(*) FROM accept_event_formal
+         WHERE deleted = 0 AND is_activation = 1
+         <if test="companyCodes != null and companyCodes.size() > 0">
+             AND company_code IN
+             <foreach collection="companyCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+         </if>
+        ) AS eventCount,
+        (SELECT COUNT(*) FROM accept_control_measures_formal
+         WHERE deleted = 0 AND is_activation = 1
+         <if test="companyCodes != null and companyCodes.size() > 0">
+             AND company_code IN
+             <foreach collection="companyCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+         </if>
+        ) AS measuresCount,
+        (SELECT COUNT(*) FROM accept_measures_task_formal
+         WHERE deleted = 0 AND is_activation = 1
+         <if test="companyCodes != null and companyCodes.size() > 0">
+             AND company_code IN
+             <foreach collection="companyCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+         </if>
+        ) AS taskCount
+    </select>
+
     <!-- 统计隐患排查治理情况 -->
     <select id="countDangerInvestigation" resultType="java.util.HashMap">
         SELECT

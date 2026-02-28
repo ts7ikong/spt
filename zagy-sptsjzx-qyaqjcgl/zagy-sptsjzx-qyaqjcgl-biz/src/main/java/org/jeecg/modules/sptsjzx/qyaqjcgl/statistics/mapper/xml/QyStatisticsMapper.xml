@@ -3,87 +3,40 @@
 <mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.QyStatisticsMapper">
 
 
-        <!-- 企业安全基础管理数据接入情况统计 -->
+        <!-- 企业安全基础管理数据接入情况统计（单次扫描，原 3 次 UNION ALL 合并为 1 次） -->
         <select id="getDataAccessStats" resultType="java.util.HashMap">
-            SELECT '全部接入' AS name,
-            SUM(CASE
-            WHEN qylshghygx=1 AND qylszdhygx=1 AND wxhxpxx=1 AND qyzdjggyxx=1
-            AND wxyhxpxx=1 AND wxybbfzrxx=1 AND ryxxk=1 AND qysgsj=1
-            AND device=1 AND tank=1 AND process=1 AND gas_sensor=1
-            AND warehouse=1 AND platfor=1 AND stop_record=1 AND camera=1
-            AND device_medium=1 AND medium_component=1 AND chemical=1
-            AND qyzzdjxba=1
-            THEN 1 ELSE 0
-            END) AS value
-            FROM zlkj_danger_data_accept.all_access_status a
-            LEFT JOIN accept_company c ON a.company_code = c.code
-            WHERE 1=1
-            <if test="yqType != null">
-                AND c.yq_type = #{yqType}
-            </if>
-            <if test="parkCode != null and parkCode != ''">
-                AND c.parkcode = #{parkCode}
-            </if>
-            <if test="companyCodes != null and companyCodes.size() > 0">
-                AND a.company_code IN
-                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
-            </if>
-            <if test="isScqy != null">
-                AND c.is_scqy = #{isScqy}
-            </if>
-
-            UNION ALL
-
-            SELECT '部分接入' AS name,
-            SUM(CASE
-            WHEN (qylshghygx=1 OR qylszdhygx=1 OR wxhxpxx=1 OR qyzdjggyxx=1
-            OR wxyhxpxx=1 OR wxybbfzrxx=1 OR ryxxk=1 OR qysgsj=1
-            OR device=1 OR tank=1 OR process=1 OR gas_sensor=1
-            OR warehouse=1 OR platfor=1 OR stop_record=1 OR camera=1
-            OR device_medium=1 OR medium_component=1 OR chemical=1
-            OR qyzzdjxba=1)
-            AND NOT (qylshghygx=1 AND qylszdhygx=1 AND wxhxpxx=1 AND qyzdjggyxx=1
-            AND wxyhxpxx=1 AND wxybbfzrxx=1 AND ryxxk=1 AND qysgsj=1
-            AND device=1 AND tank=1 AND process=1 AND gas_sensor=1
-            AND warehouse=1 AND platfor=1 AND stop_record=1 AND camera=1
-            AND device_medium=1 AND medium_component=1 AND chemical=1
-            AND qyzzdjxba=1)
-            THEN 1 ELSE 0
-            END) AS value
-            FROM zlkj_danger_data_accept.all_access_status a
-            LEFT JOIN accept_company c ON a.company_code = c.code
-            WHERE 1=1
-            <if test="yqType != null">
-                AND c.yq_type = #{yqType}
-            </if>
-            <if test="parkCode != null and parkCode != ''">
-                AND c.parkcode = #{parkCode}
-            </if>
-            <if test="companyCodes != null and companyCodes.size() > 0">
-                AND a.company_code IN
-                <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
-            </if>
-            <if test="isScqy != null">
-                AND c.is_scqy = #{isScqy}
-            </if>
-
-            UNION ALL
-
-            SELECT '未接入' AS name,
-            SUM(CASE
-            WHEN COALESCE(qylshghygx,0)=0 AND COALESCE(qylszdhygx,0)=0 AND COALESCE(wxhxpxx,0)=0
-            AND COALESCE(qyzdjggyxx,0)=0 AND COALESCE(wxyhxpxx,0)=0 AND COALESCE(wxybbfzrxx,0)=0
-            AND COALESCE(ryxxk,0)=0 AND COALESCE(qysgsj,0)=0 AND COALESCE(device,0)=0
-            AND COALESCE(tank,0)=0 AND COALESCE(process,0)=0 AND COALESCE(gas_sensor,0)=0
-            AND COALESCE(warehouse,0)=0 AND COALESCE(platfor,0)=0 AND COALESCE(stop_record,0)=0
-            AND COALESCE(camera,0)=0 AND COALESCE(device_medium,0)=0 AND COALESCE(medium_component,0)=0
-            AND COALESCE(chemical,0)=0 AND COALESCE(qyzzdjxba,0)=0
-            THEN 1 ELSE 0
-            END) AS value
+            SELECT
+            COALESCE(SUM(CASE
+                WHEN qylshghygx=1 AND qylszdhygx=1 AND wxhxpxx=1 AND qyzdjggyxx=1
+                AND wxyhxpxx=1 AND wxybbfzrxx=1 AND ryxxk=1 AND qysgsj=1
+                AND device=1 AND tank=1 AND process=1 AND gas_sensor=1
+                AND warehouse=1 AND platfor=1 AND stop_record=1 AND camera=1
+                AND device_medium=1 AND medium_component=1 AND chemical=1
+                AND qyzzdjxba=1
+                THEN 1 ELSE 0 END), 0) AS fullCount,
+            COALESCE(SUM(CASE
+                WHEN (qylshghygx=1 OR qylszdhygx=1 OR wxhxpxx=1 OR qyzdjggyxx=1
+                    OR wxyhxpxx=1 OR wxybbfzrxx=1 OR ryxxk=1 OR qysgsj=1
+                    OR device=1 OR tank=1 OR process=1 OR gas_sensor=1
+                    OR warehouse=1 OR platfor=1 OR stop_record=1 OR camera=1
+                    OR device_medium=1 OR medium_component=1 OR chemical=1
+                    OR qyzzdjxba=1)
+                AND NOT (qylshghygx=1 AND qylszdhygx=1 AND wxhxpxx=1 AND qyzdjggyxx=1
+                    AND wxyhxpxx=1 AND wxybbfzrxx=1 AND ryxxk=1 AND qysgsj=1
+                    AND device=1 AND tank=1 AND process=1 AND gas_sensor=1
+                    AND warehouse=1 AND platfor=1 AND stop_record=1 AND camera=1
+                    AND device_medium=1 AND medium_component=1 AND chemical=1
+                    AND qyzzdjxba=1)
+                THEN 1 ELSE 0 END), 0) AS partialCount,
+            COALESCE(SUM(CASE
+                WHEN COALESCE(qylshghygx,0)=0 AND COALESCE(qylszdhygx,0)=0 AND COALESCE(wxhxpxx,0)=0
+                AND COALESCE(qyzdjggyxx,0)=0 AND COALESCE(wxyhxpxx,0)=0 AND COALESCE(wxybbfzrxx,0)=0
+                AND COALESCE(ryxxk,0)=0 AND COALESCE(qysgsj,0)=0 AND COALESCE(device,0)=0
+                AND COALESCE(tank,0)=0 AND COALESCE(process,0)=0 AND COALESCE(gas_sensor,0)=0
+                AND COALESCE(warehouse,0)=0 AND COALESCE(platfor,0)=0 AND COALESCE(stop_record,0)=0
+                AND COALESCE(camera,0)=0 AND COALESCE(device_medium,0)=0 AND COALESCE(medium_component,0)=0
+                AND COALESCE(chemical,0)=0 AND COALESCE(qyzzdjxba,0)=0
+                THEN 1 ELSE 0 END), 0) AS notCount
             FROM zlkj_danger_data_accept.all_access_status a
             LEFT JOIN accept_company c ON a.company_code = c.code
             WHERE 1=1

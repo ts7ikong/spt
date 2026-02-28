@@ -7,16 +7,15 @@ import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.ISpecialWorkStatist
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @DS("zfd")  // 指定数据源
 public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsService {
-    
+
     @Autowired
     private SpecialWorkStatisticsMapper mapper;
-    
+
     @Override
     public SpecialWorkStatisticsDTO getSpecialWorkStatistics(String countycode,
                                                              Integer yqType,
@@ -25,8 +24,12 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
                                                              Integer isScqy) {
         SpecialWorkStatisticsDTO dto = new SpecialWorkStatisticsDTO();
 
-        // 1. 接入情况统计（返回 name/value 列表）
-        List<Map<String, Object>> ticketAccessStats = mapper.getTicketAccessStats(countycode, yqType, parkCode, companyCodes, isScqy);
+        // 1. 接入情况统计：单次扫描返回 {fullCount, partialCount, notCount}，再组装为 name/value 列表
+        Map<String, Object> accessRaw = mapper.getTicketAccessStats(countycode, yqType, parkCode, companyCodes, isScqy);
+        List<Map<String, Object>> ticketAccessStats = new ArrayList<>();
+        ticketAccessStats.add(buildItem("全部接入", accessRaw.get("fullCount")));
+        ticketAccessStats.add(buildItem("部分接入", accessRaw.get("partialCount")));
+        ticketAccessStats.add(buildItem("未接入",   accessRaw.get("notCount")));
         dto.setTicketAccessStats(ticketAccessStats);
 
         // 2. 作业票状态统计(饼图)
@@ -38,5 +41,12 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
         dto.setTicketTypeStats(typeStats);
 
         return dto;
+    }
+
+    private Map<String, Object> buildItem(String name, Object countObj) {
+        Map<String, Object> item = new HashMap<>();
+        item.put("name", name);
+        item.put("value", countObj instanceof Number ? ((Number) countObj).intValue() : 0);
+        return item;
     }
 }

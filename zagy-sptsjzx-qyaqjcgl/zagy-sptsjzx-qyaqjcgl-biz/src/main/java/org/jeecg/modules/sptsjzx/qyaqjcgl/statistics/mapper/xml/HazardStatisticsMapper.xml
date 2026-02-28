@@ -147,7 +147,7 @@
         SUM(CASE WHEN q.risk_grade = '4' THEN 1 ELSE 0 END) AS todayLowRisk
         FROM shipingtaishujuzhongxin.qycnxq q
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON q.company_code = c.code
-        WHERE DATE(q.commit_date) = #{today}
+        WHERE q.commit_date >= #{today} AND q.commit_date &lt; #{tomorrow}
         <if test="countycode != null and countycode != ''">
             AND c.countycode = #{countycode}
         </if>

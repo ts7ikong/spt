@@ -9,13 +9,13 @@ import java.util.Map;
 public interface SpecialWorkStatisticsMapper {
 
     /**
-     * 获取作业票接入情况统计（返回 name/value 列表）
+     * 获取作业票接入情况统计（单次扫描，返回 fullCount/partialCount/notCount）
      */
-    List<Map<String, Object>> getTicketAccessStats(@Param("countycode") String countycode,
-                                                   @Param("yqType") Integer yqType,
-                                                   @Param("parkCode") String parkCode,
-                                                   @Param("companyCodes") List<String> companyCodes,
-                                                   @Param("isScqy") Integer isScqy);
+    Map<String, Object> getTicketAccessStats(@Param("countycode") String countycode,
+                                             @Param("yqType") Integer yqType,
+                                             @Param("parkCode") String parkCode,
+                                             @Param("companyCodes") List<String> companyCodes,
+                                             @Param("isScqy") Integer isScqy);
 
     /**
      * 获取作业票状态统计

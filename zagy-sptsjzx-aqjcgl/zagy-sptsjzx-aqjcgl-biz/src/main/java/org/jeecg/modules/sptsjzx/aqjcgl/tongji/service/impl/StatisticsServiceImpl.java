@@ -99,16 +99,13 @@ public class StatisticsServiceImpl implements StatisticsService {
             resVO.setRunLevel(runLevelVO);
 
 
+            // 3. 风险管控统计：合并为 1 次查询（原为 4 次独立查询）
             RiskGradeControlResVO.RiskControlVO riskControlVO = new RiskGradeControlResVO.RiskControlVO();
-            Integer unitCount = tjAcceptCompanyMapper.countUnit(companyCodes);
-            Integer eventCount = tjAcceptCompanyMapper.countEvent(companyCodes);
-            Integer measuresCount = tjAcceptCompanyMapper.countMeasures(companyCodes);
-            Integer taskCount = tjAcceptCompanyMapper.countTask(companyCodes);
-
-            riskControlVO.setUnitCount(unitCount != null ? unitCount : 0);
-            riskControlVO.setEventCount(eventCount != null ? eventCount : 0);
-            riskControlVO.setMeasuresCount(measuresCount != null ? measuresCount : 0);
-            riskControlVO.setTaskCount(taskCount != null ? taskCount : 0);
+            Map<String, Object> riskControlStats = tjAcceptCompanyMapper.countRiskControlStats(companyCodes);
+            riskControlVO.setUnitCount(getInt(riskControlStats, "unitCount"));
+            riskControlVO.setEventCount(getInt(riskControlStats, "eventCount"));
+            riskControlVO.setMeasuresCount(getInt(riskControlStats, "measuresCount"));
+            riskControlVO.setTaskCount(getInt(riskControlStats, "taskCount"));
             resVO.setRiskControl(riskControlVO);
 
             // 4. 查询隐患排查治理情况
@@ -167,5 +164,10 @@ public class StatisticsServiceImpl implements StatisticsService {
         return vo;
     }
 
+    private int getInt(Map<String, Object> map, String key) {
+        if (map == null) return 0;
+        Object v = map.get(key);
+        return v instanceof Number ? ((Number) v).intValue() : 0;
+    }
 
 }

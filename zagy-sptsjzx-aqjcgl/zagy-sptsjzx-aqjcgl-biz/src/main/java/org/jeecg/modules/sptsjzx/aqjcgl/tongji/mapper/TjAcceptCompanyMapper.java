@@ -122,6 +122,11 @@ public interface TjAcceptCompanyMapper {
     Integer countTask(@Param("companyCodes") List<String> companyCodes);
 
     /**
+     * 合并统计分析单元、风险事件、管控措施、排查任务四项数量（单次查询，减少 DB 往返）
+     */
+    Map<String, Object> countRiskControlStats(@Param("companyCodes") List<String> companyCodes);
+
+    /**
      * 统计隐患排查治理情况
      */
     Map<String, Object> countDangerInvestigation(@Param("companyCodes") List<String> companyCodes);

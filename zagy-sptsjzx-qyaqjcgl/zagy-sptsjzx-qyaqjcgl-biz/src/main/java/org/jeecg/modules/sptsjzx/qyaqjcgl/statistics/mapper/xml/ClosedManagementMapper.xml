@@ -405,12 +405,12 @@ FROM
 ]]>
     </select>
 
+    <!-- 按园区汇总封闭化管理数据（消除 clsstx/rysstxsj/sbbjsj 各 2 次重复扫描，13 JOIN → 10 JOIN） -->
     <select id="getClosedManagementStatsByPark" resultType="map">
         SELECT
         p.park_code,
 
         -- === 1. 模块状态标记 (用于计算接入率) ===
-        -- 计算该园区有多少个模块是有数据的 (0~10)
         (
         IF(IFNULL(t1.has_kkmj, 0), 1, 0) +
         IF(IFNULL(t2.has_fkxx, 0), 1, 0) +
@@ -424,30 +424,31 @@ FROM
         IF(IFNULL(t10.has_sbbjsj, 0), 1, 0)
         ) as moduleCount,
 
-        -- === 2. 基础信息数值 (用于累加全区总数) ===
+        -- === 2. 基础信息数值 ===
         IFNULL(t1.gateCount, 0) as gateCount,
         IFNULL(t3.hazardousVehicleCount, 0) as hazardousVehicleCount,
         IFNULL(t4.otherVehicleCount, 0) as otherVehicleCount,
         IFNULL(t2.visitorCount, 0) as visitorCount,
 
-        -- === 3. 通行数据数值 (带时间范围) ===
-        IFNULL(t_traffic.totalVehicleTraffic, 0) as totalVehicleTraffic,
-        IFNULL(t_traffic.generalCargoCount, 0) as generalCargoCount,
-        IFNULL(t_traffic.hazardousTransportCount, 0) as hazardousTransportCount,
-        IFNULL(t_traffic.smallVehicleCount, 0) as smallVehicleCount,
-        IFNULL(t_traffic.emergencyVehicleCount, 0) as emergencyVehicleCount,
-        IFNULL(t_personnel.registeredPersonnelCount, 0) as registeredPersonnelCount,
-        IFNULL(t_personnel.visitorPersonnelCount, 0) as visitorPersonnelCount,
+        -- === 3. 通行数据数值 (车辆 - 来自合并后的 t6) ===
+        IFNULL(t6.totalVehicleTraffic, 0) as totalVehicleTraffic,
+        IFNULL(t6.generalCargoCount, 0) as generalCargoCount,
+        IFNULL(t6.hazardousTransportCount, 0) as hazardousTransportCount,
+        IFNULL(t6.smallVehicleCount, 0) as smallVehicleCount,
+        IFNULL(t6.emergencyVehicleCount, 0) as emergencyVehicleCount,
 
-        -- === 4. 报警数据数值 ===
-        IFNULL(t_alarm.alarm_intrusion, 0) as alarm_intrusion,
-        IFNULL(t_alarm.alarm_speed, 0) as alarm_speed,
-        IFNULL(t_alarm.alarm_help, 0) as alarm_help,
-        IFNULL(t_alarm.alarm_stay, 0) as alarm_stay,
-        IFNULL(t_alarm.alarm_other, 0) as alarm_other
+        -- 人员 - 来自合并后的 t7
+        IFNULL(t7.registeredPersonnelCount, 0) as registeredPersonnelCount,
+        IFNULL(t7.visitorPersonnelCount, 0) as visitorPersonnelCount,
+
+        -- === 4. 报警数据数值 (来自合并后的 t10) ===
+        IFNULL(t10.alarm_intrusion, 0) as alarm_intrusion,
+        IFNULL(t10.alarm_speed, 0) as alarm_speed,
+        IFNULL(t10.alarm_help, 0) as alarm_help,
+        IFNULL(t10.alarm_stay, 0) as alarm_stay,
+        IFNULL(t10.alarm_other, 0) as alarm_other
 
         FROM (
-        -- 构造传入的 parkCode 列表作为主表
         <foreach collection="parkCodes" item="code" separator=" UNION ALL ">
             SELECT #{code} as park_code
         </foreach>
@@ -501,18 +502,27 @@ FROM
         GROUP BY park_code
         ) t5 ON p.park_code = t5.park_code
 
-        -- 6. 车辆通行 (clsstx) - 注意：这里只判断有无，数值在下面统一算
+        -- 6. 车辆通行 (clsstx) - 合并接入状态 + 各车型计数，原来需要 2 次扫描，现在 1 次
         LEFT JOIN (
-        SELECT park_code, (COUNT(*) > 0) as has_clsstx
+        SELECT park_code,
+        (COUNT(*) > 0) as has_clsstx,
+        COUNT(*) AS totalVehicleTraffic,
+        SUM(CASE WHEN vehicle_type = '1' THEN 1 ELSE 0 END) AS generalCargoCount,
+        SUM(CASE WHEN vehicle_type = '2' THEN 1 ELSE 0 END) AS hazardousTransportCount,
+        SUM(CASE WHEN vehicle_type = '3' THEN 1 ELSE 0 END) AS smallVehicleCount,
+        SUM(CASE WHEN vehicle_type = '4' THEN 1 ELSE 0 END) AS emergencyVehicleCount
         FROM shipingtaishujuzhongxin.clsstx
         WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
         AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
         GROUP BY park_code
         ) t6 ON p.park_code = t6.park_code
 
-        -- 7. 人员通行 (rysstx)
+        -- 7. 人员通行 (rysstxsj) - 合并接入状态 + 人员类型计数，原来需要 2 次扫描，现在 1 次
         LEFT JOIN (
-        SELECT park_code, (COUNT(*) > 0) as has_rysstx
+        SELECT park_code,
+        (COUNT(*) > 0) as has_rysstx,
+        SUM(CASE WHEN staff_type = '1' THEN 1 ELSE 0 END) AS registeredPersonnelCount,
+        SUM(CASE WHEN staff_type = '2' THEN 1 ELSE 0 END) AS visitorPersonnelCount
         FROM shipingtaishujuzhongxin.rysstxsj
         WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
         AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
@@ -535,42 +545,10 @@ FROM
         GROUP BY park_code
         ) t9 ON p.park_code = t9.park_code
 
-        -- 10. 报警 (sbbjsj)
-        LEFT JOIN (
-        SELECT park_code, (COUNT(*) > 0) as has_sbbjsj
-        FROM shipingtaishujuzhongxin.sbbjsj
-        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
-        GROUP BY park_code
-        ) t10 ON p.park_code = t10.park_code
-
-        -- 11. 车辆通行数值统计 (带时间)
+        -- 10. 报警 (sbbjsj) - 合并接入状态 + 各类型报警计数，原来需要 2 次扫描，现在 1 次
         LEFT JOIN (
         SELECT park_code,
-        COUNT(*) AS totalVehicleTraffic,
-        SUM(CASE WHEN vehicle_type = '1' THEN 1 ELSE 0 END) AS generalCargoCount,
-        SUM(CASE WHEN vehicle_type = '2' THEN 1 ELSE 0 END) AS hazardousTransportCount,
-        SUM(CASE WHEN vehicle_type = '3' THEN 1 ELSE 0 END) AS smallVehicleCount,
-        SUM(CASE WHEN vehicle_type = '4' THEN 1 ELSE 0 END) AS emergencyVehicleCount
-        FROM shipingtaishujuzhongxin.clsstx
-        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
-        AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
-        GROUP BY park_code
-        ) t_traffic ON p.park_code = t_traffic.park_code
-
-        -- 12. 人员通行数值统计 (带时间)
-        LEFT JOIN (
-        SELECT park_code,
-        SUM(CASE WHEN staff_type = '1' THEN 1 ELSE 0 END) AS registeredPersonnelCount,
-        SUM(CASE WHEN staff_type = '2' THEN 1 ELSE 0 END) AS visitorPersonnelCount
-        FROM shipingtaishujuzhongxin.rysstxsj
-        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
-        AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
-        GROUP BY park_code
-        ) t_personnel ON p.park_code = t_personnel.park_code
-
-        -- 13. 报警数值统计
-        LEFT JOIN (
-        SELECT park_code,
+        (COUNT(*) > 0) as has_sbbjsj,
         SUM(CASE WHEN alarm_type = '1' THEN 1 ELSE 0 END) AS alarm_intrusion,
         SUM(CASE WHEN alarm_type = '2' THEN 1 ELSE 0 END) AS alarm_speed,
         SUM(CASE WHEN alarm_type = '3' THEN 1 ELSE 0 END) AS alarm_help,
@@ -579,7 +557,7 @@ FROM
         FROM shipingtaishujuzhongxin.sbbjsj
         WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
         GROUP BY park_code
-        ) t_alarm ON p.park_code = t_alarm.park_code
+        ) t10 ON p.park_code = t10.park_code
     </select>
 
 

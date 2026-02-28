@@ -36,10 +36,11 @@ public class HazardStatisticsServiceImpl implements IHazardStatisticsService {
         );
         result.put("hazardLevelStats", levelStats);
 
-        // 3. 获取当日安全承诺统计
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        // 3. 获取当日安全承诺统计（范围条件让数据库能使用 commit_date 上的索引）
+        String today    = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String tomorrow = LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Map<String, Object> commitmentStats = hazardStatisticsMapper.getTodayCommitmentStats(
-                countycode, yqType, parkCode, companyCodes, isScqy, today
+                countycode, yqType, parkCode, companyCodes, isScqy, today, tomorrow
         );
         result.put("commitmentStats", commitmentStats);
 
