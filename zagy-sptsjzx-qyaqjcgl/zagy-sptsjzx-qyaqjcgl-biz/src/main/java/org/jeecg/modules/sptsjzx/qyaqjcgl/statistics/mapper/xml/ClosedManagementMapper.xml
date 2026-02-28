@@ -406,7 +406,115 @@ FROM
     </select>
 
     <!-- 按园区汇总封闭化管理数据（消除 clsstx/rysstxsj/sbbjsj 各 2 次重复扫描，13 JOIN → 10 JOIN） -->
-    <select id="getClosedManagementStatsByPark" resultType="map">
+    <!-- 已拆分为 getStaticInfoByPark + getVehicleTrafficByPark + getPersonnelTrafficByPark + getAlarmStatsByPark 并行执行 -->
+
+    <!-- 1/4 静态基础数据（7 张小表，无时间过滤） -->
+    <select id="getStaticInfoByPark" resultType="map">
+        SELECT
+        p.park_code,
+        IF(IFNULL(t1.has_kkmj, 0), 1, 0) +
+        IF(IFNULL(t2.has_fkxx, 0), 1, 0) +
+        IF(IFNULL(t3.has_whpcl, 0), 1, 0) +
+        IF(IFNULL(t4.has_qtcl, 0), 1, 0) +
+        IF(IFNULL(t5.has_tcc, 0), 1, 0) +
+        IF(IFNULL(t8.has_ryssdw, 0), 1, 0) +
+        IF(IFNULL(t9.has_whpclssdw, 0), 1, 0) AS staticModuleCount,
+        IFNULL(t1.gateCount, 0)             AS gateCount,
+        IFNULL(t3.hazardousVehicleCount, 0) AS hazardousVehicleCount,
+        IFNULL(t4.otherVehicleCount, 0)     AS otherVehicleCount,
+        IFNULL(t2.visitorCount, 0)          AS visitorCount
+        FROM (
+        <foreach collection="parkCodes" item="code" separator=" UNION ALL ">
+            SELECT #{code} AS park_code
+        </foreach>
+        ) p
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) AS has_kkmj, COUNT(*) AS gateCount
+        FROM shipingtaishujuzhongxin.kkmjxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t1 ON p.park_code = t1.park_code
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) AS has_fkxx, COUNT(*) AS visitorCount
+        FROM shipingtaishujuzhongxin.fkxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t2 ON p.park_code = t2.park_code
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) AS has_whpcl, COUNT(*) AS hazardousVehicleCount
+        FROM shipingtaishujuzhongxin.whpclxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t3 ON p.park_code = t3.park_code
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) AS has_qtcl, COUNT(*) AS otherVehicleCount
+        FROM shipingtaishujuzhongxin.qtclxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t4 ON p.park_code = t4.park_code
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) AS has_tcc
+        FROM shipingtaishujuzhongxin.whpyscltccxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t5 ON p.park_code = t5.park_code
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) AS has_ryssdw
+        FROM shipingtaishujuzhongxin.ryssdw
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t8 ON p.park_code = t8.park_code
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) AS has_whpclssdw
+        FROM shipingtaishujuzhongxin.whpclssdw
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t9 ON p.park_code = t9.park_code
+    </select>
+
+    <!-- 2/4 车辆通行（clsstx 大表，带时间过滤，与其他 3 个查询并行） -->
+    <select id="getVehicleTrafficByPark" resultType="map">
+        SELECT park_code,
+        (COUNT(*) > 0)                                                         AS has_clsstx,
+        COUNT(*)                                                                AS totalVehicleTraffic,
+        SUM(CASE WHEN vehicle_type = '1' THEN 1 ELSE 0 END)                   AS generalCargoCount,
+        SUM(CASE WHEN vehicle_type = '2' THEN 1 ELSE 0 END)                   AS hazardousTransportCount,
+        SUM(CASE WHEN vehicle_type = '3' THEN 1 ELSE 0 END)                   AS smallVehicleCount,
+        SUM(CASE WHEN vehicle_type = '4' THEN 1 ELSE 0 END)                   AS emergencyVehicleCount
+        FROM shipingtaishujuzhongxin.clsstx
+        WHERE deleted = '0'
+        AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
+        GROUP BY park_code
+    </select>
+
+    <!-- 3/4 人员通行（rysstxsj 大表，带时间过滤，与其他 3 个查询并行） -->
+    <select id="getPersonnelTrafficByPark" resultType="map">
+        SELECT park_code,
+        (COUNT(*) > 0)                                              AS has_rysstx,
+        SUM(CASE WHEN staff_type = '1' THEN 1 ELSE 0 END)          AS registeredPersonnelCount,
+        SUM(CASE WHEN staff_type = '2' THEN 1 ELSE 0 END)          AS visitorPersonnelCount
+        FROM shipingtaishujuzhongxin.rysstxsj
+        WHERE deleted = '0'
+        AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
+        GROUP BY park_code
+    </select>
+
+    <!-- 4/4 报警数据（sbbjsj，与其他 3 个查询并行） -->
+    <select id="getAlarmStatsByPark" resultType="map">
+        SELECT park_code,
+        (COUNT(*) > 0)                                                                                 AS has_sbbjsj,
+        SUM(CASE WHEN alarm_type = '1' THEN 1 ELSE 0 END)                                             AS alarm_intrusion,
+        SUM(CASE WHEN alarm_type = '2' THEN 1 ELSE 0 END)                                             AS alarm_speed,
+        SUM(CASE WHEN alarm_type = '3' THEN 1 ELSE 0 END)                                             AS alarm_help,
+        SUM(CASE WHEN alarm_type = '4' THEN 1 ELSE 0 END)                                             AS alarm_stay,
+        SUM(CASE WHEN alarm_type NOT IN ('1','2','3','4') OR alarm_type IS NULL THEN 1 ELSE 0 END)     AS alarm_other
+        FROM shipingtaishujuzhongxin.sbbjsj
+        WHERE deleted = '0'
+        AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+    </select>
         SELECT
         p.park_code,
 

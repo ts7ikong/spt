@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ClosedManagementServiceImpl implements IClosedManagementService {
@@ -40,87 +41,101 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
                 throw new IllegalArgumentException("不支持的时间范围: " + timeRange);
         }
 
-        // 2. 调用新 Mapper，获取每个园区的明细数据
-        List<Map<String, Object>> parkStatsList = mapper.getClosedManagementStatsByPark(yqCodes, startTime, endTime);
+        // 2. 原来 1 个 10-JOIN 串行 SQL → 4 个独立 SQL 并行执行
+        //    无 @DS 注解，使用默认数据源，各线程各取自己的连接，线程安全
+        final LocalDateTime st = startTime;
+        final LocalDateTime et = endTime;
 
-        // === 初始化累加变量 ===
-        int fullAccessCount = 0;   // 全部已接入园区数
-        int partialAccessCount = 0;// 部分已接入园区数
-        int notAccessCount = 0;    // 未接入园区数
+        CompletableFuture<List<Map<String, Object>>> f1 = CompletableFuture.supplyAsync(
+                () -> mapper.getStaticInfoByPark(yqCodes));
+        CompletableFuture<List<Map<String, Object>>> f2 = CompletableFuture.supplyAsync(
+                () -> mapper.getVehicleTrafficByPark(yqCodes, st, et));
+        CompletableFuture<List<Map<String, Object>>> f3 = CompletableFuture.supplyAsync(
+                () -> mapper.getPersonnelTrafficByPark(yqCodes, st, et));
+        CompletableFuture<List<Map<String, Object>>> f4 = CompletableFuture.supplyAsync(
+                () -> mapper.getAlarmStatsByPark(yqCodes));
 
-        // 业务数值累加器 (全区总和)
-        long sumGateCount = 0;
-        long sumHazardousVehicleCount = 0;
-        long sumOtherVehicleCount = 0;
-        long sumVisitorCount = 0;
+        CompletableFuture.allOf(f1, f2, f3, f4).join();
 
-        long sumGeneralCargoCount = 0;
+        // 3. 按 park_code 建立索引，O(1) 合并
+        Map<String, Map<String, Object>> vehicleMap   = toMapByPark(f2.join());
+        Map<String, Map<String, Object>> personnelMap = toMapByPark(f3.join());
+        Map<String, Map<String, Object>> alarmMap     = toMapByPark(f4.join());
+
+        // === 累加变量 ===
+        int fullAccessCount    = 0;
+        int partialAccessCount = 0;
+        int notAccessCount     = 0;
+
+        long sumGateCount               = 0;
+        long sumHazardousVehicleCount   = 0;
+        long sumOtherVehicleCount       = 0;
+        long sumVisitorCount            = 0;
+        long sumGeneralCargoCount       = 0;
         long sumHazardousTransportCount = 0;
-        long sumSmallVehicleCount = 0;
-        long sumEmergencyVehicleCount = 0;
-        long sumRegisteredPersonnelCount = 0;
-        long sumVisitorPersonnelCount = 0;
+        long sumSmallVehicleCount       = 0;
+        long sumEmergencyVehicleCount   = 0;
+        long sumRegisteredPersonnelCount= 0;
+        long sumVisitorPersonnelCount   = 0;
+        long sumAlarmIntrusion          = 0;
+        long sumAlarmSpeed              = 0;
+        long sumAlarmHelp               = 0;
+        long sumAlarmStay               = 0;
+        long sumAlarmOther              = 0;
 
-        long sumAlarmIntrusion = 0;
-        long sumAlarmSpeed = 0;
-        long sumAlarmHelp = 0;
-        long sumAlarmStay = 0;
-        long sumAlarmOther = 0;
+        List<Map<String, Object>> staticList = f1.join();
+        if (staticList != null) {
+            for (Map<String, Object> row : staticList) {
+                String parkCode = (String) row.get("park_code");
+                Map<String, Object> v = vehicleMap.getOrDefault(parkCode, Collections.emptyMap());
+                Map<String, Object> p = personnelMap.getOrDefault(parkCode, Collections.emptyMap());
+                Map<String, Object> a = alarmMap.getOrDefault(parkCode, Collections.emptyMap());
 
-        if (parkStatsList != null) {
-            for (Map<String, Object> row : parkStatsList) {
-                // --- A. 处理接入状态 (按园区判断) ---
-                int moduleCount = getIntValue(row.get("moduleCount")); // 0 ~ 10
+                // moduleCount = 7 静态模块 + has_clsstx + has_rysstx + has_sbbjsj（最大值 10）
+                int moduleCount = getIntValue(row.get("staticModuleCount"))
+                        + getIntValue(v.get("has_clsstx"))
+                        + getIntValue(p.get("has_rysstx"))
+                        + getIntValue(a.get("has_sbbjsj"));
 
-                if (moduleCount == 10) {
-                    fullAccessCount++;
-                } else if (moduleCount > 0) {
-                    partialAccessCount++;
-                } else {
-                    notAccessCount++;
-                }
+                if (moduleCount == 10) fullAccessCount++;
+                else if (moduleCount > 0) partialAccessCount++;
+                else notAccessCount++;
 
-                // --- B. 处理业务数值 (累加全区总和) ---
-                sumGateCount += getIntValue(row.get("gateCount"));
-                sumHazardousVehicleCount += getIntValue(row.get("hazardousVehicleCount"));
-                sumOtherVehicleCount += getIntValue(row.get("otherVehicleCount"));
-                sumVisitorCount += getIntValue(row.get("visitorCount"));
-
-                sumGeneralCargoCount += getIntValue(row.get("generalCargoCount"));
-                sumHazardousTransportCount += getIntValue(row.get("hazardousTransportCount"));
-                sumSmallVehicleCount += getIntValue(row.get("smallVehicleCount"));
-                sumEmergencyVehicleCount += getIntValue(row.get("emergencyVehicleCount"));
-                sumRegisteredPersonnelCount += getIntValue(row.get("registeredPersonnelCount"));
-                sumVisitorPersonnelCount += getIntValue(row.get("visitorPersonnelCount"));
-
-                sumAlarmIntrusion += getIntValue(row.get("alarm_intrusion"));
-                sumAlarmSpeed += getIntValue(row.get("alarm_speed"));
-                sumAlarmHelp += getIntValue(row.get("alarm_help"));
-                sumAlarmStay += getIntValue(row.get("alarm_stay"));
-                sumAlarmOther += getIntValue(row.get("alarm_other"));
+                sumGateCount               += getIntValue(row.get("gateCount"));
+                sumHazardousVehicleCount   += getIntValue(row.get("hazardousVehicleCount"));
+                sumOtherVehicleCount       += getIntValue(row.get("otherVehicleCount"));
+                sumVisitorCount            += getIntValue(row.get("visitorCount"));
+                sumGeneralCargoCount       += getIntValue(v.get("generalCargoCount"));
+                sumHazardousTransportCount += getIntValue(v.get("hazardousTransportCount"));
+                sumSmallVehicleCount       += getIntValue(v.get("smallVehicleCount"));
+                sumEmergencyVehicleCount   += getIntValue(v.get("emergencyVehicleCount"));
+                sumRegisteredPersonnelCount+= getIntValue(p.get("registeredPersonnelCount"));
+                sumVisitorPersonnelCount   += getIntValue(p.get("visitorPersonnelCount"));
+                sumAlarmIntrusion          += getIntValue(a.get("alarm_intrusion"));
+                sumAlarmSpeed              += getIntValue(a.get("alarm_speed"));
+                sumAlarmHelp               += getIntValue(a.get("alarm_help"));
+                sumAlarmStay               += getIntValue(a.get("alarm_stay"));
+                sumAlarmOther              += getIntValue(a.get("alarm_other"));
             }
         }
 
-        // === 3. 组装 DTO ===
+        // 4. 组装 DTO
         ClosedManagementStatisticsDTO dto = new ClosedManagementStatisticsDTO();
 
-        // 3.1 接入状态统计 (基于园区数量的统计)
         List<Map<String, Object>> accessStatusStats = new ArrayList<>();
         accessStatusStats.add(createItem("全部已接入", fullAccessCount));
         accessStatusStats.add(createItem("部分已接入", partialAccessCount));
         accessStatusStats.add(createItem("未接入", notAccessCount));
         dto.setAccessStatusStats(accessStatusStats);
 
-        // 3.2 报警类型统计 (基于全区总和)
         List<Map<String, Object>> alarmTypeStats = new ArrayList<>();
         addIfPositive(alarmTypeStats, "入侵报警", sumAlarmIntrusion);
         addIfPositive(alarmTypeStats, "超速报警", sumAlarmSpeed);
         addIfPositive(alarmTypeStats, "求救报警", sumAlarmHelp);
         addIfPositive(alarmTypeStats, "滞留报警", sumAlarmStay);
-        addIfPositive(alarmTypeStats, "其他", sumAlarmOther);
+        addIfPositive(alarmTypeStats, "其他",     sumAlarmOther);
         dto.setAlarmTypeStats(alarmTypeStats);
 
-        // 3.3 基本信息统计 (基于全区总和)
         ClosedManagementStatisticsDTO.BasicInfoStats basic = new ClosedManagementStatisticsDTO.BasicInfoStats();
         basic.setGateCount((int) sumGateCount);
         basic.setHazardousVehicleCount((int) sumHazardousVehicleCount);
@@ -128,7 +143,6 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
         basic.setVisitorCount((int) sumVisitorCount);
         dto.setBasicInfoStats(basic);
 
-        // 3.4 通行数据统计 (基于全区总和)
         ClosedManagementStatisticsDTO.TrafficStats traffic = new ClosedManagementStatisticsDTO.TrafficStats();
         traffic.setGeneralCargoCount((int) sumGeneralCargoCount);
         traffic.setHazardousTransportCount((int) sumHazardousTransportCount);
@@ -141,23 +155,27 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
         return dto;
     }
 
-    // 辅助方法：安全获取整数
+    private Map<String, Map<String, Object>> toMapByPark(List<Map<String, Object>> list) {
+        if (list == null) return Collections.emptyMap();
+        Map<String, Map<String, Object>> result = new HashMap<>(list.size() * 2);
+        for (Map<String, Object> row : list) {
+            Object key = row.get("park_code");
+            if (key != null) result.put(key.toString(), row);
+        }
+        return result;
+    }
+
     private int getIntValue(Object obj) {
         if (obj == null) return 0;
         if (obj instanceof Number) return ((Number) obj).intValue();
-        try {
-            return Integer.parseInt(obj.toString());
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+        try { return Integer.parseInt(obj.toString()); } catch (NumberFormatException e) { return 0; }
     }
 
-    // 辅助方法：添加非零项
     private void addIfPositive(List<Map<String, Object>> list, String name, long value) {
         if (value > 0) {
             Map<String, Object> item = new HashMap<>();
             item.put("name", name);
-            item.put("value", (int)value); // 注意类型转换
+            item.put("value", (int) value);
             list.add(item);
         }
     }

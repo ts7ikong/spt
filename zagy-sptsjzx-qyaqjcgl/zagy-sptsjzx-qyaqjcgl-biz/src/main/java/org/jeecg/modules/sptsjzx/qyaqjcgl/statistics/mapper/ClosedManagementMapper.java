@@ -60,5 +60,19 @@ public interface ClosedManagementMapper {
             @Param("endTime") LocalDateTime endTime
     );
 
+    /** 静态基础数据（kkmj/fkxx/whpcl/qtcl/tcc/ryssdw/whpclssdw 7 张小表） */
+    List<Map<String, Object>> getStaticInfoByPark(@Param("parkCodes") List<String> parkCodes);
 
+    /** 车辆通行（clsstx 大表，带时间过滤，与其他 3 个查询并行） */
+    List<Map<String, Object>> getVehicleTrafficByPark(@Param("parkCodes") List<String> parkCodes,
+                                                      @Param("startTime") LocalDateTime startTime,
+                                                      @Param("endTime") LocalDateTime endTime);
+
+    /** 人员通行（rysstxsj 大表，带时间过滤，与其他 3 个查询并行） */
+    List<Map<String, Object>> getPersonnelTrafficByPark(@Param("parkCodes") List<String> parkCodes,
+                                                        @Param("startTime") LocalDateTime startTime,
+                                                        @Param("endTime") LocalDateTime endTime);
+
+    /** 报警数据（sbbjsj，与其他 3 个查询并行） */
+    List<Map<String, Object>> getAlarmStatsByPark(@Param("parkCodes") List<String> parkCodes);
 }
