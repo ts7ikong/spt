@@ -1,11 +1,15 @@
 package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.dto.AgileEmergencyStatisticsDTO;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.AgileEmergencyMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.IAgileEmergencyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,86 +20,117 @@ public class AgileEmergencyServiceImpl implements IAgileEmergencyService {
     private AgileEmergencyMapper mapper;
 
     @Override
-    public AgileEmergencyStatisticsDTO getAgileEmergencyStatistics(String parkCode,
-                                                                   List<String> companyCodes,
-                                                                   String countycode,
+    public AgileEmergencyStatisticsDTO getAgileEmergencyStatistics(List<String> yqCodes,
                                                                    String drillType) {
-
         AgileEmergencyStatisticsDTO dto = new AgileEmergencyStatisticsDTO();
 
-        // 1. 接入情况统计
-        Map<String, Object> accessData = mapper.getEmergencyAccessStats(parkCode, companyCodes, countycode);
+        // ===== 1. 接入情况统计（List<Map>，name/value，仅 value>0）=====
+        List<Map<String, Object>> parkStatsList = mapper.getEmergencyAccessStatsByPark(yqCodes);
 
-        // 判断12张表是否有数据
-        int yjyaCount = ((Number) accessData.get("yjyaCount")).intValue();
-        int yjyljhCount = ((Number) accessData.get("yjyljhCount")).intValue();
-        int yjylssgcCount = ((Number) accessData.get("yjylssgcCount")).intValue();
-        int yjwzCount = ((Number) accessData.get("yjwzCount")).intValue();
-        int yjjydwCount = ((Number) accessData.get("yjjydwCount")).intValue();
-        int yjzjCount = ((Number) accessData.get("yjzjCount")).intValue();
-        int yjbncsCount = ((Number) accessData.get("yjbncsCount")).intValue();
-        int ylzyCount = ((Number) accessData.get("ylzyCount")).intValue();
-        int jjjlCount = ((Number) accessData.get("jjjlCount")).intValue();
-        int xbjlCount = ((Number) accessData.get("xbjlCount")).intValue();
-        int jyczgcCount = ((Number) accessData.get("jyczgcCount")).intValue();
-        int yjczfaCount = ((Number) accessData.get("yjczfaCount")).intValue();
+        int fullAccessCount = 0;   // 全部已接入园区数
+        int partialAccessCount = 0;// 部分已接入园区数
+        int notAccessCount = 0;    // 未接入园区数
 
-        // 计算有数据的表数量
-        int hasDataCount = 0;
-        if (yjyaCount > 0) hasDataCount++;
-        if (yjyljhCount > 0) hasDataCount++;
-        if (yjylssgcCount > 0) hasDataCount++;
-        if (yjwzCount > 0) hasDataCount++;
-        if (yjjydwCount > 0) hasDataCount++;
-        if (yjzjCount > 0) hasDataCount++;
-        if (yjbncsCount > 0) hasDataCount++;
-        if (ylzyCount > 0) hasDataCount++;
-        if (jjjlCount > 0) hasDataCount++;
-        if (xbjlCount > 0) hasDataCount++;
-        if (jyczgcCount > 0) hasDataCount++;
-        if (yjczfaCount > 0) hasDataCount++;
+        if (parkStatsList != null) {
+            for (Map<String, Object> row : parkStatsList) {
+                int nonZeroCount = getIntValue(row.get("nonZeroCount"));
 
-        AgileEmergencyStatisticsDTO.AccessStats emergencyAccessStats =
-                new AgileEmergencyStatisticsDTO.AccessStats();
-
-        if (hasDataCount == 12) {
-            // 12张表都有数据 - 全部已接入
-            emergencyAccessStats.setFullAccess(1);
-            emergencyAccessStats.setPartialAccess(0);
-            emergencyAccessStats.setNotAccess(0);
-        } else if (hasDataCount > 0) {
-            // 部分表有数据 - 部分已接入
-            emergencyAccessStats.setFullAccess(0);
-            emergencyAccessStats.setPartialAccess(1);
-            emergencyAccessStats.setNotAccess(0);
-        } else {
-            // 12张表都没有数据 - 未接入
-            emergencyAccessStats.setFullAccess(0);
-            emergencyAccessStats.setPartialAccess(0);
-            emergencyAccessStats.setNotAccess(1);
+                if (nonZeroCount == 12) {
+                    fullAccessCount++;
+                } else if (nonZeroCount > 0) {
+                    partialAccessCount++;
+                } else {
+                    notAccessCount++;
+                }
+            }
         }
-        emergencyAccessStats.setTotal(1);
-        dto.setEmergencyAccessStats(emergencyAccessStats);
 
-        // 2. 应急预案等级统计
-        List<Map<String, Object>> planLevelStats = mapper.getEmergencyPlanLevelStats(parkCode, companyCodes, countycode);
-        dto.setEmergencyPlanLevelStats(planLevelStats);
+        // 2. 组装结果
+        List<Map<String, Object>> accessStats = new ArrayList<>();
+        accessStats.add(createAccessItem("全部已接入", fullAccessCount));
+        accessStats.add(createAccessItem("部分已接入", partialAccessCount));
+        accessStats.add(createAccessItem("未接入", notAccessCount));
 
-        // 3. 应急演练级别统计(带演练类型筛选)
-        List<Map<String, Object>> drillLevelStats = mapper.getEmergencyDrillLevelStats(parkCode, companyCodes, countycode, drillType);
-        dto.setEmergencyDrillLevelStats(drillLevelStats);
+        dto.setEmergencyAccessStats(accessStats);
 
-        // 4. 应急资源统计
-        Map<String, Object> resourceData = mapper.getEmergencyResourceStats(parkCode, companyCodes, countycode);
-        AgileEmergencyStatisticsDTO.ResourceStats resourceStats =
-                new AgileEmergencyStatisticsDTO.ResourceStats();
-        resourceStats.setMaterialCount(((Number) resourceData.get("materialCount")).intValue());
-        resourceStats.setRescueTeamCount(((Number) resourceData.get("rescueTeamCount")).intValue());
-        resourceStats.setExpertCount(((Number) resourceData.get("expertCount")).intValue());
-        resourceStats.setShelterCount(((Number) resourceData.get("shelterCount")).intValue());
-        resourceStats.setMedicalInstitutionCount(((Number) resourceData.get("medicalInstitutionCount")).intValue());
+
+        // ===== 2. 应急预案等级统计（DTO）=====
+        List<Map<String, Object>> planLevelRaw = mapper.getEmergencyPlanLevelStats(yqCodes);
+        AgileEmergencyStatisticsDTO.PlanLevelStats planStats = new AgileEmergencyStatisticsDTO.PlanLevelStats();
+        // 初始化为 0（避免 null）
+        planStats.setSuperior(0);
+        planStats.setParkLevel(0);
+        planStats.setEnterprise(0);
+
+        for (Map<String, Object> row : planLevelRaw) {
+            String level = (String) row.get("level");
+            int count = getIntValue(row.get("count"));
+
+            if ("1".equals(level)) {
+                planStats.setSuperior(count);
+            } else if ("2".equals(level)) {
+                planStats.setParkLevel(count);
+            } else if ("3".equals(level)) {
+                planStats.setEnterprise(count);
+            }
+            // 忽略其他级别
+        }
+        dto.setEmergencyPlanLevelStats(planStats);
+
+        // ===== 3. 应急演练级别统计（DTO，支持 drillType 筛选）=====
+        List<Map<String, Object>> drillLevelRaw = mapper.getEmergencyDrillLevelStats(yqCodes, drillType);
+        AgileEmergencyStatisticsDTO.DrillLevelStats drillStats = new AgileEmergencyStatisticsDTO.DrillLevelStats();
+        drillStats.setCity(0);
+        drillStats.setPark(0);
+        drillStats.setCompany(0);
+        drillStats.setWorkshop(0);
+
+        for (Map<String, Object> row : drillLevelRaw) {
+            String level = (String) row.get("level");
+            int count = getIntValue(row.get("count"));
+
+            if ("01".equals(level)) {
+                drillStats.setCity(count);
+            } else if ("02".equals(level)) {
+                drillStats.setPark(count);
+            } else if ("03".equals(level)) {
+                drillStats.setCompany(count);
+            } else if ("04".equals(level)) {
+                drillStats.setWorkshop(count);
+            }
+        }
+        dto.setEmergencyDrillLevelStats(drillStats);
+
+        // ===== 4. 应急资源统计（DTO）=====
+        Map<String, Object> resourceData = mapper.getEmergencyResourceStats(yqCodes);
+        AgileEmergencyStatisticsDTO.ResourceStats resourceStats = new AgileEmergencyStatisticsDTO.ResourceStats();
+        resourceStats.setMaterialCount(getIntValue(resourceData.get("materialCount")));
+        resourceStats.setRescueTeamCount(getIntValue(resourceData.get("rescueTeamCount")));
+        resourceStats.setExpertCount(getIntValue(resourceData.get("expertCount")));
+        resourceStats.setShelterCount(getIntValue(resourceData.get("shelterCount")));
+        resourceStats.setMedicalInstitutionCount(getIntValue(resourceData.get("medicalInstitutionCount")));
         dto.setEmergencyResourceStats(resourceStats);
 
         return dto;
+    }
+
+    // 辅助方法：安全转 int
+    private int getIntValue(Object obj) {
+        if (obj == null) return 0;
+        if (obj instanceof Number) {
+            return ((Number) obj).intValue();
+        }
+        try {
+            return Integer.parseInt(obj.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private Map<String, Object> createAccessItem(String name, int value) {
+        Map<String, Object> item = new HashMap<>();
+        item.put("name", name);
+        item.put("value", value);
+        return item;
     }
 }

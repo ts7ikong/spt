@@ -83,4 +83,47 @@ public interface TjAcceptCompanyMapper {
     Map<String, Object> getAccessStats(@Param("countycode") String countycode,
                                        @Param("yqType") Integer yqType,
                                        @Param("isScqy") Integer isScqy);
+
+
+    /**
+     * 统计接入情况
+     */
+    List<Map<String, Object>> countAccessStatus(@Param("countycode") String countycode,
+                                                @Param("yqType") Integer yqType,
+                                                @Param("companyCodes") List<String> companyCodes,
+                                                @Param("isScqy") Integer isScqy);
+
+    /**
+     * 统计运行情况
+     */
+    Map<String, Object> countRunLevel(@Param("countycode") String countycode,
+                                      @Param("yqType") Integer yqType,
+                                      @Param("companyCodes") List<String> companyCodes,
+                                      @Param("isScqy") Integer isScqy);
+
+    /**
+     * 统计分析单元数量
+     */
+    Integer countUnit(@Param("companyCodes") List<String> companyCodes);
+
+    /**
+     * 统计风险事件数量
+     */
+    Integer countEvent(@Param("companyCodes") List<String> companyCodes);
+
+    /**
+     * 统计管控措施数量
+     */
+    Integer countMeasures(@Param("companyCodes") List<String> companyCodes);
+
+    /**
+     * 统计排查任务数量
+     */
+    Integer countTask(@Param("companyCodes") List<String> companyCodes);
+
+    /**
+     * 统计隐患排查治理情况
+     */
+    Map<String, Object> countDangerInvestigation(@Param("companyCodes") List<String> companyCodes);
+
 }

@@ -101,7 +101,7 @@ public class ContractorUserInfoController extends JeecgController<ContractorUser
                 // 企业在权限范围内，只查询该企业的数据（QueryGenerator已经添加了companyCode条件）
             } else {
                 // 没有指定企业，使用企业编码列表过滤数据
-                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "social_code");
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "socia_code");
             }
         } else {
             if (contractorUserInfo.getCountyCode() != null) {
@@ -111,7 +111,7 @@ public class ContractorUserInfoController extends JeecgController<ContractorUser
                     // 请求的企业不在当前区县权限范围内，返回空结果
                     return Result.OK(new Page<>(pageNo, pageSize));
                 }
-                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "social_code");
+                DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "socia_code");
             }
         }
         // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
@@ -120,7 +120,7 @@ public class ContractorUserInfoController extends JeecgController<ContractorUser
         if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
             for (ContractorUserInfo item : pageList.getRecords()) {
                 // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
-                item.setCountyCode(item.getSociaCode());
+                item.setCountyCode(item.getCountyCode());
             }
         }
         return Result.OK(pageList);

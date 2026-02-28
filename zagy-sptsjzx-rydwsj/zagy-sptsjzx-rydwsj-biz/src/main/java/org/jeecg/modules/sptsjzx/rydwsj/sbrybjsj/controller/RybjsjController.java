@@ -81,7 +81,6 @@ public class RybjsjController extends JeecgController<Rybjsj, IRybjsjService> {
         // 自定义查询规则
         Map<String, QueryRuleEnum> customeRuleMap = new HashMap<>();
         // 自定义多选的查询规则为：LIKE_WITH_OR
-        customeRuleMap.put("alarmType", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Rybjsj> queryWrapper = QueryGenerator.initQueryWrapper(rybjsj, req.getParameterMap(), customeRuleMap);
 
         // 【数据权限过滤】根据登录用户的区县编码获取企业列表

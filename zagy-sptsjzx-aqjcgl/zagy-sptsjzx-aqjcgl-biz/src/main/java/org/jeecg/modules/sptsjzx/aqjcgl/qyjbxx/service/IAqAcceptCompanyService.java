@@ -22,4 +22,7 @@ public interface IAqAcceptCompanyService extends IService<AcceptCompany> {
      * @return 企业编码列表
      */
     List<String> getCompanyCodesByCountyCode(String countycode);
+
+    String getCompanyCountyCodeByCode(String companyCode);
 }
+

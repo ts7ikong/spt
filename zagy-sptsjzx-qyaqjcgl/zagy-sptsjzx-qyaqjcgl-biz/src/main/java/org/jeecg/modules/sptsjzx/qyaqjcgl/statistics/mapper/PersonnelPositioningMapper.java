@@ -72,4 +72,16 @@ public interface PersonnelPositioningMapper {
                                   @Param("parkCode") String parkCode,
                                   @Param("companyCodes") List<String> companyCodes,
                                   @Param("isScqy") Integer isScqy);
+
+    /**
+     * 获取统一报警分类统计（含人员报警、区域报警、人员聚集报警）
+     */
+    List<Map<String, Object>> getUnifiedAlarmStats(
+            @Param("countycode") String countycode,
+            @Param("yqType") Integer yqType,
+            @Param("parkCode") String parkCode,
+            @Param("companyCodes") List<String> companyCodes,
+            @Param("isScqy") Integer isScqy,
+            @Param("alarmStatus") String alarmStatus
+    );
 }

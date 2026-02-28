@@ -1,6 +1,7 @@
 package org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.impl;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.entity.AcceptCompany;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.mapper.AcceptCompanyMapper;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +46,36 @@ public class AcceptCompanyServiceImpl extends ServiceImpl<AcceptCompanyMapper, A
                 .map(AcceptCompany::getCode)
                 .filter(code -> code != null && !code.isEmpty())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getYqCodesByCountyCode(String orgCode) {
+        return baseMapper.getYqCodesByCountyCode(orgCode);
+    }
+
+    @Override
+    public AcceptCompany getByCompanyCode(String companyCode) {
+        LambdaQueryWrapper<AcceptCompany> acceptCompanyQueryWrapper = new LambdaQueryWrapper<>();
+        acceptCompanyQueryWrapper.eq(AcceptCompany::getCode, companyCode);
+        return baseMapper.selectOne(acceptCompanyQueryWrapper);
+    }
+
+    @Override
+    public String getCompanyCountyCodeByCode(String companyCode) {
+        if (companyCode == null || companyCode.isEmpty()) {
+            return null;
+        }
+
+        QueryWrapper<AcceptCompany> wrapper = new QueryWrapper<>();
+        wrapper.eq("code", companyCode);
+        wrapper.select("countycode"); // 只查 countycode 字段，提高性能
+
+        List<AcceptCompany> companies = this.list(wrapper);
+        if (companies != null && !companies.isEmpty()) {
+            AcceptCompany company = companies.get(0);
+            return company.getCountycode(); // 注意：如果数据库字段是 countycode，实体类属性应为 countycode 或有 @TableField
+        }
+        return null;
     }
 
 }

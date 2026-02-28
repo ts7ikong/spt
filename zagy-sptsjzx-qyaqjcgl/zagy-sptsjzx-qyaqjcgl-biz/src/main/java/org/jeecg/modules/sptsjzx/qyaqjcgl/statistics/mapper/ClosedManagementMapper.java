@@ -2,6 +2,8 @@ package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -44,4 +46,19 @@ public interface ClosedManagementMapper {
                                                  @Param("companyCodes") List<String> companyCodes,
                                                  @Param("countycode") String countycode,
                                                  @Param("timeRange") String timeRange);
+
+
+    Map<String, Object> getClosedManagementAllInOne(
+            @Param("parkCodes") List<String> parkCodes,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime
+    );
+
+    List<Map<String, Object>> getClosedManagementStatsByPark(
+            @Param("parkCodes") List<String> parkCodes,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime
+    );
+
+
 }

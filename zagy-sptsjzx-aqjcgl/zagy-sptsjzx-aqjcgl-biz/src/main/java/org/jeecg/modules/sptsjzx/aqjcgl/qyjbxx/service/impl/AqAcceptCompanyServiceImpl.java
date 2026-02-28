@@ -46,4 +46,22 @@ public class AqAcceptCompanyServiceImpl extends ServiceImpl<AqAcceptCompanyMappe
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public String getCompanyCountyCodeByCode(String companyCode) {
+        if (companyCode == null || companyCode.isEmpty()) {
+            return null;
+        }
+
+        QueryWrapper<AcceptCompany> wrapper = new QueryWrapper<>();
+        wrapper.eq("code", companyCode);
+        wrapper.select("countycode"); // 只查 countycode 字段，提高性能
+
+        List<AcceptCompany> companies = this.list(wrapper);
+        if (companies != null && !companies.isEmpty()) {
+            AcceptCompany company = companies.get(0);
+            return company.getCountycode(); // 注意：如果数据库字段是 countycode，实体类属性应为 countycode 或有 @TableField
+        }
+        return null;
+    }
+
 }

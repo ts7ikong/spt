@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 /**
  * @Description: 园区基本信息
  * @Author: zagy-cg
- * @Date:   2025-05-29
+ * @Date: 2025-05-29
  * @Version: V1.0
  */
 public interface YqjbxxMapper extends BaseMapper<Yqjbxx> {
@@ -15,9 +15,9 @@ public interface YqjbxxMapper extends BaseMapper<Yqjbxx> {
 
     /**
      * 统计园区数量
-     * @param citycode 城市编码
+     * @param parkCode 园区编码
      * @param countycode 区县编码
      * @return 园区数量
      */
-    Long countParks(@Param("citycode") String citycode, @Param("countycode") String countycode);
+    Long countParks(@Param("parkCode") String parkCode, @Param("countycode") String countycode);
 }

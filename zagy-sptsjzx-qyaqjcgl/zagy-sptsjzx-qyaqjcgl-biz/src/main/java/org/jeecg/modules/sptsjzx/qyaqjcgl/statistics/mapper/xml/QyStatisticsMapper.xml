@@ -22,7 +22,7 @@
                 AND c.yq_type = #{yqType}
             </if>
             <if test="parkCode != null and parkCode != ''">
-                AND c.yqcode = #{parkCode}
+                AND c.parkcode = #{parkCode}
             </if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND a.company_code IN
@@ -59,7 +59,7 @@
                 AND c.yq_type = #{yqType}
             </if>
             <if test="parkCode != null and parkCode != ''">
-                AND c.yqcode = #{parkCode}
+                AND c.parkcode = #{parkCode}
             </if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND a.company_code IN
@@ -91,7 +91,7 @@
                 AND c.yq_type = #{yqType}
             </if>
             <if test="parkCode != null and parkCode != ''">
-                AND c.yqcode = #{parkCode}
+                AND c.parkcode = #{parkCode}
             </if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND a.company_code IN
@@ -123,7 +123,7 @@
                 AND c.yq_type = #{yqType}
             </if>
             <if test="parkCode != null and parkCode != ''">
-                AND c.yqcode = #{parkCode}
+                AND c.parkcode = #{parkCode}
             </if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND d.company_code IN
@@ -141,13 +141,13 @@
         <!-- 其他统计项 -->
         <select id="getOtherStats" resultType="java.util.HashMap">
             SELECT
-            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.qyzdjggyxx q
+            (SELECT COUNT(*) FROM zlkj_danger_data_accept.qyzdjggyxx q
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON q.company_code = c.code
             WHERE 1=1
             <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
-            <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
+            <if test="parkCode != null and parkCode != ''">AND c.parkcode = #{parkCode}</if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND q.company_code IN
                 <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
@@ -159,11 +159,11 @@
 
             (SELECT COUNT(*) FROM zlkj_danger_data_accept.accept_hazard_code h
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON h.company_code = c.code
-            WHERE 1=1
+            WHERE 1=1 and h.level = 5
             <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
-            <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
+            <if test="parkCode != null and parkCode != ''">AND c.parkcode = #{parkCode}</if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND h.company_code IN
                 <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
@@ -173,13 +173,13 @@
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS hazardCount,
 
-            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.stsjgxx s
+            (SELECT COUNT(*) FROM zlkj_danger_data_accept.stsjgxx s
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON s.company_code = c.code
             WHERE 1=1
             <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
-            <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
+            <if test="parkCode != null and parkCode != ''">AND c.parkcode = #{parkCode}</if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND s.company_code IN
                 <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
@@ -195,7 +195,7 @@
             <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
-            <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
+            <if test="parkCode != null and parkCode != ''">AND c.parkcode = #{parkCode}</if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND z.company_code IN
                 <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
@@ -220,7 +220,7 @@
             <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
-            <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
+            <if test="parkCode != null and parkCode != ''">AND c.parkcode = #{parkCode}</if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND z.company_code IN
                 <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
@@ -230,13 +230,13 @@
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS hazardInspectionCount,
 
-            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.dsfdwjbxx d
+            (SELECT COUNT(*) FROM zlkj_danger_data_accept.contractor_basic_info d
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON d.social_code = c.code
             WHERE 1=1
             <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
-            <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
+            <if test="parkCode != null and parkCode != ''">AND c.parkcode = #{parkCode}</if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND d.social_code IN
                 <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
@@ -246,13 +246,13 @@
             <if test="isScqy != null">AND c.is_scqy = #{isScqy}</if>
             ) AS thirdPartyCount,
 
-            (SELECT COUNT(*) FROM shipingtaishujuzhongxin.dsfdwryxx d
+            (SELECT COUNT(*) FROM zlkj_danger_data_accept.contractor_user_info d
             LEFT JOIN accept_company c ON d.socia_code = c.code
             WHERE 1=1
             <if test="citycode != null and citycode != ''">AND c.citycode = #{citycode}</if>
             <if test="countycode != null and countycode != ''">AND c.countycode = #{countycode}</if>
             <if test="yqType != null">AND c.yq_type = #{yqType}</if>
-            <if test="parkCode != null and parkCode != ''">AND c.yqcode = #{parkCode}</if>
+            <if test="parkCode != null and parkCode != ''">AND c.parkcode = #{parkCode}</if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND d.socia_code IN
                 <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">

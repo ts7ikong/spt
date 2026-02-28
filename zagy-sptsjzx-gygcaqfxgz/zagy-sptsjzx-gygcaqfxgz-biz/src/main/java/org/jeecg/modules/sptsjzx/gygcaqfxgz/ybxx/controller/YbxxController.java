@@ -85,10 +85,6 @@ public class YbxxController extends JeecgController<Ybxx, IYbxxService> {
         // 自定义查询规则
         Map<String, QueryRuleEnum> customeRuleMap = new HashMap<>();
         // 自定义多选的查询规则为：LIKE_WITH_OR
-        customeRuleMap.put("parkCode", QueryRuleEnum.LIKE_WITH_OR);
-        customeRuleMap.put("companyCode", QueryRuleEnum.LIKE_WITH_OR);
-        customeRuleMap.put("equipmentCode", QueryRuleEnum.LIKE_WITH_OR);
-        customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<Ybxx> queryWrapper = QueryGenerator.initQueryWrapper(ybxx, req.getParameterMap(),customeRuleMap);
 
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表

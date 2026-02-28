@@ -79,9 +79,6 @@ public class AcceptTicketActivityController extends JeecgController<AcceptTicket
 								   HttpServletRequest req) {
         // 自定义查询规则
         Map<String, QueryRuleEnum> customeRuleMap = new HashMap<>();
-        // 自定义多选的查询规则为：LIKE_WITH_OR
-        customeRuleMap.put("ticketType", QueryRuleEnum.LIKE_WITH_OR);
-        customeRuleMap.put("isContractorWork", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<AcceptTicketActivity> queryWrapper = QueryGenerator.initQueryWrapper(acceptTicketActivity, req.getParameterMap(),customeRuleMap);
 
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表

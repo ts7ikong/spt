@@ -23,8 +23,4 @@ public class SpecialWorkStatisticsDTO {
      */
     private List<Map<String, Object>> ticketTypeStats;
 
-    /**
-     * 作业票总数
-     */
-    private Integer ticketTotalCount;
 }

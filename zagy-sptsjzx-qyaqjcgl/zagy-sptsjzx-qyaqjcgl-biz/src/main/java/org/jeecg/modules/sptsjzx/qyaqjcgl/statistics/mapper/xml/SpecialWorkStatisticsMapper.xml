@@ -1,130 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.SpecialWorkStatisticsMapper">
-
     <!-- 1. 作业票接入情况统计 -->
     <select id="getTicketAccessStats" resultType="map">
-        SELECT '全部接入' AS name,
-        COUNT(CASE WHEN ticket_state = '1' AND ticket_activity = '1' THEN 1 END) as value
+        <!-- 第一部分：全部接入 -->
+        SELECT
+        '全部接入' AS name,
+        COALESCE(SUM(CASE WHEN a.tickek_state = 1 AND a.ticket_activity = 1 THEN 1 ELSE 0 END), 0) AS value
         FROM zlkj_danger_data_accept.all_access_status a
+        INNER JOIN zlkj_danger_data_accept.accept_company c ON a.company_code = c.code
         <where>
             <if test="countycode != null and countycode != ''">
-                EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
                 AND c.countycode = #{countycode}
-                )
             </if>
             <if test="yqType != null">
-                AND EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
                 AND c.yq_type = #{yqType}
-                )
             </if>
             <if test="parkCode != null and parkCode != ''">
-                AND EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
-                AND c.yqcode = #{parkCode}
-                )
+                AND c.parkcode = #{parkCode}
             </if>
             <if test="companyCodes != null and companyCodes.size() > 0">
-                AND a.company_code IN
+                AND c.code IN
                 <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
                     #{code}
                 </foreach>
             </if>
             <if test="isScqy != null">
-                AND EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
                 AND c.is_scqy = #{isScqy}
-                )
             </if>
         </where>
 
         UNION ALL
 
-        SELECT '部分接入' AS name,
-        COUNT(CASE WHEN (ticket_state = '0' AND ticket_activity = '1') OR (ticket_state = '1' AND ticket_activity = '0') THEN 1 END) as value
+        <!-- 第二部分：部分接入 -->
+        SELECT
+        '部分接入' AS name,
+        COALESCE(SUM(CASE
+        WHEN (a.tickek_state = 1 AND a.ticket_activity = 0)
+        OR (a.tickek_state = 0 AND a.ticket_activity = 1)
+        THEN 1 ELSE 0
+        END), 0) AS value
         FROM zlkj_danger_data_accept.all_access_status a
+        INNER JOIN zlkj_danger_data_accept.accept_company c ON a.company_code = c.code
         <where>
             <if test="countycode != null and countycode != ''">
-                EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
                 AND c.countycode = #{countycode}
-                )
             </if>
             <if test="yqType != null">
-                AND EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
                 AND c.yq_type = #{yqType}
-                )
             </if>
             <if test="parkCode != null and parkCode != ''">
-                AND EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
-                AND c.yqcode = #{parkCode}
-                )
+                AND c.parkcode = #{parkCode}
             </if>
             <if test="companyCodes != null and companyCodes.size() > 0">
-                AND a.company_code IN
+                AND c.code IN
                 <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
                     #{code}
                 </foreach>
             </if>
             <if test="isScqy != null">
-                AND EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
                 AND c.is_scqy = #{isScqy}
-                )
             </if>
         </where>
 
         UNION ALL
 
-        SELECT '未接入' AS name,
-        COUNT(CASE WHEN ticket_state = '0' AND ticket_activity = '0' THEN 1 END) as value
+        <!-- 第三部分：未接入 -->
+        SELECT
+        '未接入' AS name,
+        COALESCE(SUM(CASE WHEN a.tickek_state = 0 AND a.ticket_activity = 0 THEN 1 ELSE 0 END), 0) AS value
         FROM zlkj_danger_data_accept.all_access_status a
+        INNER JOIN zlkj_danger_data_accept.accept_company c ON a.company_code = c.code
         <where>
             <if test="countycode != null and countycode != ''">
-                EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
                 AND c.countycode = #{countycode}
-                )
             </if>
             <if test="yqType != null">
-                AND EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
                 AND c.yq_type = #{yqType}
-                )
             </if>
             <if test="parkCode != null and parkCode != ''">
-                AND EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
-                AND c.yqcode = #{parkCode}
-                )
+                AND c.parkcode = #{parkCode}
             </if>
             <if test="companyCodes != null and companyCodes.size() > 0">
-                AND a.company_code IN
+                AND c.code IN
                 <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
                     #{code}
                 </foreach>
             </if>
             <if test="isScqy != null">
-                AND EXISTS (
-                SELECT 1 FROM zlkj_danger_data_accept.accept_company c
-                WHERE c.code = a.company_code
                 AND c.is_scqy = #{isScqy}
-                )
             </if>
         </where>
     </select>
@@ -142,9 +106,7 @@
         END as name,
         COUNT(*) as value
         FROM zlkj_danger_data_accept.accept_ticket_formal t
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
             LEFT JOIN zlkj_danger_data_accept.accept_company c ON t.company_code = c.code
-        </if>
         <where>
             t.deleted = 0
             <if test="countycode != null and countycode != ''">
@@ -154,7 +116,7 @@
                 AND c.yq_type = #{yqType}
             </if>
             <if test="parkCode != null and parkCode != ''">
-                AND c.yqcode = #{parkCode}
+                AND c.parkcode = #{parkCode}
             </if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND t.company_code IN
@@ -176,9 +138,7 @@
         COUNT(*) as value
         FROM zlkj_danger_data_accept.accept_ticket_formal t
         LEFT JOIN zlkj_danger_data_accept.zylxflb z ON t.ticket_type = z.xlbm
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON t.company_code = c.code
-        </if>
+        LEFT JOIN zlkj_danger_data_accept.accept_company c ON t.company_code = c.code
         <where>
             t.deleted = 0
             <if test="countycode != null and countycode != ''">
@@ -188,7 +148,7 @@
                 AND c.yq_type = #{yqType}
             </if>
             <if test="parkCode != null and parkCode != ''">
-                AND c.yqcode = #{parkCode}
+                AND c.parkcode = #{parkCode}
             </if>
             <if test="companyCodes != null and companyCodes.size() > 0">
                 AND t.company_code IN
@@ -202,36 +162,6 @@
         </where>
         GROUP BY z.zydl
         ORDER BY value DESC
-    </select>
-
-    <!-- 4. 作业票总数统计 -->
-    <select id="getTicketTotalCount" resultType="java.lang.Integer">
-        SELECT COUNT(*)
-        FROM zlkj_danger_data_accept.accept_ticket_formal t
-        <if test="countycode != null and countycode != '' or yqType != null or isScqy != null">
-            LEFT JOIN zlkj_danger_data_accept.accept_company c ON t.company_code = c.code
-        </if>
-        <where>
-            t.deleted = 0
-            <if test="countycode != null and countycode != ''">
-                AND c.countycode = #{countycode}
-            </if>
-            <if test="yqType != null">
-                AND c.yq_type = #{yqType}
-            </if>
-            <if test="parkCode != null and parkCode != ''">
-                AND c.yqcode = #{parkCode}
-            </if>
-            <if test="companyCodes != null and companyCodes.size() > 0">
-                AND t.company_code IN
-                <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
-                    #{code}
-                </foreach>
-            </if>
-            <if test="isScqy != null">
-                AND c.is_scqy = #{isScqy}
-            </if>
-        </where>
     </select>
 
 </mapper>

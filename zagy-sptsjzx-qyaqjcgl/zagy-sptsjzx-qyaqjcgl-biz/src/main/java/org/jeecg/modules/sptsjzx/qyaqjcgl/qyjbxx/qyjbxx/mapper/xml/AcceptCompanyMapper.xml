@@ -20,4 +20,10 @@
         </if>
     </select>
 
+    <select id="getYqCodesByCountyCode" resultType="java.lang.String">
+        SELECT park_code FROM shipingtaishujuzhongxin.yqjbxx WHERE 1=1
+        <if test="orgCode!=null and orgCode != ''">
+            AND park_area_code = #{orgCode}
+        </if>
+    </select>
 </mapper>

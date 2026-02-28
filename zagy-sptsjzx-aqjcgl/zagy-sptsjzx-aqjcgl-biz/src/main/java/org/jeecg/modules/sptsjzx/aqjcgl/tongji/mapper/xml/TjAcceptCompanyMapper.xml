@@ -14,14 +14,11 @@
         <if test="countycode != null and countycode != ''">
             AND ac.countycode = #{countycode}
         </if>
-        <if test="yqType != null">
-            AND ac.yq_type = #{yqType}
-        </if>
         <if test="parkCode != null and parkCode != ''">
-            AND ac.yqcode = #{parkCode}
+            AND ac.parkcode = #{parkCode}
         </if>
         <if test="companyCodes != null and companyCodes.size() > 0">
-            AND ac.company_code IN
+            AND ac.code IN
             <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
                 #{item}
             </foreach>
@@ -42,14 +39,11 @@
         <if test="countycode != null and countycode != ''">
             AND ac.countycode = #{countycode}
         </if>
-        <if test="yqType != null">
-            AND ac.yq_type = #{yqType}
-        </if>
         <if test="parkCode != null and parkCode != ''">
-            AND ac.yqcode = #{parkCode}
+            AND ac.parkcode = #{parkCode}
         </if>
         <if test="companyCodes != null and companyCodes.size() > 0">
-            AND ac.company_code IN
+            AND ac.code IN
             <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
                 #{item}
             </foreach>
@@ -71,14 +65,11 @@
         <if test="countycode != null and countycode != ''">
             AND ac.countycode = #{countycode}
         </if>
-        <if test="yqType != null">
-            AND ac.yq_type = #{yqType}
-        </if>
         <if test="parkCode != null and parkCode != ''">
-            AND ac.yqcode = #{parkCode}
+            AND ac.parkcode= #{parkCode}
         </if>
         <if test="companyCodes != null and companyCodes.size() > 0">
-            AND ac.company_code IN
+            AND ac.code IN
             <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
                 #{item}
             </foreach>
@@ -101,10 +92,10 @@
             AND ac.yq_type = #{yqType}
         </if>
         <if test="parkCode != null and parkCode != ''">
-            AND ac.yqcode = #{parkCode}
+            AND ac.parkcode = #{parkCode}
         </if>
         <if test="companyCodes != null and companyCodes.size() > 0">
-            AND ac.company_code IN
+            AND ac.code IN
             <foreach item="item" index="index" collection="companyCodes" open="(" separator="," close=")">
                 #{item}
             </foreach>
@@ -129,6 +120,130 @@
         </if>
         <if test="isScqy != null">
             AND is_scqy = #{isScqy}
+        </if>
+    </select>
+
+    <!-- 统计接入情况 -->
+    <select id="countAccessStatus" resultType="java.util.HashMap">
+        SELECT
+        CASE WHEN isbuild = 1 THEN '已接入' ELSE '未接入' END AS name,
+        COUNT(*) AS value
+        FROM accept_company
+        WHERE deleted = 0
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND yq_type = #{yqType}
+        </if>
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND code IN
+            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+        <if test="isScqy != null">
+            AND is_scqy = #{isScqy}
+        </if>
+        GROUP BY isbuild
+    </select>
+
+    <!-- 统计运行情况 -->
+    <select id="countRunLevel" resultType="java.util.HashMap">
+        SELECT
+        SUM(CASE WHEN run_level = '优' THEN 1 ELSE 0 END) AS excellent,
+        SUM(CASE WHEN run_level = '良' THEN 1 ELSE 0 END) AS good,
+        SUM(CASE WHEN run_level = '中' THEN 1 ELSE 0 END) AS medium,
+        SUM(CASE WHEN run_level = '差' THEN 1 ELSE 0 END) AS poor
+        FROM accept_company
+        WHERE deleted = 0
+        <if test="countycode != null and countycode != ''">
+            AND countycode = #{countycode}
+        </if>
+        <if test="yqType != null">
+            AND yq_type = #{yqType}
+        </if>
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND code IN
+            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+        <if test="isScqy != null">
+            AND is_scqy = #{isScqy}
+        </if>
+    </select>
+
+    <!-- 统计分析单元数量 -->
+    <select id="countUnit" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM accept_unit_formal
+        WHERE deleted = 0
+        AND is_activation = 1
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND company_code IN
+            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+    </select>
+
+    <!-- 统计风险事件数量 -->
+    <select id="countEvent" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM accept_event_formal
+        WHERE deleted = 0
+        AND is_activation = 1
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND company_code IN
+            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+    </select>
+
+    <!-- 统计管控措施数量 -->
+    <select id="countMeasures" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM accept_control_measures_formal
+        WHERE deleted = 0
+        AND is_activation = 1
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND company_code IN
+            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+    </select>
+
+    <!-- 统计排查任务数量 -->
+    <select id="countTask" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM accept_measures_task_formal
+        WHERE deleted = 0
+        AND is_activation = 1
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND company_code IN
+            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+    </select>
+
+    <!-- 统计隐患排查治理情况 -->
+    <select id="countDangerInvestigation" resultType="java.util.HashMap">
+        SELECT
+        SUM(CASE WHEN danger_level = '0' THEN 1 ELSE 0 END) AS generalDanger,
+        SUM(CASE WHEN danger_level = '1' THEN 1 ELSE 0 END) AS majorDanger,
+        SUM(CASE WHEN danger_state = '0' THEN 1 ELSE 0 END) AS rectifying,
+        SUM(CASE WHEN danger_state = '0' AND NOW() > danger_manage_deadline THEN 1 ELSE 0 END) AS overdue
+        FROM accept_danger_investigation_formal
+        WHERE deleted = 0
+        <if test="companyCodes != null and companyCodes.size() > 0">
+            AND company_code IN
+            <foreach collection="companyCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
         </if>
     </select>
 </mapper>

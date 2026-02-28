@@ -2,127 +2,17 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.AgileEmergencyMapper">
     <!-- 1. 敏捷应急接入情况统计 -->
-    <select id="getEmergencyAccessStats" resultType="map">
-        SELECT
-        -- 应急预案
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjyaxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as yjyaCount,
-        -- 应急演练计划
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjyljhxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as yjyljhCount,
-        -- 应急演练实施过程记录
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjylssgcjl WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as yjylssgcCount,
-        -- 应急物资
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjwzjcxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as yjwzCount,
-        -- 应急救援队伍
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjjydwxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as yjjydwCount,
-        -- 应急专家
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjzjxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as yjzjCount,
-        -- 应急避难场所
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjbncsxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as yjbncsCount,
-        -- 医疗机构资源
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.ylzyxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as ylzyCount,
-        -- 接警记录
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.jjjl WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        ) as jjjlCount,
-        -- 续报记录
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.xbjl WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as xbjlCount,
-        -- 救援处置过程记录
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.jyczgcjl WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        ) as jyczgcCount,
-        -- 应急处置方案记录
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjczfajl WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
-        ) as yjczfaCount
-    </select>
+
 
     <!-- 2. 应急预案等级统计 -->
     <select id="getEmergencyPlanLevelStats" resultType="map">
         SELECT
         emergence_plan_level as level,
         COUNT(*) as count
-        FROM shipingtaishujuzhongxin.yjyaxx
-        <where>
-            deleted = '0'
-            <if test="parkCode != null and parkCode != ''">
-                AND park_code = #{parkCode}
-            </if>
-            <if test="countycode != null and countycode != ''">
-                AND countycode = #{countycode}
-            </if>
-        </where>
+        FROM shipingtaishujuzhongxin.yjyaxx WHERE deleted = '0' AND park_code IN
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
         GROUP BY emergence_plan_level
     </select>
 
@@ -134,12 +24,10 @@
         FROM shipingtaishujuzhongxin.yjyljhxx
         <where>
             deleted = '0'
-            <if test="parkCode != null and parkCode != ''">
-                AND park_code = #{parkCode}
-            </if>
-            <if test="countycode != null and countycode != ''">
-                AND countycode = #{countycode}
-            </if>
+            AND park_code IN
+            <foreach collection="parkCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
             <if test="drillType != null and drillType != ''">
                 AND drill_type = #{drillType}
             </if>
@@ -151,49 +39,74 @@
     <select id="getEmergencyResourceStats" resultType="map">
         SELECT
         -- 应急物资数量
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjwzjcxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjwzjcxx WHERE deleted = '0' AND park_code IN
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
         ) as materialCount,
         -- 应急救援队伍数量
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjjydwxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjjydwxx WHERE deleted = '0' AND park_code IN
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
         ) as rescueTeamCount,
         -- 应急专家数量
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjzjxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjzjxx WHERE deleted = '0' AND park_code IN
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
         ) as expertCount,
         -- 应急避难场所数量
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjbncsxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.yjbncsxx WHERE deleted = '0' AND park_code IN
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
         ) as shelterCount,
         -- 医疗机构资源数量
-        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.ylzyxx WHERE deleted = '0'
-        <if test="parkCode != null and parkCode != ''">
-            AND park_code = #{parkCode}
-        </if>
-        <if test="countycode != null and countycode != ''">
-            AND countycode = #{countycode}
-        </if>
+        (SELECT COUNT(*) FROM shipingtaishujuzhongxin.ylzyxx WHERE deleted = '0' AND park_code IN
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
         ) as medicalInstitutionCount
+    </select>
+
+
+    <select id="getEmergencyAccessStatsByPark" resultType="map">
+        SELECT
+        p.park_code,
+        -- 计算该园区有多少个指标是有数据的 (非零)
+        (
+        IF(IFNULL(t1.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t2.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t3.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t4.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t5.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t6.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t7.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t8.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t9.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t10.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t11.cnt, 0) > 0, 1, 0) +
+        IF(IFNULL(t12.cnt, 0) > 0, 1, 0)
+        ) as nonZeroCount
+        FROM (
+        -- 1. 构造传入的 parkCode 列表作为主表，确保即使某园区全为0也能被统计到
+        <foreach collection="parkCodes" item="code" separator=" UNION ALL ">
+            SELECT #{code} as park_code
+        </foreach>
+        ) p
+        -- 2. 左连接 12 张表，分别统计每个 park_code 的数量
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.yjyaxx WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t1 ON p.park_code = t1.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.yjyljhxx WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t2 ON p.park_code = t2.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.yjylssgcjl WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t3 ON p.park_code = t3.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.yjwzjcxx WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t4 ON p.park_code = t4.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.yjjydwxx WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t5 ON p.park_code = t5.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.yjzjxx WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t6 ON p.park_code = t6.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.yjbncsxx WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t7 ON p.park_code = t7.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.ylzyxx WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t8 ON p.park_code = t8.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.jjjl WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t9 ON p.park_code = t9.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.xbjl WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t10 ON p.park_code = t10.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.jyczgcjl WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t11 ON p.park_code = t11.park_code
+        LEFT JOIN (SELECT park_code, COUNT(*) as cnt FROM shipingtaishujuzhongxin.yjczfajl WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach> GROUP BY park_code) t12 ON p.park_code = t12.park_code
     </select>
 </mapper>

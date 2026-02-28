@@ -49,8 +49,8 @@ public class Ybxx implements Serializable {
     @ApiModelProperty(value = "企业编码")
     private java.lang.String companyCode;
 	/**设备编号*/
-	@Excel(name = "设备编号", width = 15, dictTable = "sbxx", dicText = "equipment_name", dicCode = "equipment_code")
-	@Dict(dictTable = "sbxx", dicText = "equipment_name", dicCode = "equipment_code")
+	@Excel(name = "设备编号", width = 15, dictTable = "gygcsbxx", dicText = "equipment_name", dicCode = "equipment_code")
+	@Dict(dictTable = "gygcsbxx", dicText = "equipment_name", dicCode = "equipment_code")
     @ApiModelProperty(value = "设备编号")
     private java.lang.String equipmentCode;
 	/**仪表编号*/

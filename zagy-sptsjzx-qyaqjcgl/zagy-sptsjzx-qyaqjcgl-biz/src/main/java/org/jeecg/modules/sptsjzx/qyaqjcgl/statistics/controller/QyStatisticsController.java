@@ -5,10 +5,12 @@ import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.IQyStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,55 +29,88 @@ public class QyStatisticsController {
     /**
      * 获取综合统计数据
      *
-     * @param countycode 区县编码
-     * @param yqType     园区类型
-     * @param parkCode   园区编码
-     * @param isScqy     是否生产企业
+     * @param countycode   区县编码
+     * @param companyCode  企业编码（新增）
+     * @param yqType       园区类型
+     * @param parkCode     园区编码
+     * @param isScqy       是否生产企业
      * @return
      */
     @GetMapping("/comprehensive")
     @ApiOperation("企业安全基础管理数据接入情况")
-    public Result<?> getComprehensiveStats(@RequestParam(required = false) String countycode,
-                                           @RequestParam(required = false) Integer yqType,
-                                           @RequestParam(required = false) String parkCode,
-                                           @RequestParam(required = false) Integer isScqy) {
-        // 【数据权限过滤】
-        // 企业表用 companyCodes 过滤
-        // 园区表用 countycode 过滤
-        String orgCode = DataScopeHelper.getCurrentUserOrgCode();
-        List<String> companyCodes = null;
-        String filterCountycode = null;
+    public Result<?> getComprehensiveStats(
+            @RequestParam(required = false) String countycode,
 
-        if ("500000".equals(orgCode)) {
-            // 市级账号
-            if (countycode != null && !countycode.isEmpty()) {
-                // 前端传了countycode，查询该区县的企业列表和园区
-                companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(countycode);
-                filterCountycode = countycode;
+            @RequestParam(required = false) String companyCode,
+
+            @RequestParam(required = false) Integer yqType,
+
+            @RequestParam(required = false) String parkCode,
+
+            @RequestParam(required = false) Integer isScqy) {
+
+        try {
+            String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+            List<String> companyCodes = null;
+            String filterCountycode = null;
+
+            // 【新增】优先处理 companyCode 精确查询
+            if (StringUtils.hasText(companyCode)) {
+                companyCode = companyCode.trim();
+
+                // 查询该企业所属区县
+                String companyCountyCode = acceptCompanyService.getCompanyCountyCodeByCode(companyCode);
+                if (companyCountyCode == null) {
+                    // 企业不存在，返回空数据（不暴露信息）
+                    return Result.OK(Collections.emptyMap());
+                }
+
+                // 数据权限校验
+                if ("500000".equals(orgCode)) {
+                    // 市级：允许查
+                    companyCodes = Collections.singletonList(companyCode);
+                    filterCountycode = companyCountyCode; // 园区按企业所在区县过滤
+                } else {
+                    // 区县：只能查自己辖区
+                    if (!orgCode.equals(companyCountyCode)) {
+                        return Result.OK(Collections.emptyMap()); // 无权限
+                    }
+                    companyCodes = Collections.singletonList(companyCode);
+                    filterCountycode = orgCode;
+                }
             } else {
-                // 前端没传countycode，不过滤（查询所有）
-                companyCodes = null;
-                filterCountycode = null;
-            }
-        } else {
-            // 区县账号：查询自己区县的企业列表和园区
-            companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-            filterCountycode = orgCode;
-
-            // 如果前端传了countycode，验证是否是自己的区县
-            if (countycode != null && !countycode.isEmpty()) {
-                if (!orgCode.equals(countycode)) {
-                    // 不是自己的区县，返回空数据
-                    return Result.OK(null);
+                // 【原有逻辑】未传 companyCode，走区县权限
+                if ("500000".equals(orgCode)) {
+                    if (StringUtils.hasText(countycode)) {
+                        companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(countycode);
+                        filterCountycode = countycode;
+                    } else {
+                        companyCodes = null;
+                        filterCountycode = null;
+                    }
+                } else {
+                    if (StringUtils.hasText(countycode) && !orgCode.equals(countycode)) {
+                        return Result.OK(Collections.emptyMap());
+                    }
+                    companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+                    filterCountycode = orgCode;
                 }
             }
-        }
 
-        // companyCodes用于企业表过滤，filterCountycode用于园区表过滤
-        Map<String, Object> stats = statisticsService.getComprehensiveStats(
-                null, filterCountycode, yqType, parkCode, companyCodes, isScqy
-        );
-        return Result.OK(stats);
+            // 调用统计服务
+            Map<String, Object> stats = statisticsService.getComprehensiveStats(
+                    null, // 第一个参数暂未使用（可后续扩展）
+                    filterCountycode,
+                    yqType,
+                    parkCode,
+                    companyCodes,
+                    isScqy
+            );
+            return Result.OK(stats);
+
+        } catch (Exception e) {
+            return Result.error("获取综合统计数据失败: " + e.getMessage());
+        }
     }
 
 

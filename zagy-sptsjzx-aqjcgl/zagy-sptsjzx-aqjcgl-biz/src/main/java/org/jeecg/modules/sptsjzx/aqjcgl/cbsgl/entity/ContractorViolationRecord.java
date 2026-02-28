@@ -39,66 +39,82 @@ public class ContractorViolationRecord implements Serializable {
 	@TableId(type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "主键")
     private String id;
-	/**创建人*/
-    @ApiModelProperty(value = "创建人")
-    private String createBy;
-	/**创建日期*/
-	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    @ApiModelProperty(value = "创建日期")
-    private Date createTime;
-	/**更新人*/
-    @ApiModelProperty(value = "更新人")
-    private String updateBy;
-	/**更新日期*/
-	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    @ApiModelProperty(value = "更新日期")
-    private Date updateTime;
-	/**UUID*/
-	@Excel(name = "UUID", width = 15)
+
+    /**UUID*/
+    @Excel(name = "UUID", width = 15)
     @ApiModelProperty(value = "UUID")
     private String uuid;
-	/**园区编号*/
-	@Excel(name = "园区编号", width = 15, dictTable = "yqjbxx", dicText = "park_name", dicCode = "park_code")
-	@Dict(dictTable = "yqjbxx", dicText = "park_name", dicCode = "park_code")
-    @ApiModelProperty(value = "园区编号")
-    private String parkCode;
-	/**第三方uuid*/
-	@Excel(name = "第三方uuid", width = 15, dictTable = "contractor_basic_information", dicText = "contractor_name", dicCode = "uuid")
-	@Dict(dictTable = "contractor_basic_information", dicText = "contractor_name", dicCode = "uuid")
-    @ApiModelProperty(value = "第三方uuid")
-    private String contractorUuid;
-    /**上报企业编码*/
-    @Excel(name = "上报企业编码", width = 15)
-    @ApiModelProperty(value = "上报企业编码")
-    private String companyCode;
-	/**地点*/
-	@Excel(name = "地点", width = 15)
-    @ApiModelProperty(value = "地点")
-    private String place;
-	/**违规描述*/
-	@Excel(name = "违规描述", width = 15)
+
+    /**第三方单位名称*/
+    @Excel(name = "第三方单位名称", width = 15, dictTable = "contractor_basic_info", dicText = "company_name", dicCode = "social_code")
+    @Dict(dictTable = "v_contractor_basic_info", dicText = "company_name", dicCode = "social_code")
+    @ApiModelProperty(value = "第三方单位名称")
+    private java.lang.String socialCode;
+
+    /**上报企业*/
+    @Excel(name = "上报企业", width = 15, dictTable = "v_accept_company", dicText = "name", dicCode = "code")
+    @Dict(dictTable = "v_accept_company", dicText = "name", dicCode = "code")
+    @ApiModelProperty(value = "上报企业")
+    private java.lang.String reportCompanyCode;
+
+    /**违规描述*/
+    @Excel(name = "违规描述", width = 15)
     @ApiModelProperty(value = "违规描述")
-    private String disposDesc;
-	/**处理过程*/
-	@Excel(name = "处理过程", width = 15)
+    private String disposeDesc;
+
+    /**处理过程*/
+    @Excel(name = "处理过程", width = 15)
     @ApiModelProperty(value = "处理过程")
     private String disposeProcess;
-	/**发生时间*/
-	@Excel(name = "发生时间", width = 20, format = "yyyy-MM-dd HH:mm:ss")
-	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
+
+    /**发生时间*/
+    @Excel(name = "发生时间", width = 20, format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "发生时间")
     private Date startTime;
-	/**删除标志*/
-	@Excel(name = "删除标志", width = 15, dicCode = "scbz")
-	@Dict(dicCode = "scbz")
+    /**删除标志*/
+    @Excel(name = "删除标志", width = 15, dicCode = "scbz")
+    @Dict(dicCode = "scbz")
     @ApiModelProperty(value = "删除标志")
     private String deleted;
-	/**区县Code*/
-	@TableField(exist = false)
-	@ApiModelProperty(value = "区县Code")
-	@Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
-	private java.lang.String countyCode;
+
+    /**创建人*/
+    @ApiModelProperty(value = "创建人")
+    private java.lang.String createBy;
+
+    /**创建时间*/
+    @Excel(name = "创建时间", width = 15)
+    @ApiModelProperty(value = "创建时间")
+    private java.lang.String createDate;
+
+    /**最后修改人*/
+    @ApiModelProperty(value = "最后修改人")
+    private java.lang.String updateBy;
+
+    /**最后修改时间*/
+    @Excel(name = "最后修改时间", width = 15)
+    @ApiModelProperty(value = "最后修改时间")
+    private java.lang.String updateDate;
+
+    /**应急部返回batch编码*/
+    @Excel(name = "应急部返回batch编码", width = 15)
+    @ApiModelProperty(value = "应急部返回batch编码")
+    private java.lang.String batchId;
+
+    /**我们返回企业batch编号*/
+    @Excel(name = "我们返回企业batch编号", width = 15)
+    @ApiModelProperty(value = "我们返回企业batch编号")
+    private java.lang.String wbatchId;
+
+    /**数据入库时间*/
+    @Excel(name = "数据入库时间", width = 15)
+    @ApiModelProperty(value = "数据入库时间")
+    private java.lang.String time;
+
+    /**区县Code*/
+    @TableField(exist = false)
+    @ApiModelProperty(value = "区县Code")
+    @Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+    private java.lang.String countyCode;
 }

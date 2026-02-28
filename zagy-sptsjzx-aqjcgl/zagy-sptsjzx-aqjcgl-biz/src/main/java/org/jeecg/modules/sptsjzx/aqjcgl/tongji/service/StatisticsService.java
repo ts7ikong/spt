@@ -1,5 +1,7 @@
 package org.jeecg.modules.sptsjzx.aqjcgl.tongji.service;
 
+import org.jeecg.common.api.vo.Result;
+import org.jeecg.modules.sptsjzx.aqjcgl.tongji.vo.RiskGradeControlResVO;
 import org.jeecg.modules.sptsjzx.aqjcgl.tongji.vo.StatisticsVO;
 
 import java.util.List;
@@ -21,4 +23,6 @@ public interface StatisticsService {
      * @return 统计结果
      */
     StatisticsVO getStatistics(String citycode, String countycode, Integer yqType, String parkCode, List<String> companyCodes, Integer isScqy);
+
+    Result<RiskGradeControlResVO> countRiskGradeControl(String countycode, Integer yqType, List<String> companyCodes, Integer isScqy);
 }

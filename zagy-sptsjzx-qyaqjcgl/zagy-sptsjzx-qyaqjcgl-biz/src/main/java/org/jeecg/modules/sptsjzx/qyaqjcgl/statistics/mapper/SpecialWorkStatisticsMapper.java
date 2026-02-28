@@ -34,13 +34,4 @@ public interface SpecialWorkStatisticsMapper {
                                                  @Param("parkCode") String parkCode,
                                                  @Param("companyCodes") List<String> companyCodes,
                                                  @Param("isScqy") Integer isScqy);
-
-    /**
-     * 获取作业票总数
-     */
-    Integer getTicketTotalCount(@Param("countycode") String countycode,
-                               @Param("yqType") Integer yqType,
-                               @Param("parkCode") String parkCode,
-                               @Param("companyCodes") List<String> companyCodes,
-                               @Param("isScqy") Integer isScqy);
 }

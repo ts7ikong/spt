@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jeecg.common.api.vo.Result;
+import org.jeecg.common.exception.JeecgBootException;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.modules.sptsjzx.aqjcgl.yqjcxxgl.yqjbxx.service.IYqjbxxService;
@@ -131,6 +132,15 @@ public class YjyljhxxController extends JeecgController<Yjyljhxx, IYjyljhxxServi
     //@RequiresPermissions("sptsjzx.mjyj.yjylsj:yjyljhxx:add")
     @PostMapping(value = "/add")
     public Result<String> add(@RequestBody Yjyljhxx yjyljhxx) {
+        //这里加一个判断 就是判断yjyljhxx的drillLevel 必须是01 02 03 04这样格式的
+        String drillLevel = yjyljhxx.getDrillLevel();
+        // 2. 定义允许的格式列表
+        List<String> allowedLevels = Arrays.asList("01", "02", "03", "04");
+        // 3. 进行非空及格式校验
+        if (drillLevel == null || !allowedLevels.contains(drillLevel)) {
+            // 抛出 JeecgBoot 标准业务异常，前端会统一拦截并显示 message
+            throw new JeecgBootException("演练级别(drillLevel)非法，必须为 01, 02, 03, 04 其中之一！当前值：" + drillLevel);
+        }
         yjyljhxxService.save(yjyljhxx);
         return Result.XZ(yjyljhxx.getId(), "添加成功！");
     }

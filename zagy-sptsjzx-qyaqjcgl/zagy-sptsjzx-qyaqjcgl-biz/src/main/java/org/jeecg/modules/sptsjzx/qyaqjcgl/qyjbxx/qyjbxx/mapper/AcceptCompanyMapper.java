@@ -19,4 +19,5 @@ public interface AcceptCompanyMapper extends BaseMapper<AcceptCompany> {
                                        @Param("yqType") Integer yqType,
                                        @Param("isScqy") Integer isScqy);
 
+    List<String> getYqCodesByCountyCode(@Param("orgCode") String orgCode);
 }

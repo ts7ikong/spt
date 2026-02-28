@@ -10,7 +10,7 @@ public class PersonnelPositioningStatisticsDTO {
     /**
      * 人员定位接入情况统计
      */
-    private AccessStats positioningAccessStats;
+    private List<Map<String, Object>> positioningAccessStats;
     
     /**
      * 人员类型统计(饼图数据)

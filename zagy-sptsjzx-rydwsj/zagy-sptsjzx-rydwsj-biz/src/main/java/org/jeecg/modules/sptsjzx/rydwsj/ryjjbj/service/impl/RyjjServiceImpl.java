@@ -1,5 +1,6 @@
 package org.jeecg.modules.sptsjzx.rydwsj.ryjjbj.service.impl;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import org.jeecg.modules.sptsjzx.rydwsj.ryjjbj.entity.Ryjj;
 import org.jeecg.modules.sptsjzx.rydwsj.ryjjbj.mapper.RyjjMapper;
 import org.jeecg.modules.sptsjzx.rydwsj.ryjjbj.service.IRyjjService;
@@ -14,6 +15,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
  * @Version: V1.0
  */
 @Service
+@DS("zfd")
 public class RyjjServiceImpl extends ServiceImpl<RyjjMapper, Ryjj> implements IRyjjService {
 
 }

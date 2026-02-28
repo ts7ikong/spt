@@ -66,10 +66,6 @@ public class ContractorViolationRecordController extends JeecgController<Contrac
                                                                   HttpServletRequest req) {
         // 自定义查询规则
         Map<String, QueryRuleEnum> customeRuleMap = new HashMap<>();
-        // 自定义多选的查询规则为：LIKE_WITH_OR
-        customeRuleMap.put("parkCode", QueryRuleEnum.LIKE_WITH_OR);
-        customeRuleMap.put("contractorUuid", QueryRuleEnum.LIKE_WITH_OR);
-        customeRuleMap.put("deleted", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<ContractorViolationRecord> queryWrapper = QueryGenerator.initQueryWrapper(contractorViolationRecord, req.getParameterMap(), customeRuleMap);
         // 【数据权限过滤】根据登录用户的区县编码获取企业列表
         // 实体只有companyCode字段，需要先查询企业表获取企业编码列表
@@ -78,7 +74,7 @@ public class ContractorViolationRecordController extends JeecgController<Contrac
             String orgCode = DataScopeHelper.getCurrentUserOrgCode();
             List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
             // 如果前端传了companyCode参数，需要验证该企业是否属于当前区县
-            String requestCompanyCode = contractorViolationRecord.getCompanyCode();
+            String requestCompanyCode = contractorViolationRecord.getReportCompanyCode();
             if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
                 if (companyCodes == null || !companyCodes.contains(requestCompanyCode)) {
                     // 请求的企业不在当前区县权限范围内，返回空结果
@@ -106,7 +102,7 @@ public class ContractorViolationRecordController extends JeecgController<Contrac
         if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
             for (ContractorViolationRecord item : pageList.getRecords()) {
                 // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
-                item.setCountyCode(item.getCompanyCode());
+                item.setCountyCode(item.getReportCompanyCode());
             }
         }
         return Result.OK(pageList);

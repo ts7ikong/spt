@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.ClosedManagementMapper">
-
     <!-- 1. 封闭化管理接入情况统计 -->
     <select id="getClosedAccessStats" resultType="map">
         SELECT
@@ -218,6 +217,369 @@
                 </choose>
             </if>
         </where>
+    </select>
+
+    <select id="getClosedManagementAllInOne" resultType="map">
+        <![CDATA[
+SELECT
+  kkmj.has_kkmj,
+  fk.has_fkxx,
+  whpcl.has_whpcl,
+  qtcl.has_qtcl,
+  tcc.has_tcc,
+  clsstx.has_clsstx,
+  rysstx.has_rysstx,
+  ryssdw.has_ryssdw,
+  whpclssdw.has_whpclssdw,
+  sbbjsj.has_sbbjsj,
+
+  kkmj.gateCount,
+  whpcl.hazardousVehicleCount,
+  qtcl.otherVehicleCount,
+  fk.visitorCount,
+
+  traffic.totalVehicleTraffic,
+  traffic.generalCargoCount,
+  traffic.hazardousTransportCount,
+  traffic.smallVehicleCount,
+  traffic.emergencyVehicleCount,
+
+  personnel.registeredPersonnelCount,
+  personnel.visitorPersonnelCount,
+
+  alarm.alarm_intrusion,
+  alarm.alarm_speed,
+  alarm.alarm_help,
+  alarm.alarm_stay,
+  alarm.alarm_other
+FROM
+  (SELECT
+     COUNT(*) > 0 AS has_kkmj,
+     COUNT(*) AS gateCount
+   FROM shipingtaishujuzhongxin.kkmjxx
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) kkmj,
+
+  (SELECT
+     COUNT(*) > 0 AS has_fkxx,
+     COUNT(*) AS visitorCount
+   FROM shipingtaishujuzhongxin.fkxx
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) fk,
+
+  (SELECT
+     COUNT(*) > 0 AS has_whpcl,
+     COUNT(*) AS hazardousVehicleCount
+   FROM shipingtaishujuzhongxin.whpclxx
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) whpcl,
+
+  (SELECT
+     COUNT(*) > 0 AS has_qtcl,
+     COUNT(*) AS otherVehicleCount
+   FROM shipingtaishujuzhongxin.qtclxx
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) qtcl,
+
+  (SELECT
+     COUNT(*) > 0 AS has_tcc
+   FROM shipingtaishujuzhongxin.whpyscltccxx
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) tcc,
+
+  (SELECT
+     COUNT(*) > 0 AS has_clsstx
+   FROM shipingtaishujuzhongxin.clsstx
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) clsstx,
+
+  (SELECT
+     COUNT(*) > 0 AS has_rysstx
+   FROM shipingtaishujuzhongxin.rysstxsj
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) rysstx,
+
+  (SELECT
+     COUNT(*) > 0 AS has_ryssdw
+   FROM shipingtaishujuzhongxin.ryssdw
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) ryssdw,
+
+  (SELECT
+     COUNT(*) > 0 AS has_whpclssdw
+   FROM shipingtaishujuzhongxin.whpclssdw
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) whpclssdw,
+
+  (SELECT
+     COUNT(*) > 0 AS has_sbbjsj
+   FROM shipingtaishujuzhongxin.sbbjsj
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) sbbjsj,
+
+  -- 车辆通行统计：防止 SUM 返回 NULL -->
+  (SELECT
+     COUNT(*) AS totalVehicleTraffic,
+     COALESCE(SUM(vehicle_type = '1'), 0) AS generalCargoCount,
+     COALESCE(SUM(vehicle_type = '2'), 0) AS hazardousTransportCount,
+     COALESCE(SUM(vehicle_type = '3'), 0) AS smallVehicleCount,
+     COALESCE(SUM(vehicle_type = '4'), 0) AS emergencyVehicleCount
+   FROM shipingtaishujuzhongxin.clsstx
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+     AND pass_time >= #{startTime}
+     AND pass_time < #{endTime}
+  ) traffic,
+
+  -- 人员通行统计：防止 SUM 返回 NULL -->
+  (SELECT
+     COALESCE(SUM(staff_type = '1'), 0) AS registeredPersonnelCount,
+     COALESCE(SUM(staff_type = '2'), 0) AS visitorPersonnelCount
+   FROM shipingtaishujuzhongxin.rysstxsj
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+     AND pass_time >= #{startTime}
+     AND pass_time < #{endTime}
+  ) personnel,
+
+  -- 报警统计：防止 SUM 返回 NULL -->
+  (SELECT
+     COALESCE(SUM(alarm_type = '1'), 0) AS alarm_intrusion,
+     COALESCE(SUM(alarm_type = '2'), 0) AS alarm_speed,
+     COALESCE(SUM(alarm_type = '3'), 0) AS alarm_help,
+     COALESCE(SUM(alarm_type = '4'), 0) AS alarm_stay,
+     COALESCE(SUM(alarm_type NOT IN ('1','2','3','4') OR alarm_type IS NULL), 0) AS alarm_other
+   FROM shipingtaishujuzhongxin.sbbjsj
+   WHERE deleted = '0'
+     AND park_code IN
+]]>
+        <foreach collection="parkCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+        <![CDATA[
+  ) alarm
+]]>
+    </select>
+
+    <select id="getClosedManagementStatsByPark" resultType="map">
+        SELECT
+        p.park_code,
+
+        -- === 1. 模块状态标记 (用于计算接入率) ===
+        -- 计算该园区有多少个模块是有数据的 (0~10)
+        (
+        IF(IFNULL(t1.has_kkmj, 0), 1, 0) +
+        IF(IFNULL(t2.has_fkxx, 0), 1, 0) +
+        IF(IFNULL(t3.has_whpcl, 0), 1, 0) +
+        IF(IFNULL(t4.has_qtcl, 0), 1, 0) +
+        IF(IFNULL(t5.has_tcc, 0), 1, 0) +
+        IF(IFNULL(t6.has_clsstx, 0), 1, 0) +
+        IF(IFNULL(t7.has_rysstx, 0), 1, 0) +
+        IF(IFNULL(t8.has_ryssdw, 0), 1, 0) +
+        IF(IFNULL(t9.has_whpclssdw, 0), 1, 0) +
+        IF(IFNULL(t10.has_sbbjsj, 0), 1, 0)
+        ) as moduleCount,
+
+        -- === 2. 基础信息数值 (用于累加全区总数) ===
+        IFNULL(t1.gateCount, 0) as gateCount,
+        IFNULL(t3.hazardousVehicleCount, 0) as hazardousVehicleCount,
+        IFNULL(t4.otherVehicleCount, 0) as otherVehicleCount,
+        IFNULL(t2.visitorCount, 0) as visitorCount,
+
+        -- === 3. 通行数据数值 (带时间范围) ===
+        IFNULL(t_traffic.totalVehicleTraffic, 0) as totalVehicleTraffic,
+        IFNULL(t_traffic.generalCargoCount, 0) as generalCargoCount,
+        IFNULL(t_traffic.hazardousTransportCount, 0) as hazardousTransportCount,
+        IFNULL(t_traffic.smallVehicleCount, 0) as smallVehicleCount,
+        IFNULL(t_traffic.emergencyVehicleCount, 0) as emergencyVehicleCount,
+        IFNULL(t_personnel.registeredPersonnelCount, 0) as registeredPersonnelCount,
+        IFNULL(t_personnel.visitorPersonnelCount, 0) as visitorPersonnelCount,
+
+        -- === 4. 报警数据数值 ===
+        IFNULL(t_alarm.alarm_intrusion, 0) as alarm_intrusion,
+        IFNULL(t_alarm.alarm_speed, 0) as alarm_speed,
+        IFNULL(t_alarm.alarm_help, 0) as alarm_help,
+        IFNULL(t_alarm.alarm_stay, 0) as alarm_stay,
+        IFNULL(t_alarm.alarm_other, 0) as alarm_other
+
+        FROM (
+        -- 构造传入的 parkCode 列表作为主表
+        <foreach collection="parkCodes" item="code" separator=" UNION ALL ">
+            SELECT #{code} as park_code
+        </foreach>
+        ) p
+
+        -- 1. 门禁 (kkmj)
+        LEFT JOIN (
+        SELECT park_code,
+        (COUNT(*) > 0) as has_kkmj,
+        COUNT(*) as gateCount
+        FROM shipingtaishujuzhongxin.kkmjxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t1 ON p.park_code = t1.park_code
+
+        -- 2. 访客 (fk)
+        LEFT JOIN (
+        SELECT park_code,
+        (COUNT(*) > 0) as has_fkxx,
+        COUNT(*) as visitorCount
+        FROM shipingtaishujuzhongxin.fkxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t2 ON p.park_code = t2.park_code
+
+        -- 3. 危化车 (whpcl)
+        LEFT JOIN (
+        SELECT park_code,
+        (COUNT(*) > 0) as has_whpcl,
+        COUNT(*) as hazardousVehicleCount
+        FROM shipingtaishujuzhongxin.whpclxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t3 ON p.park_code = t3.park_code
+
+        -- 4. 其他车 (qtcl)
+        LEFT JOIN (
+        SELECT park_code,
+        (COUNT(*) > 0) as has_qtcl,
+        COUNT(*) as otherVehicleCount
+        FROM shipingtaishujuzhongxin.qtclxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t4 ON p.park_code = t4.park_code
+
+        -- 5. 危化停车场 (tcc)
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) as has_tcc
+        FROM shipingtaishujuzhongxin.whpyscltccxx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t5 ON p.park_code = t5.park_code
+
+        -- 6. 车辆通行 (clsstx) - 注意：这里只判断有无，数值在下面统一算
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) as has_clsstx
+        FROM shipingtaishujuzhongxin.clsstx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
+        GROUP BY park_code
+        ) t6 ON p.park_code = t6.park_code
+
+        -- 7. 人员通行 (rysstx)
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) as has_rysstx
+        FROM shipingtaishujuzhongxin.rysstxsj
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
+        GROUP BY park_code
+        ) t7 ON p.park_code = t7.park_code
+
+        -- 8. 人员所属单位 (ryssdw)
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) as has_ryssdw
+        FROM shipingtaishujuzhongxin.ryssdw
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t8 ON p.park_code = t8.park_code
+
+        -- 9. 危化车所属单位 (whpclssdw)
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) as has_whpclssdw
+        FROM shipingtaishujuzhongxin.whpclssdw
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t9 ON p.park_code = t9.park_code
+
+        -- 10. 报警 (sbbjsj)
+        LEFT JOIN (
+        SELECT park_code, (COUNT(*) > 0) as has_sbbjsj
+        FROM shipingtaishujuzhongxin.sbbjsj
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t10 ON p.park_code = t10.park_code
+
+        -- 11. 车辆通行数值统计 (带时间)
+        LEFT JOIN (
+        SELECT park_code,
+        COUNT(*) AS totalVehicleTraffic,
+        SUM(CASE WHEN vehicle_type = '1' THEN 1 ELSE 0 END) AS generalCargoCount,
+        SUM(CASE WHEN vehicle_type = '2' THEN 1 ELSE 0 END) AS hazardousTransportCount,
+        SUM(CASE WHEN vehicle_type = '3' THEN 1 ELSE 0 END) AS smallVehicleCount,
+        SUM(CASE WHEN vehicle_type = '4' THEN 1 ELSE 0 END) AS emergencyVehicleCount
+        FROM shipingtaishujuzhongxin.clsstx
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
+        GROUP BY park_code
+        ) t_traffic ON p.park_code = t_traffic.park_code
+
+        -- 12. 人员通行数值统计 (带时间)
+        LEFT JOIN (
+        SELECT park_code,
+        SUM(CASE WHEN staff_type = '1' THEN 1 ELSE 0 END) AS registeredPersonnelCount,
+        SUM(CASE WHEN staff_type = '2' THEN 1 ELSE 0 END) AS visitorPersonnelCount
+        FROM shipingtaishujuzhongxin.rysstxsj
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        AND pass_time >= #{startTime} AND pass_time &lt; #{endTime}
+        GROUP BY park_code
+        ) t_personnel ON p.park_code = t_personnel.park_code
+
+        -- 13. 报警数值统计
+        LEFT JOIN (
+        SELECT park_code,
+        SUM(CASE WHEN alarm_type = '1' THEN 1 ELSE 0 END) AS alarm_intrusion,
+        SUM(CASE WHEN alarm_type = '2' THEN 1 ELSE 0 END) AS alarm_speed,
+        SUM(CASE WHEN alarm_type = '3' THEN 1 ELSE 0 END) AS alarm_help,
+        SUM(CASE WHEN alarm_type = '4' THEN 1 ELSE 0 END) AS alarm_stay,
+        SUM(CASE WHEN alarm_type NOT IN ('1','2','3','4') OR alarm_type IS NULL THEN 1 ELSE 0 END) AS alarm_other
+        FROM shipingtaishujuzhongxin.sbbjsj
+        WHERE deleted = '0' AND park_code IN <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        GROUP BY park_code
+        ) t_alarm ON p.park_code = t_alarm.park_code
     </select>
 
 

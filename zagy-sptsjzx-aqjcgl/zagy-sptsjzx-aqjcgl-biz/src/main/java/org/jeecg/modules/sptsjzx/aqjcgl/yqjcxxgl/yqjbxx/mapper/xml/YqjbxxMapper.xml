@@ -7,9 +7,12 @@
     <select id="countParks" resultType="java.lang.Long">
         SELECT COUNT(*)
         FROM yqjbxx yq
-        WHERE yq.status = '0'
+        WHERE yq.status = '0' and yq.park_code != '0000000000'
         <if test="countycode != null and countycode != ''">
             AND yq.park_area_code = #{countycode}
+        </if>
+        <if test="parkCode != null and parkCode != ''">
+            AND yq.park_code = #{parkCode}
         </if>
     </select>
 

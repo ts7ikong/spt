@@ -37,10 +37,6 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
         List<Map<String, Object>> typeStats = mapper.getTicketTypeStats(countycode, yqType, parkCode, companyCodes, isScqy);
         dto.setTicketTypeStats(typeStats);
 
-        // 4. 作业票总数
-        Integer totalCount = mapper.getTicketTotalCount(countycode, yqType, parkCode, companyCodes, isScqy);
-        dto.setTicketTotalCount(totalCount != null ? totalCount : 0);
-
         return dto;
     }
 }
