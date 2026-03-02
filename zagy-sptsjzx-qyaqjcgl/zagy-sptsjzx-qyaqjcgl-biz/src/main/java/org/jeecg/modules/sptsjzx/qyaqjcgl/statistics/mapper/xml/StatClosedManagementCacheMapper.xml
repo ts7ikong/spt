@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatClosedManagementCacheMapper">
+
+    <insert id="batchUpsert">
+        INSERT INTO stat_closed_management_cache
+        (park_code, time_range,
+         static_module_count, gate_count, hazardous_vehicle_count, other_vehicle_count, visitor_count,
+         has_clsstx, general_cargo_count, hazardous_transport_count, small_vehicle_count, emergency_vehicle_count,
+         has_rysstx, registered_personnel_count, visitor_personnel_count,
+         has_sbbjsj, alarm_intrusion, alarm_speed, alarm_help, alarm_stay, alarm_other,
+         updated_at)
+        VALUES
+        <foreach collection="list" item="r" separator=",">
+            (#{r.parkCode}, #{r.timeRange},
+             #{r.staticModuleCount}, #{r.gateCount}, #{r.hazardousVehicleCount}, #{r.otherVehicleCount}, #{r.visitorCount},
+             #{r.hasClsstx}, #{r.generalCargoCount}, #{r.hazardousTransportCount}, #{r.smallVehicleCount}, #{r.emergencyVehicleCount},
+             #{r.hasRysstx}, #{r.registeredPersonnelCount}, #{r.visitorPersonnelCount},
+             #{r.hasSbbjsj}, #{r.alarmIntrusion}, #{r.alarmSpeed}, #{r.alarmHelp}, #{r.alarmStay}, #{r.alarmOther},
+             NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            static_module_count          = VALUES(static_module_count),
+            gate_count                   = VALUES(gate_count),
+            hazardous_vehicle_count      = VALUES(hazardous_vehicle_count),
+            other_vehicle_count          = VALUES(other_vehicle_count),
+            visitor_count                = VALUES(visitor_count),
+            has_clsstx                   = VALUES(has_clsstx),
+            general_cargo_count          = VALUES(general_cargo_count),
+            hazardous_transport_count    = VALUES(hazardous_transport_count),
+            small_vehicle_count          = VALUES(small_vehicle_count),
+            emergency_vehicle_count      = VALUES(emergency_vehicle_count),
+            has_rysstx                   = VALUES(has_rysstx),
+            registered_personnel_count   = VALUES(registered_personnel_count),
+            visitor_personnel_count      = VALUES(visitor_personnel_count),
+            has_sbbjsj                   = VALUES(has_sbbjsj),
+            alarm_intrusion              = VALUES(alarm_intrusion),
+            alarm_speed                  = VALUES(alarm_speed),
+            alarm_help                   = VALUES(alarm_help),
+            alarm_stay                   = VALUES(alarm_stay),
+            alarm_other                  = VALUES(alarm_other),
+            updated_at                   = NOW()
+    </insert>
+
+    <select id="queryByFilter" resultType="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatClosedManagementCache">
+        SELECT * FROM stat_closed_management_cache
+        WHERE time_range = #{timeRange}
+        <if test="parkCodes != null and parkCodes.size() > 0">
+            AND park_code IN
+            <foreach collection="parkCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        </if>
+    </select>
+
+</mapper>
