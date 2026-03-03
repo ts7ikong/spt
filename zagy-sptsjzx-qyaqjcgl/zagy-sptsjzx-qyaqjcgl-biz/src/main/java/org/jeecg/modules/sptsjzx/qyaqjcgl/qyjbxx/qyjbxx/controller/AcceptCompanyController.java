@@ -119,7 +119,6 @@ public class AcceptCompanyController extends JeecgController<AcceptCompany, IAcc
                 DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "code");
             }
         } else {
-            System.out.println(acceptCompany.getCountycode());
             if (acceptCompany.getCountycode() != null) {
                 String orgCode = acceptCompany.getCountycode();
                 List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
