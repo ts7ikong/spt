@@ -3,7 +3,7 @@ package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.job;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatClosedManagementCache;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatClosedManagementCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatClosedManagementCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.ClosedManagementMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

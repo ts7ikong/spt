@@ -1,7 +1,8 @@
-package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache;
+package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatSwBaseCache;
 
 import java.util.List;
 import java.util.Map;

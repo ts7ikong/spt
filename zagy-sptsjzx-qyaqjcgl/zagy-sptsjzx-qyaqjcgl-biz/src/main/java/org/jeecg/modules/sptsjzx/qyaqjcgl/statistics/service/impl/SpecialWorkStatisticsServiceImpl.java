@@ -2,8 +2,8 @@ package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.impl;
 
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatSwBaseCacheMapper;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatSwTypeCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatSwBaseCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatSwTypeCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.dto.SpecialWorkStatisticsDTO;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.SpecialWorkStatisticsMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.ISpecialWorkStatisticsService;
