@@ -106,4 +106,55 @@
         ORDER BY value DESC
     </select>
 
+    <!-- ===== 以下 4 个 SQL 供 SpecialWorkCacheJob 全量刷新缓存使用 ===== -->
+
+    <!-- 企业元数据：编码、区县、园区、类型、是否生产企业 -->
+    <select id="getAllCompanyMeta" resultType="map">
+        SELECT
+            code       AS company_code,
+            countycode AS county_code,
+            parkcode   AS park_code,
+            yq_type,
+            is_scqy
+        FROM zlkj_danger_data_accept.accept_company
+    </select>
+
+    <!-- 按企业分组：接入情况（每企业在 all_access_status 中最多一行） -->
+    <select id="getTicketAccessStatsByCompany" resultType="map">
+        SELECT
+            a.company_code,
+            MAX(CASE WHEN a.tickek_state = 1 AND a.ticket_activity = 1 THEN 1 ELSE 0 END) AS is_full,
+            MAX(CASE WHEN (a.tickek_state = 1 AND a.ticket_activity = 0)
+                       OR (a.tickek_state = 0 AND a.ticket_activity = 1) THEN 1 ELSE 0 END) AS is_partial,
+            MAX(CASE WHEN a.tickek_state = 0 AND a.ticket_activity = 0 THEN 1 ELSE 0 END) AS is_not
+        FROM zlkj_danger_data_accept.all_access_status a
+        GROUP BY a.company_code
+    </select>
+
+    <!-- 按企业分组：各状态作业票数量 -->
+    <select id="getTicketStatusStatsByCompany" resultType="map">
+        SELECT
+            t.company_code,
+            SUM(CASE WHEN t.ticket_status = '0' THEN 1 ELSE 0 END) AS status_0,
+            SUM(CASE WHEN t.ticket_status = '1' THEN 1 ELSE 0 END) AS status_1,
+            SUM(CASE WHEN t.ticket_status = '3' THEN 1 ELSE 0 END) AS status_3,
+            SUM(CASE WHEN t.ticket_status = '4' THEN 1 ELSE 0 END) AS status_4,
+            SUM(CASE WHEN t.ticket_status = '5' THEN 1 ELSE 0 END) AS status_5
+        FROM zlkj_danger_data_accept.accept_ticket_formal t
+        WHERE t.deleted = 0
+        GROUP BY t.company_code
+    </select>
+
+    <!-- 按企业+大类分组：作业票数量（用于 ticketTypeStats） -->
+    <select id="getTicketTypeStatsByCompany" resultType="map">
+        SELECT
+            t.company_code,
+            COALESCE(z.zydl, '未分类') AS type_name,
+            COUNT(*)                   AS type_count
+        FROM zlkj_danger_data_accept.accept_ticket_formal t
+        LEFT JOIN zlkj_danger_data_accept.zylxflb z ON t.ticket_type = z.xlbm
+        WHERE t.deleted = 0
+        GROUP BY t.company_code, z.zydl
+    </select>
+
 </mapper>

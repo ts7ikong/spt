@@ -34,4 +34,26 @@ public interface SpecialWorkStatisticsMapper {
                                                  @Param("parkCode") String parkCode,
                                                  @Param("companyCodes") List<String> companyCodes,
                                                  @Param("isScqy") Integer isScqy);
+
+    // ---- 以下方法供 SpecialWorkCacheJob 使用，全量扫描不带过滤，按企业分组 ----
+
+    /**
+     * 获取所有企业的元数据（编码、区县、园区、类型、是否生产企业）
+     */
+    List<Map<String, Object>> getAllCompanyMeta();
+
+    /**
+     * 按企业分组统计作业票接入情况（全量，不带过滤）
+     */
+    List<Map<String, Object>> getTicketAccessStatsByCompany();
+
+    /**
+     * 按企业分组统计各状态作业票数量（全量，不带过滤）
+     */
+    List<Map<String, Object>> getTicketStatusStatsByCompany();
+
+    /**
+     * 按企业+大类分组统计作业票数量（全量，不带过滤）
+     */
+    List<Map<String, Object>> getTicketTypeStatsByCompany();
 }

@@ -1,6 +1,9 @@
 package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.impl;
 
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
+import lombok.extern.slf4j.Slf4j;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatSwBaseCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatSwTypeCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.dto.SpecialWorkStatisticsDTO;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.SpecialWorkStatisticsMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.ISpecialWorkStatisticsService;
@@ -11,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-// 注意：@DS("zfd") 保留在类上，但并行线程需要手动通过 DynamicDataSourceContextHolder 设置数据源
+@Slf4j
 @Service
 public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsService {
 
@@ -20,25 +23,81 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
     @Autowired
     private SpecialWorkStatisticsMapper mapper;
 
+    @Autowired
+    private StatSwBaseCacheMapper baseCacheMapper;
+
+    @Autowired
+    private StatSwTypeCacheMapper typeCacheMapper;
+
     @Override
     public SpecialWorkStatisticsDTO getSpecialWorkStatistics(String countycode,
                                                              Integer yqType,
                                                              String parkCode,
                                                              List<String> companyCodes,
                                                              Integer isScqy) {
-        // 3 个查询完全独立，并行执行（手动设置数据源，因为 CompletableFuture 线程不继承 ThreadLocal）
+
+        // companyCodes 为空（全市查询）时不走缓存路径（缓存需要明确的 IN 列表）
+        if (companyCodes != null && !companyCodes.isEmpty()) {
+            SpecialWorkStatisticsDTO cached = queryFromCache(companyCodes, yqType, isScqy);
+            if (cached != null) {
+                return cached;
+            }
+            log.warn("[SpecialWork] 缓存未命中，降级为实时查询 companyCodes.size={}", companyCodes.size());
+        }
+
+        return computeRealtime(countycode, yqType, parkCode, companyCodes, isScqy);
+    }
+
+    // -------------------------------------------------------------------------
+    // 从缓存表聚合（毫秒级）
+    // -------------------------------------------------------------------------
+    private SpecialWorkStatisticsDTO queryFromCache(List<String> companyCodes,
+                                                    Integer yqType, Integer isScqy) {
+        Map<String, Object> agg = baseCacheMapper.queryAggregated(companyCodes, yqType, isScqy);
+        List<Map<String, Object>> typeStats = typeCacheMapper.queryTypeStats(companyCodes, yqType, isScqy);
+
+        if (agg == null) return null;
+
+        SpecialWorkStatisticsDTO dto = new SpecialWorkStatisticsDTO();
+
+        // ticketAccessStats
+        List<Map<String, Object>> accessList = new ArrayList<>();
+        accessList.add(buildItem("全部接入", agg.get("fullCount")));
+        accessList.add(buildItem("部分接入", agg.get("partialCount")));
+        accessList.add(buildItem("未接入",   agg.get("notCount")));
+        dto.setTicketAccessStats(accessList);
+
+        // ticketStatusStats（只返回数量 > 0 的状态）
+        List<Map<String, Object>> statusList = new ArrayList<>();
+        addStatusItem(statusList, "未签发", agg.get("status0"));
+        addStatusItem(statusList, "已签发", agg.get("status1"));
+        addStatusItem(statusList, "已验收", agg.get("status3"));
+        addStatusItem(statusList, "作废",   agg.get("status4"));
+        addStatusItem(statusList, "撤销",   agg.get("status5"));
+        dto.setTicketStatusStats(statusList);
+
+        // ticketTypeStats（直接来自 type cache，已按 value DESC 排序）
+        dto.setTicketTypeStats(typeStats);
+
+        return dto;
+    }
+
+    // -------------------------------------------------------------------------
+    // 实时并行查询（降级路径，与原有逻辑一致）
+    // -------------------------------------------------------------------------
+    private SpecialWorkStatisticsDTO computeRealtime(String countycode, Integer yqType,
+                                                     String parkCode, List<String> companyCodes,
+                                                     Integer isScqy) {
         CompletableFuture<Map<String, Object>> f1 = onZfd(
                 () -> mapper.getTicketAccessStats(countycode, yqType, parkCode, companyCodes, isScqy));
         CompletableFuture<List<Map<String, Object>>> f2 = onZfd(
                 () -> mapper.getTicketStatusStats(countycode, yqType, parkCode, companyCodes, isScqy));
         CompletableFuture<List<Map<String, Object>>> f3 = onZfd(
                 () -> mapper.getTicketTypeStats(countycode, yqType, parkCode, companyCodes, isScqy));
-
         CompletableFuture.allOf(f1, f2, f3).join();
 
         SpecialWorkStatisticsDTO dto = new SpecialWorkStatisticsDTO();
 
-        // 接入情况：单次扫描返回 {fullCount, partialCount, notCount}，组装为 name/value 列表
         Map<String, Object> accessRaw = f1.join();
         List<Map<String, Object>> ticketAccessStats = new ArrayList<>();
         ticketAccessStats.add(buildItem("全部接入", accessRaw.get("fullCount")));
@@ -52,7 +111,9 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
         return dto;
     }
 
-    /** 在 zfd 数据源上异步执行任务（CompletableFuture 线程不继承 ThreadLocal，需手动设置） */
+    // -------------------------------------------------------------------------
+    // 工具方法
+    // -------------------------------------------------------------------------
     private <T> CompletableFuture<T> onZfd(Supplier<T> supplier) {
         return CompletableFuture.supplyAsync(() -> {
             DynamicDataSourceContextHolder.push(DS_KEY);
@@ -69,5 +130,15 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
         item.put("name", name);
         item.put("value", countObj instanceof Number ? ((Number) countObj).intValue() : 0);
         return item;
+    }
+
+    private void addStatusItem(List<Map<String, Object>> list, String name, Object countObj) {
+        int v = countObj instanceof Number ? ((Number) countObj).intValue() : 0;
+        if (v > 0) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("name", name);
+            item.put("value", v);
+            list.add(item);
+        }
     }
 }
