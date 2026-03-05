@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatSwBaseCacheMapper">
+
+    <insert id="batchUpsert">
+        INSERT INTO stat_sw_base_cache
+        (company_code, county_code, park_code, yq_type, is_scqy,
+         is_full, is_partial, is_not,
+         status_0, status_1, status_3, status_4, status_5,
+         updated_at)
+        VALUES
+        <foreach collection="list" item="r" separator=",">
+            (#{r.companyCode}, #{r.countyCode}, #{r.parkCode}, #{r.yqType}, #{r.isScqy},
+             #{r.isFull}, #{r.isPartial}, #{r.isNot},
+             #{r.status0}, #{r.status1}, #{r.status3}, #{r.status4}, #{r.status5},
+             NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            county_code  = VALUES(county_code),
+            park_code    = VALUES(park_code),
+            yq_type      = VALUES(yq_type),
+            is_scqy      = VALUES(is_scqy),
+            is_full      = VALUES(is_full),
+            is_partial   = VALUES(is_partial),
+            is_not       = VALUES(is_not),
+            status_0     = VALUES(status_0),
+            status_1     = VALUES(status_1),
+            status_3     = VALUES(status_3),
+            status_4     = VALUES(status_4),
+            status_5     = VALUES(status_5),
+            updated_at   = NOW()
+    </insert>
+
+    <!-- 按企业列表聚合：接入情况 + 各状态作业票总数 -->
+    <select id="queryAggregated" resultType="map">
+        SELECT
+            SUM(is_full)    AS fullCount,
+            SUM(is_partial) AS partialCount,
+            SUM(is_not)     AS notCount,
+            SUM(status_0)   AS status0,
+            SUM(status_1)   AS status1,
+            SUM(status_3)   AS status3,
+            SUM(status_4)   AS status4,
+            SUM(status_5)   AS status5
+        FROM stat_sw_base_cache
+        WHERE company_code IN
+        <foreach collection="companyCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        <if test="yqType != null">
+            AND yq_type = #{yqType}
+        </if>
+        <if test="isScqy != null">
+            AND is_scqy = #{isScqy}
+        </if>
+    </select>
+
+</mapper>

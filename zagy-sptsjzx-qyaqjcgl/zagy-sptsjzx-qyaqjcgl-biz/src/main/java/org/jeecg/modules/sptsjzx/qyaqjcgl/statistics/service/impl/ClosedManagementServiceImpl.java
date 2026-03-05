@@ -1,5 +1,8 @@
 package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatClosedManagementCache;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatClosedManagementCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.dto.ClosedManagementStatisticsDTO;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.ClosedManagementMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.IClosedManagementService;
@@ -10,21 +13,85 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 public class ClosedManagementServiceImpl implements IClosedManagementService {
 
     @Autowired
     private ClosedManagementMapper mapper;
 
+    @Autowired
+    private StatClosedManagementCacheMapper cacheMapper;
+
     @Override
     public ClosedManagementStatisticsDTO getClosedManagementStatistics(
             List<String> yqCodes,
             String timeRange) {
 
-        // 1. 计算时间范围
+        String tr = Optional.ofNullable(timeRange).orElse("today");
+
+        // 1. 优先读预聚合缓存表（毫秒级）
+        List<StatClosedManagementCache> cacheRows = cacheMapper.queryByFilter(yqCodes, tr);
+        if (cacheRows != null && !cacheRows.isEmpty()) {
+            return aggregateFromCache(cacheRows);
+        }
+
+        // 2. 缓存未命中（首次部署、表未建等），降级为实时并行查询
+        log.warn("[ClosedManagement] 缓存未命中，降级为实时查询 yqCodes.size={}, timeRange={}", yqCodes.size(), tr);
+        return computeRealtime(yqCodes, tr);
+    }
+
+    // -------------------------------------------------------------------------
+    // 从缓存行聚合 DTO（每行是一个园区的预计算结果，只需做加法）
+    // -------------------------------------------------------------------------
+    private ClosedManagementStatisticsDTO aggregateFromCache(List<StatClosedManagementCache> rows) {
+        int fullAccessCount = 0, partialAccessCount = 0, notAccessCount = 0;
+        long gateCount = 0, hazardousVehicleCount = 0, otherVehicleCount = 0, visitorCount = 0;
+        long generalCargo = 0, hazardousTransport = 0, smallVehicle = 0, emergencyVehicle = 0;
+        long registeredPersonnel = 0, visitorPersonnel = 0;
+        long alarmIntrusion = 0, alarmSpeed = 0, alarmHelp = 0, alarmStay = 0, alarmOther = 0;
+
+        for (StatClosedManagementCache r : rows) {
+            int moduleCount = val(r.getStaticModuleCount())
+                    + val(r.getHasClsstx())
+                    + val(r.getHasRysstx())
+                    + val(r.getHasSbbjsj());
+
+            if (moduleCount == 10) fullAccessCount++;
+            else if (moduleCount > 0) partialAccessCount++;
+            else notAccessCount++;
+
+            gateCount              += val(r.getGateCount());
+            hazardousVehicleCount  += val(r.getHazardousVehicleCount());
+            otherVehicleCount      += val(r.getOtherVehicleCount());
+            visitorCount           += val(r.getVisitorCount());
+            generalCargo           += val(r.getGeneralCargoCount());
+            hazardousTransport     += val(r.getHazardousTransportCount());
+            smallVehicle           += val(r.getSmallVehicleCount());
+            emergencyVehicle       += val(r.getEmergencyVehicleCount());
+            registeredPersonnel    += val(r.getRegisteredPersonnelCount());
+            visitorPersonnel       += val(r.getVisitorPersonnelCount());
+            alarmIntrusion         += val(r.getAlarmIntrusion());
+            alarmSpeed             += val(r.getAlarmSpeed());
+            alarmHelp              += val(r.getAlarmHelp());
+            alarmStay              += val(r.getAlarmStay());
+            alarmOther             += val(r.getAlarmOther());
+        }
+
+        return buildDto(fullAccessCount, partialAccessCount, notAccessCount,
+                gateCount, hazardousVehicleCount, otherVehicleCount, visitorCount,
+                generalCargo, hazardousTransport, smallVehicle, emergencyVehicle,
+                registeredPersonnel, visitorPersonnel,
+                alarmIntrusion, alarmSpeed, alarmHelp, alarmStay, alarmOther);
+    }
+
+    // -------------------------------------------------------------------------
+    // 实时并行查询（降级路径，与原有逻辑一致）
+    // -------------------------------------------------------------------------
+    private ClosedManagementStatisticsDTO computeRealtime(List<String> yqCodes, String timeRange) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startTime, endTime;
-        switch (Optional.ofNullable(timeRange).orElse("today")) {
+        switch (timeRange) {
             case "today":
                 startTime = now.toLocalDate().atStartOfDay();
                 endTime = startTime.plusDays(1);
@@ -41,10 +108,7 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
                 throw new IllegalArgumentException("不支持的时间范围: " + timeRange);
         }
 
-        // 2. 原来 1 个 10-JOIN 串行 SQL → 4 个独立 SQL 并行执行
-        //    无 @DS 注解，使用默认数据源，各线程各取自己的连接，线程安全
-        final LocalDateTime st = startTime;
-        final LocalDateTime et = endTime;
+        final LocalDateTime st = startTime, et = endTime;
 
         CompletableFuture<List<Map<String, Object>>> f1 = CompletableFuture.supplyAsync(
                 () -> mapper.getStaticInfoByPark(yqCodes));
@@ -54,34 +118,17 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
                 () -> mapper.getPersonnelTrafficByPark(yqCodes, st, et));
         CompletableFuture<List<Map<String, Object>>> f4 = CompletableFuture.supplyAsync(
                 () -> mapper.getAlarmStatsByPark(yqCodes));
-
         CompletableFuture.allOf(f1, f2, f3, f4).join();
 
-        // 3. 按 park_code 建立索引，O(1) 合并
         Map<String, Map<String, Object>> vehicleMap   = toMapByPark(f2.join());
         Map<String, Map<String, Object>> personnelMap = toMapByPark(f3.join());
         Map<String, Map<String, Object>> alarmMap     = toMapByPark(f4.join());
 
-        // === 累加变量 ===
-        int fullAccessCount    = 0;
-        int partialAccessCount = 0;
-        int notAccessCount     = 0;
-
-        long sumGateCount               = 0;
-        long sumHazardousVehicleCount   = 0;
-        long sumOtherVehicleCount       = 0;
-        long sumVisitorCount            = 0;
-        long sumGeneralCargoCount       = 0;
-        long sumHazardousTransportCount = 0;
-        long sumSmallVehicleCount       = 0;
-        long sumEmergencyVehicleCount   = 0;
-        long sumRegisteredPersonnelCount= 0;
-        long sumVisitorPersonnelCount   = 0;
-        long sumAlarmIntrusion          = 0;
-        long sumAlarmSpeed              = 0;
-        long sumAlarmHelp               = 0;
-        long sumAlarmStay               = 0;
-        long sumAlarmOther              = 0;
+        int fullAccessCount = 0, partialAccessCount = 0, notAccessCount = 0;
+        long gateCount = 0, hazardousVehicleCount = 0, otherVehicleCount = 0, visitorCount = 0;
+        long generalCargo = 0, hazardousTransport = 0, smallVehicle = 0, emergencyVehicle = 0;
+        long registeredPersonnel = 0, visitorPersonnel = 0;
+        long alarmIntrusion = 0, alarmSpeed = 0, alarmHelp = 0, alarmStay = 0, alarmOther = 0;
 
         List<Map<String, Object>> staticList = f1.join();
         if (staticList != null) {
@@ -91,7 +138,6 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
                 Map<String, Object> p = personnelMap.getOrDefault(parkCode, Collections.emptyMap());
                 Map<String, Object> a = alarmMap.getOrDefault(parkCode, Collections.emptyMap());
 
-                // moduleCount = 7 静态模块 + has_clsstx + has_rysstx + has_sbbjsj（最大值 10）
                 int moduleCount = getIntValue(row.get("staticModuleCount"))
                         + getIntValue(v.get("has_clsstx"))
                         + getIntValue(p.get("has_rysstx"))
@@ -101,58 +147,81 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
                 else if (moduleCount > 0) partialAccessCount++;
                 else notAccessCount++;
 
-                sumGateCount               += getIntValue(row.get("gateCount"));
-                sumHazardousVehicleCount   += getIntValue(row.get("hazardousVehicleCount"));
-                sumOtherVehicleCount       += getIntValue(row.get("otherVehicleCount"));
-                sumVisitorCount            += getIntValue(row.get("visitorCount"));
-                sumGeneralCargoCount       += getIntValue(v.get("generalCargoCount"));
-                sumHazardousTransportCount += getIntValue(v.get("hazardousTransportCount"));
-                sumSmallVehicleCount       += getIntValue(v.get("smallVehicleCount"));
-                sumEmergencyVehicleCount   += getIntValue(v.get("emergencyVehicleCount"));
-                sumRegisteredPersonnelCount+= getIntValue(p.get("registeredPersonnelCount"));
-                sumVisitorPersonnelCount   += getIntValue(p.get("visitorPersonnelCount"));
-                sumAlarmIntrusion          += getIntValue(a.get("alarm_intrusion"));
-                sumAlarmSpeed              += getIntValue(a.get("alarm_speed"));
-                sumAlarmHelp               += getIntValue(a.get("alarm_help"));
-                sumAlarmStay               += getIntValue(a.get("alarm_stay"));
-                sumAlarmOther              += getIntValue(a.get("alarm_other"));
+                gateCount             += getIntValue(row.get("gateCount"));
+                hazardousVehicleCount += getIntValue(row.get("hazardousVehicleCount"));
+                otherVehicleCount     += getIntValue(row.get("otherVehicleCount"));
+                visitorCount          += getIntValue(row.get("visitorCount"));
+                generalCargo          += getIntValue(v.get("generalCargoCount"));
+                hazardousTransport    += getIntValue(v.get("hazardousTransportCount"));
+                smallVehicle          += getIntValue(v.get("smallVehicleCount"));
+                emergencyVehicle      += getIntValue(v.get("emergencyVehicleCount"));
+                registeredPersonnel   += getIntValue(p.get("registeredPersonnelCount"));
+                visitorPersonnel      += getIntValue(p.get("visitorPersonnelCount"));
+                alarmIntrusion        += getIntValue(a.get("alarm_intrusion"));
+                alarmSpeed            += getIntValue(a.get("alarm_speed"));
+                alarmHelp             += getIntValue(a.get("alarm_help"));
+                alarmStay             += getIntValue(a.get("alarm_stay"));
+                alarmOther            += getIntValue(a.get("alarm_other"));
             }
         }
 
-        // 4. 组装 DTO
+        return buildDto(fullAccessCount, partialAccessCount, notAccessCount,
+                gateCount, hazardousVehicleCount, otherVehicleCount, visitorCount,
+                generalCargo, hazardousTransport, smallVehicle, emergencyVehicle,
+                registeredPersonnel, visitorPersonnel,
+                alarmIntrusion, alarmSpeed, alarmHelp, alarmStay, alarmOther);
+    }
+
+    // -------------------------------------------------------------------------
+    // 共用组装 DTO
+    // -------------------------------------------------------------------------
+    private ClosedManagementStatisticsDTO buildDto(
+            int fullAccess, int partialAccess, int notAccess,
+            long gateCount, long hazardousVehicleCount, long otherVehicleCount, long visitorCount,
+            long generalCargo, long hazardousTransport, long smallVehicle, long emergencyVehicle,
+            long registeredPersonnel, long visitorPersonnel,
+            long alarmIntrusion, long alarmSpeed, long alarmHelp, long alarmStay, long alarmOther) {
+
         ClosedManagementStatisticsDTO dto = new ClosedManagementStatisticsDTO();
 
         List<Map<String, Object>> accessStatusStats = new ArrayList<>();
-        accessStatusStats.add(createItem("全部已接入", fullAccessCount));
-        accessStatusStats.add(createItem("部分已接入", partialAccessCount));
-        accessStatusStats.add(createItem("未接入", notAccessCount));
+        accessStatusStats.add(createItem("全部已接入", fullAccess));
+        accessStatusStats.add(createItem("部分已接入", partialAccess));
+        accessStatusStats.add(createItem("未接入", notAccess));
         dto.setAccessStatusStats(accessStatusStats);
 
         List<Map<String, Object>> alarmTypeStats = new ArrayList<>();
-        addIfPositive(alarmTypeStats, "入侵报警", sumAlarmIntrusion);
-        addIfPositive(alarmTypeStats, "超速报警", sumAlarmSpeed);
-        addIfPositive(alarmTypeStats, "求救报警", sumAlarmHelp);
-        addIfPositive(alarmTypeStats, "滞留报警", sumAlarmStay);
-        addIfPositive(alarmTypeStats, "其他",     sumAlarmOther);
+        addIfPositive(alarmTypeStats, "入侵报警", alarmIntrusion);
+        addIfPositive(alarmTypeStats, "超速报警", alarmSpeed);
+        addIfPositive(alarmTypeStats, "求救报警", alarmHelp);
+        addIfPositive(alarmTypeStats, "滞留报警", alarmStay);
+        addIfPositive(alarmTypeStats, "其他",     alarmOther);
         dto.setAlarmTypeStats(alarmTypeStats);
 
         ClosedManagementStatisticsDTO.BasicInfoStats basic = new ClosedManagementStatisticsDTO.BasicInfoStats();
-        basic.setGateCount((int) sumGateCount);
-        basic.setHazardousVehicleCount((int) sumHazardousVehicleCount);
-        basic.setOtherVehicleCount((int) sumOtherVehicleCount);
-        basic.setVisitorCount((int) sumVisitorCount);
+        basic.setGateCount((int) gateCount);
+        basic.setHazardousVehicleCount((int) hazardousVehicleCount);
+        basic.setOtherVehicleCount((int) otherVehicleCount);
+        basic.setVisitorCount((int) visitorCount);
         dto.setBasicInfoStats(basic);
 
         ClosedManagementStatisticsDTO.TrafficStats traffic = new ClosedManagementStatisticsDTO.TrafficStats();
-        traffic.setGeneralCargoCount((int) sumGeneralCargoCount);
-        traffic.setHazardousTransportCount((int) sumHazardousTransportCount);
-        traffic.setSmallVehicleCount((int) sumSmallVehicleCount);
-        traffic.setEmergencyVehicleCount((int) sumEmergencyVehicleCount);
-        traffic.setRegisteredPersonnelCount((int) sumRegisteredPersonnelCount);
-        traffic.setVisitorPersonnelCount((int) sumVisitorPersonnelCount);
+        traffic.setGeneralCargoCount((int) generalCargo);
+        traffic.setHazardousTransportCount((int) hazardousTransport);
+        traffic.setSmallVehicleCount((int) smallVehicle);
+        traffic.setEmergencyVehicleCount((int) emergencyVehicle);
+        traffic.setRegisteredPersonnelCount((int) registeredPersonnel);
+        traffic.setVisitorPersonnelCount((int) visitorPersonnel);
         dto.setTrafficStats(traffic);
 
         return dto;
+    }
+
+    // -------------------------------------------------------------------------
+    // 工具方法
+    // -------------------------------------------------------------------------
+    private int val(Integer v) {
+        return v == null ? 0 : v;
     }
 
     private Map<String, Map<String, Object>> toMapByPark(List<Map<String, Object>> list) {
@@ -168,7 +237,11 @@ public class ClosedManagementServiceImpl implements IClosedManagementService {
     private int getIntValue(Object obj) {
         if (obj == null) return 0;
         if (obj instanceof Number) return ((Number) obj).intValue();
-        try { return Integer.parseInt(obj.toString()); } catch (NumberFormatException e) { return 0; }
+        try {
+            return Integer.parseInt(obj.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private void addIfPositive(List<Map<String, Object>> list, String name, long value) {
