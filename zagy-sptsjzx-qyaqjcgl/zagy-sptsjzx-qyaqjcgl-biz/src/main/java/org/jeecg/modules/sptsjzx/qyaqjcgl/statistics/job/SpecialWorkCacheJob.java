@@ -9,6 +9,7 @@ import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatSwTypeCacheRow;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatSwTypeCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.SpecialWorkStatisticsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,7 @@ import java.util.function.Supplier;
  */
 @Slf4j
 @Component
+@ConditionalOnBean(RedissonLockClient.class)
 public class SpecialWorkCacheJob {
 
     private static final String DS_KEY = "zfd";

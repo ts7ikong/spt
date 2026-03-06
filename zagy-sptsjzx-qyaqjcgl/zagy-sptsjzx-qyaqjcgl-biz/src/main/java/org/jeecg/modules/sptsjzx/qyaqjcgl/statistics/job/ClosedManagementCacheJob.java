@@ -7,6 +7,7 @@ import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatClosedManagementC
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatClosedManagementCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.ClosedManagementMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 @Component
+@ConditionalOnBean(RedissonLockClient.class)
 public class ClosedManagementCacheJob {
 
     @Autowired
