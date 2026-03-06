@@ -1,6 +1,10 @@
 package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.impl;
 
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
+import lombok.extern.slf4j.Slf4j;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatPpAlarmCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatPpBaseCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatPpPersonTypeCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.dto.PersonnelPositioningStatisticsDTO;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.PersonnelPositioningMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.IPersonnelPositioningService;
@@ -12,6 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class PersonnelPositioningServiceImpl implements IPersonnelPositioningService {
 
@@ -20,12 +25,79 @@ public class PersonnelPositioningServiceImpl implements IPersonnelPositioningSer
     @Autowired
     private PersonnelPositioningMapper mapper;
 
+    @Autowired
+    private StatPpBaseCacheMapper baseCacheMapper;
+
+    @Autowired
+    private StatPpPersonTypeCacheMapper personTypeCacheMapper;
+
+    @Autowired
+    private StatPpAlarmCacheMapper alarmCacheMapper;
+
     @Override
     public PersonnelPositioningStatisticsDTO getPersonnelPositioningStatistics(
             String countycode, Integer yqType, String parkCode,
             List<String> companyCodes, Integer isScqy, String alarmStatus) {
 
-        // 4 个查询完全独立，并行执行（手动设置 zfd 数据源，因为 CompletableFuture 不继承 ThreadLocal）
+        // companyCodes 非空时走缓存路径
+        if (companyCodes != null && !companyCodes.isEmpty()) {
+            PersonnelPositioningStatisticsDTO cached =
+                    queryFromCache(companyCodes, yqType, isScqy, alarmStatus);
+            if (cached != null) {
+                return cached;
+            }
+            log.warn("[PersonnelPositioning] 缓存未命中，降级为实时查询 companyCodes.size={}", companyCodes.size());
+        }
+
+        return computeRealtime(countycode, yqType, parkCode, companyCodes, isScqy, alarmStatus);
+    }
+
+    // -------------------------------------------------------------------------
+    // 从缓存表聚合（毫秒级）
+    // -------------------------------------------------------------------------
+    private PersonnelPositioningStatisticsDTO queryFromCache(
+            List<String> companyCodes, Integer yqType, Integer isScqy, String alarmStatus) {
+
+        Map<String, Object> agg = baseCacheMapper.queryAggregated(companyCodes, yqType, isScqy);
+        if (agg == null) return null;
+
+        List<Map<String, Object>> personTypeStats =
+                personTypeCacheMapper.queryPersonTypeStats(companyCodes, yqType, isScqy);
+        List<Map<String, Object>> alarmStats =
+                alarmCacheMapper.queryAlarmStats(companyCodes, yqType, isScqy, alarmStatus);
+
+        PersonnelPositioningStatisticsDTO dto = new PersonnelPositioningStatisticsDTO();
+
+        // positioningAccessStats
+        List<Map<String, Object>> accessList = new ArrayList<>();
+        accessList.add(buildItem("全部接入", agg.get("fullAccess")));
+        accessList.add(buildItem("部分接入", agg.get("partialAccess")));
+        accessList.add(buildItem("未接入",   agg.get("noAccess")));
+        dto.setPositioningAccessStats(accessList);
+
+        // personnelTypeStats
+        dto.setPersonnelTypeStats(personTypeStats);
+
+        // 区域统计
+        dto.setTemporaryZoneCount(num(agg.get("temporaryZoneCount")));
+        dto.setFixedZoneCount(num(agg.get("fixedZoneCount")));
+
+        // crowdAlarmCount
+        dto.setCrowdAlarmCount(num(agg.get("crowdAlarmCount")));
+
+        // alarmClassificationStats（已由 XML HAVING value > 0 过滤，且按 value DESC 排序）
+        dto.setAlarmClassificationStats(alarmStats != null ? alarmStats : Collections.emptyList());
+
+        return dto;
+    }
+
+    // -------------------------------------------------------------------------
+    // 实时并行查询（降级路径，与原有逻辑一致）
+    // -------------------------------------------------------------------------
+    private PersonnelPositioningStatisticsDTO computeRealtime(
+            String countycode, Integer yqType, String parkCode,
+            List<String> companyCodes, Integer isScqy, String alarmStatus) {
+
         CompletableFuture<Map<String, Object>> f1 = onZfd(
                 () -> mapper.getPositioningAccessStats(countycode, yqType, parkCode, companyCodes, isScqy));
         CompletableFuture<List<Map<String, Object>>> f2 = onZfd(
@@ -34,12 +106,10 @@ public class PersonnelPositioningServiceImpl implements IPersonnelPositioningSer
                 () -> mapper.getZoneStats(countycode, yqType, parkCode, companyCodes, isScqy));
         CompletableFuture<List<Map<String, Object>>> f4 = onZfd(
                 () -> mapper.getUnifiedAlarmStats(countycode, yqType, parkCode, companyCodes, isScqy, alarmStatus));
-
         CompletableFuture.allOf(f1, f2, f3, f4).join();
 
         PersonnelPositioningStatisticsDTO dto = new PersonnelPositioningStatisticsDTO();
 
-        // 1. 接入情况统计
         Map<String, Object> accessStatsMap = f1.join();
         List<Map<String, Object>> accessStats = new ArrayList<>();
         String[][] mapping = {{"fullAccess", "全部接入"}, {"partialAccess", "部分接入"}, {"noAccess", "未接入"}};
@@ -52,19 +122,15 @@ public class PersonnelPositioningServiceImpl implements IPersonnelPositioningSer
         }
         dto.setPositioningAccessStats(accessStats);
 
-        // 2. 人员类型统计
         dto.setPersonnelTypeStats(f2.join());
 
-        // 3. 区域统计
         Map<String, Object> zoneStats = f3.join();
         dto.setTemporaryZoneCount(((Number) zoneStats.get("temporaryZoneCount")).intValue());
         dto.setFixedZoneCount(((Number) zoneStats.get("fixedZoneCount")).intValue());
 
-        // 4. 报警分类统计
         List<Map<String, Object>> unifiedAlarms = f4.join();
         Integer crowdAlarmCount = 0;
         List<Map<String, Object>> filteredAlarms = new ArrayList<>();
-
         for (Map<String, Object> alarm : unifiedAlarms) {
             String name = (String) alarm.get("name");
             Object valueObj = alarm.get("value");
@@ -78,17 +144,17 @@ public class PersonnelPositioningServiceImpl implements IPersonnelPositioningSer
                 filteredAlarms.add(safeAlarm);
             }
         }
-
-        List<Map<String, Object>> alarmClassificationStats = filteredAlarms.stream()
-                .sorted((a, b) -> ((Integer) b.get("value")).compareTo((Integer) a.get("value")))
-                .collect(Collectors.toList());
-
         dto.setCrowdAlarmCount(crowdAlarmCount);
-        dto.setAlarmClassificationStats(alarmClassificationStats);
+        dto.setAlarmClassificationStats(filteredAlarms.stream()
+                .sorted((a, b) -> ((Integer) b.get("value")).compareTo((Integer) a.get("value")))
+                .collect(Collectors.toList()));
 
         return dto;
     }
 
+    // -------------------------------------------------------------------------
+    // 工具方法
+    // -------------------------------------------------------------------------
     private <T> CompletableFuture<T> onZfd(Supplier<T> supplier) {
         return CompletableFuture.supplyAsync(() -> {
             DynamicDataSourceContextHolder.push(DS_KEY);
@@ -98,5 +164,18 @@ public class PersonnelPositioningServiceImpl implements IPersonnelPositioningSer
                 DynamicDataSourceContextHolder.poll();
             }
         });
+    }
+
+    private Map<String, Object> buildItem(String name, Object countObj) {
+        Map<String, Object> item = new HashMap<>();
+        item.put("name", name);
+        item.put("value", countObj instanceof Number ? ((Number) countObj).intValue() : 0);
+        return item;
+    }
+
+    private int num(Object obj) {
+        if (obj == null) return 0;
+        if (obj instanceof Number) return ((Number) obj).intValue();
+        return 0;
     }
 }

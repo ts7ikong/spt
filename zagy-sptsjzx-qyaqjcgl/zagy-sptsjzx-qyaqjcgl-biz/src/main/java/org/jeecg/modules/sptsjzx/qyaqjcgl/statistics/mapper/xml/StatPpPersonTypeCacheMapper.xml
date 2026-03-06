@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatPpPersonTypeCacheMapper">
+
+    <insert id="batchUpsert">
+        INSERT INTO stat_pp_person_type_cache
+        (company_code, county_code, park_code, yq_type, is_scqy,
+         person_type, person_name, person_count, updated_at)
+        VALUES
+        <foreach collection="list" item="r" separator=",">
+            (#{r.companyCode}, #{r.countyCode}, #{r.parkCode}, #{r.yqType}, #{r.isScqy},
+             #{r.personType}, #{r.personName}, #{r.personCount}, NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            county_code  = VALUES(county_code),
+            park_code    = VALUES(park_code),
+            yq_type      = VALUES(yq_type),
+            is_scqy      = VALUES(is_scqy),
+            person_name  = VALUES(person_name),
+            person_count = VALUES(person_count),
+            updated_at   = NOW()
+    </insert>
+
+    <select id="queryPersonTypeStats" resultType="map">
+        SELECT
+            person_name AS name,
+            SUM(person_count) AS value
+        FROM stat_pp_person_type_cache
+        WHERE company_code IN
+        <foreach collection="companyCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        <if test="yqType != null">
+            AND yq_type = #{yqType}
+        </if>
+        <if test="isScqy != null">
+            AND is_scqy = #{isScqy}
+        </if>
+        GROUP BY person_name
+        ORDER BY value DESC
+    </select>
+
+</mapper>
