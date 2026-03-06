@@ -12,12 +12,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 import org.jeecg.common.api.vo.Result;
 
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Api(tags = "特殊作业安全管控统计")
 @RestController
 @RequestMapping("/qyaqjcgl/statistics")
@@ -41,6 +43,7 @@ public class SpecialWorkStatisticsController {
             @ApiParam("是否生产企业") @RequestParam(required = false) Integer isScqy) {
 
         try {
+            long t0 = System.currentTimeMillis();
             String orgCode = DataScopeHelper.getCurrentUserOrgCode();
             List<String> companyCodes = null;
             String filterCountycode = null;
@@ -50,7 +53,9 @@ public class SpecialWorkStatisticsController {
                 companyCode = companyCode.trim();
 
                 // 查询该企业所属区县
+                long tq1 = System.currentTimeMillis();
                 String companyCountyCode = acceptCompanyService.getCompanyCountyCodeByCode(companyCode);
+                log.info("[SpecialWork-timing] getCompanyCountyCodeByCode: {}ms", System.currentTimeMillis() - tq1);
                 if (companyCountyCode == null) {
                     // 企业不存在，返回 null（或可改为 new SpecialWorkStatisticsDTO()）
                     return Result.ok(null);
@@ -73,7 +78,10 @@ public class SpecialWorkStatisticsController {
                 // 【原有逻辑】未传 companyCode，走区县权限
                 if ("500000".equals(orgCode)) {
                     if (StringUtils.hasText(countycode)) {
+                        long tq2 = System.currentTimeMillis();
                         companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(countycode);
+                        log.info("[SpecialWork-timing] getCompanyCodesByCountyCode(countycode): {}ms, size={}",
+                                System.currentTimeMillis() - tq2, companyCodes == null ? 0 : companyCodes.size());
                         filterCountycode = countycode;
                     } else {
                         companyCodes = null;
@@ -83,15 +91,22 @@ public class SpecialWorkStatisticsController {
                     if (StringUtils.hasText(countycode) && !orgCode.equals(countycode)) {
                         return Result.ok(null);
                     }
+                    long tq3 = System.currentTimeMillis();
                     companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+                    log.info("[SpecialWork-timing] getCompanyCodesByCountyCode(orgCode): {}ms, size={}",
+                            System.currentTimeMillis() - tq3, companyCodes == null ? 0 : companyCodes.size());
                     filterCountycode = orgCode;
                 }
             }
 
+            long tController = System.currentTimeMillis() - t0;
             // 调用 service
+            long tSvc = System.currentTimeMillis();
             SpecialWorkStatisticsDTO statistics = service.getSpecialWorkStatistics(
                     filterCountycode, yqType, parkCode, companyCodes, isScqy
             );
+            log.info("[SpecialWork-timing] controller权限处理: {}ms | service: {}ms | 总计: {}ms",
+                    tController, System.currentTimeMillis() - tSvc, System.currentTimeMillis() - t0);
             return Result.ok(statistics);
 
         } catch (Exception e) {

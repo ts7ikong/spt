@@ -38,14 +38,20 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
 
         // companyCodes 为空（全市查询）时不走缓存路径（缓存需要明确的 IN 列表）
         if (companyCodes != null && !companyCodes.isEmpty()) {
+            long tCache = System.currentTimeMillis();
             SpecialWorkStatisticsDTO cached = queryFromCache(companyCodes, yqType, isScqy);
+            log.info("[SpecialWork-timing] queryFromCache: {}ms, hit={}",
+                    System.currentTimeMillis() - tCache, cached != null);
             if (cached != null) {
                 return cached;
             }
             log.warn("[SpecialWork] 缓存未命中，降级为实时查询 companyCodes.size={}", companyCodes.size());
         }
 
-        return computeRealtime(countycode, yqType, parkCode, companyCodes, isScqy);
+        long tRt = System.currentTimeMillis();
+        SpecialWorkStatisticsDTO result = computeRealtime(countycode, yqType, parkCode, companyCodes, isScqy);
+        log.info("[SpecialWork-timing] computeRealtime: {}ms", System.currentTimeMillis() - tRt);
+        return result;
     }
 
     // -------------------------------------------------------------------------
@@ -53,8 +59,13 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
     // -------------------------------------------------------------------------
     private SpecialWorkStatisticsDTO queryFromCache(List<String> companyCodes,
                                                     Integer yqType, Integer isScqy) {
+        long t1 = System.currentTimeMillis();
         Map<String, Object> agg = baseCacheMapper.queryAggregated(companyCodes, yqType, isScqy);
+        log.info("[SpecialWork-timing] cache.queryAggregated: {}ms", System.currentTimeMillis() - t1);
+
+        long t2 = System.currentTimeMillis();
         List<Map<String, Object>> typeStats = typeCacheMapper.queryTypeStats(companyCodes, yqType, isScqy);
+        log.info("[SpecialWork-timing] cache.queryTypeStats: {}ms", System.currentTimeMillis() - t2);
 
         if (agg == null) return null;
 
@@ -88,13 +99,30 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
     private SpecialWorkStatisticsDTO computeRealtime(String countycode, Integer yqType,
                                                      String parkCode, List<String> companyCodes,
                                                      Integer isScqy) {
+        long tParallelStart = System.currentTimeMillis();
         CompletableFuture<Map<String, Object>> f1 = onZfd(
-                () -> mapper.getTicketAccessStats(countycode, yqType, parkCode, companyCodes, isScqy));
+                () -> {
+                    long t = System.currentTimeMillis();
+                    Map<String, Object> r = mapper.getTicketAccessStats(countycode, yqType, parkCode, companyCodes, isScqy);
+                    log.info("[SpecialWork-timing] realtime.getTicketAccessStats: {}ms", System.currentTimeMillis() - t);
+                    return r;
+                });
         CompletableFuture<List<Map<String, Object>>> f2 = onZfd(
-                () -> mapper.getTicketStatusStats(countycode, yqType, parkCode, companyCodes, isScqy));
+                () -> {
+                    long t = System.currentTimeMillis();
+                    List<Map<String, Object>> r = mapper.getTicketStatusStats(countycode, yqType, parkCode, companyCodes, isScqy);
+                    log.info("[SpecialWork-timing] realtime.getTicketStatusStats: {}ms", System.currentTimeMillis() - t);
+                    return r;
+                });
         CompletableFuture<List<Map<String, Object>>> f3 = onZfd(
-                () -> mapper.getTicketTypeStats(countycode, yqType, parkCode, companyCodes, isScqy));
+                () -> {
+                    long t = System.currentTimeMillis();
+                    List<Map<String, Object>> r = mapper.getTicketTypeStats(countycode, yqType, parkCode, companyCodes, isScqy);
+                    log.info("[SpecialWork-timing] realtime.getTicketTypeStats: {}ms", System.currentTimeMillis() - t);
+                    return r;
+                });
         CompletableFuture.allOf(f1, f2, f3).join();
+        log.info("[SpecialWork-timing] 3路并行合计耗时(wall): {}ms", System.currentTimeMillis() - tParallelStart);
 
         SpecialWorkStatisticsDTO dto = new SpecialWorkStatisticsDTO();
 
