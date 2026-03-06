@@ -16,10 +16,13 @@ public interface StatSwTypeCacheMapper {
     void batchUpsert(@Param("list") List<StatSwTypeCacheRow> list);
 
     /**
-     * 按企业编码列表聚合，返回各大类的作业票数量（供 ticketTypeStats 使用）
+     * 聚合各大类作业票数量（供 ticketTypeStats 使用）
+     * companyCodes 为 null 时不限制企业范围（全市/全区查询走此路径）
      */
     List<Map<String, Object>> queryTypeStats(
             @Param("companyCodes") List<String> companyCodes,
+            @Param("countyCode") String countyCode,
+            @Param("parkCode") String parkCode,
             @Param("yqType") Integer yqType,
             @Param("isScqy") Integer isScqy);
 }

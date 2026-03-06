@@ -39,53 +39,46 @@ public class PersonnelPositioningServiceImpl implements IPersonnelPositioningSer
             String countycode, Integer yqType, String parkCode,
             List<String> companyCodes, Integer isScqy, String alarmStatus) {
 
-        // companyCodes 非空时走缓存路径
-        if (companyCodes != null && !companyCodes.isEmpty()) {
-            PersonnelPositioningStatisticsDTO cached =
-                    queryFromCache(companyCodes, yqType, isScqy, alarmStatus);
-            if (cached != null) {
-                return cached;
-            }
-            log.warn("[PersonnelPositioning] 缓存未命中，降级为实时查询 companyCodes.size={}", companyCodes.size());
+        // 始终优先走缓存（全市/全区/指定企业均可）
+        PersonnelPositioningStatisticsDTO cached =
+                queryFromCache(companyCodes, countycode, parkCode, yqType, isScqy, alarmStatus);
+        if (cached != null) {
+            return cached;
         }
 
+        log.warn("[PersonnelPositioning] 缓存未命中，降级为实时查询 companyCodes={}",
+                companyCodes == null ? "null" : companyCodes.size());
         return computeRealtime(countycode, yqType, parkCode, companyCodes, isScqy, alarmStatus);
     }
 
     // -------------------------------------------------------------------------
     // 从缓存表聚合（毫秒级）
+    // companyCodes=null 时不限企业范围，通过 countyCode/parkCode 过滤
     // -------------------------------------------------------------------------
     private PersonnelPositioningStatisticsDTO queryFromCache(
-            List<String> companyCodes, Integer yqType, Integer isScqy, String alarmStatus) {
+            List<String> companyCodes, String countyCode, String parkCode,
+            Integer yqType, Integer isScqy, String alarmStatus) {
 
-        Map<String, Object> agg = baseCacheMapper.queryAggregated(companyCodes, yqType, isScqy);
+        Map<String, Object> agg = baseCacheMapper.queryAggregated(companyCodes, countyCode, parkCode, yqType, isScqy);
         if (agg == null) return null;
 
         List<Map<String, Object>> personTypeStats =
-                personTypeCacheMapper.queryPersonTypeStats(companyCodes, yqType, isScqy);
+                personTypeCacheMapper.queryPersonTypeStats(companyCodes, countyCode, parkCode, yqType, isScqy);
         List<Map<String, Object>> alarmStats =
-                alarmCacheMapper.queryAlarmStats(companyCodes, yqType, isScqy, alarmStatus);
+                alarmCacheMapper.queryAlarmStats(companyCodes, countyCode, parkCode, yqType, isScqy, alarmStatus);
 
         PersonnelPositioningStatisticsDTO dto = new PersonnelPositioningStatisticsDTO();
 
-        // positioningAccessStats
         List<Map<String, Object>> accessList = new ArrayList<>();
         accessList.add(buildItem("全部接入", agg.get("fullAccess")));
         accessList.add(buildItem("部分接入", agg.get("partialAccess")));
         accessList.add(buildItem("未接入",   agg.get("noAccess")));
         dto.setPositioningAccessStats(accessList);
 
-        // personnelTypeStats
         dto.setPersonnelTypeStats(personTypeStats);
-
-        // 区域统计
         dto.setTemporaryZoneCount(num(agg.get("temporaryZoneCount")));
         dto.setFixedZoneCount(num(agg.get("fixedZoneCount")));
-
-        // crowdAlarmCount
         dto.setCrowdAlarmCount(num(agg.get("crowdAlarmCount")));
-
-        // alarmClassificationStats（已由 XML HAVING value > 0 过滤，且按 value DESC 排序）
         dto.setAlarmClassificationStats(alarmStats != null ? alarmStats : Collections.emptyList());
 
         return dto;

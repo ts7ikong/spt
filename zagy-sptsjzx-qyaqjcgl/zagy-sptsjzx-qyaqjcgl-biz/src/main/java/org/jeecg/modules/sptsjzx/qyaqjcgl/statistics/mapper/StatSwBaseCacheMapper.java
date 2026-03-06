@@ -16,10 +16,13 @@ public interface StatSwBaseCacheMapper {
     void batchUpsert(@Param("list") List<StatSwBaseCache> list);
 
     /**
-     * 按企业编码列表聚合返回接入情况 + 各状态作业票数量（一行汇总）
+     * 聚合返回接入情况 + 各状态作业票数量（一行汇总）
+     * companyCodes 为 null 时不限制企业范围（全市/全区查询走此路径）
      */
     Map<String, Object> queryAggregated(
             @Param("companyCodes") List<String> companyCodes,
+            @Param("countyCode") String countyCode,
+            @Param("parkCode") String parkCode,
             @Param("yqType") Integer yqType,
             @Param("isScqy") Integer isScqy);
 }
