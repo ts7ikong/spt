@@ -2,9 +2,9 @@ package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.impl;
 
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatPpAlarmCacheMapper;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatPpBaseCacheMapper;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatPpPersonTypeCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatPpAlarmCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatPpBaseCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatPpPersonTypeCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.dto.PersonnelPositioningStatisticsDTO;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.PersonnelPositioningMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.IPersonnelPositioningService;
