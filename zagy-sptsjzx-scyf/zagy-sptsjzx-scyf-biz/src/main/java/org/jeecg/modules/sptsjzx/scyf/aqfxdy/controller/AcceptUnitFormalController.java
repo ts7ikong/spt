@@ -62,6 +62,7 @@ public class AcceptUnitFormalController extends JeecgController<AcceptUnitFormal
     @Autowired
     private IAcceptUnitFormalService acceptUnitFormalService;
 
+
     /**
      * 分页列表查询
      *
@@ -79,7 +80,7 @@ public class AcceptUnitFormalController extends JeecgController<AcceptUnitFormal
                                                          @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                                          HttpServletRequest req) {
         QueryWrapper<AcceptUnitFormal> queryWrapper = QueryGenerator.initQueryWrapper(acceptUnitFormal, req.getParameterMap());
-
+		queryWrapper.ne("deleted",1);
         // 【数据权限过滤】根据登录用户的区县编码获取企业列表
         // 实体只有companyCode字段，需要先查询企业表获取企业编码列表
         if (!DataScopeHelper.needDataScope()) {
