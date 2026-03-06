@@ -19,20 +19,33 @@
             updated_at   = NOW()
     </insert>
 
-    <!-- 按企业列表聚合各大类作业票数量，供 ticketTypeStats 使用 -->
+    <!--
+        companyCodes 非空时按企业精确聚合（区县/园区查询）
+        companyCodes 为空时按 countyCode/parkCode/yqType/isScqy 过滤（全市或全区查询）
+    -->
     <select id="queryTypeStats" resultType="map">
         SELECT
             type_name AS name,
             SUM(type_count) AS value
         FROM stat_sw_type_cache
-        WHERE company_code IN
-        <foreach collection="companyCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
-        <if test="yqType != null">
-            AND yq_type = #{yqType}
-        </if>
-        <if test="isScqy != null">
-            AND is_scqy = #{isScqy}
-        </if>
+        <where>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND company_code IN
+                <foreach collection="companyCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+            </if>
+            <if test="countyCode != null and countyCode != ''">
+                AND county_code = #{countyCode}
+            </if>
+            <if test="parkCode != null and parkCode != ''">
+                AND park_code = #{parkCode}
+            </if>
+            <if test="yqType != null">
+                AND yq_type = #{yqType}
+            </if>
+            <if test="isScqy != null">
+                AND is_scqy = #{isScqy}
+            </if>
+        </where>
         GROUP BY type_name
         ORDER BY value DESC
     </select>

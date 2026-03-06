@@ -36,18 +36,15 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
                                                              List<String> companyCodes,
                                                              Integer isScqy) {
 
-        // companyCodes 为空（全市查询）时不走缓存路径（缓存需要明确的 IN 列表）
-        if (companyCodes != null && !companyCodes.isEmpty()) {
-            long tCache = System.currentTimeMillis();
-            SpecialWorkStatisticsDTO cached = queryFromCache(companyCodes, yqType, isScqy);
-            log.info("[SpecialWork-timing] queryFromCache: {}ms, hit={}",
-                    System.currentTimeMillis() - tCache, cached != null);
-            if (cached != null) {
-                return cached;
-            }
-            log.warn("[SpecialWork] 缓存未命中，降级为实时查询 companyCodes.size={}", companyCodes.size());
+        // 始终优先走缓存（全市/全区/指定企业均可）
+        long tCache = System.currentTimeMillis();
+        SpecialWorkStatisticsDTO cached = queryFromCache(companyCodes, countycode, parkCode, yqType, isScqy);
+        log.info("[SpecialWork-timing] queryFromCache: {}ms, hit={}", System.currentTimeMillis() - tCache, cached != null);
+        if (cached != null) {
+            return cached;
         }
 
+        log.warn("[SpecialWork] 缓存未命中，降级为实时查询 companyCodes={}", companyCodes == null ? "null" : companyCodes.size());
         long tRt = System.currentTimeMillis();
         SpecialWorkStatisticsDTO result = computeRealtime(countycode, yqType, parkCode, companyCodes, isScqy);
         log.info("[SpecialWork-timing] computeRealtime: {}ms", System.currentTimeMillis() - tRt);
@@ -56,15 +53,17 @@ public class SpecialWorkStatisticsServiceImpl implements ISpecialWorkStatisticsS
 
     // -------------------------------------------------------------------------
     // 从缓存表聚合（毫秒级）
+    // companyCodes=null 时不限企业范围，通过 countyCode/parkCode 过滤
     // -------------------------------------------------------------------------
     private SpecialWorkStatisticsDTO queryFromCache(List<String> companyCodes,
+                                                    String countyCode, String parkCode,
                                                     Integer yqType, Integer isScqy) {
         long t1 = System.currentTimeMillis();
-        Map<String, Object> agg = baseCacheMapper.queryAggregated(companyCodes, yqType, isScqy);
+        Map<String, Object> agg = baseCacheMapper.queryAggregated(companyCodes, countyCode, parkCode, yqType, isScqy);
         log.info("[SpecialWork-timing] cache.queryAggregated: {}ms", System.currentTimeMillis() - t1);
 
         long t2 = System.currentTimeMillis();
-        List<Map<String, Object>> typeStats = typeCacheMapper.queryTypeStats(companyCodes, yqType, isScqy);
+        List<Map<String, Object>> typeStats = typeCacheMapper.queryTypeStats(companyCodes, countyCode, parkCode, yqType, isScqy);
         log.info("[SpecialWork-timing] cache.queryTypeStats: {}ms", System.currentTimeMillis() - t2);
 
         if (agg == null) return null;
