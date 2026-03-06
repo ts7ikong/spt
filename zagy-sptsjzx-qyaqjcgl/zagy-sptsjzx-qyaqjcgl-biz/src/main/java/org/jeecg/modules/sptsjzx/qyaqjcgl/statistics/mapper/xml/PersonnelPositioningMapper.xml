@@ -405,4 +405,124 @@
             AND c.is_scqy = #{isScqy}
         </if>
     </select>
+
+    <!-- ===== 以下 5 个 SQL 供 PersonnelPositioningCacheJob 全量刷新缓存使用 ===== -->
+
+    <!-- 1. 按企业分组：人员定位接入情况 -->
+    <select id="getPositioningAccessStatsByCompany" resultType="map">
+        SELECT
+            c.code AS company_code,
+            MAX(CASE
+                WHEN a.ryxxk = '1' AND a.qybjxx = '1' AND a.ryjjsj = '1'
+                     AND a.rybjsj = '1' AND a.qybjsj = '1'
+                THEN 1 ELSE 0 END) AS is_full_access,
+            MAX(CASE
+                WHEN NOT (a.ryxxk = '1' AND a.qybjxx = '1' AND a.ryjjsj = '1'
+                          AND a.rybjsj = '1' AND a.qybjsj = '1')
+                     AND (COALESCE(a.ryxxk,'0') = '1' OR COALESCE(a.qybjxx,'0') = '1'
+                          OR COALESCE(a.ryjjsj,'0') = '1' OR COALESCE(a.rybjsj,'0') = '1'
+                          OR COALESCE(a.qybjsj,'0') = '1')
+                THEN 1 ELSE 0 END) AS is_partial_access,
+            MAX(CASE
+                WHEN COALESCE(a.ryxxk,'0') = '0' AND COALESCE(a.qybjxx,'0') = '0'
+                     AND COALESCE(a.ryjjsj,'0') = '0' AND COALESCE(a.rybjsj,'0') = '0'
+                     AND COALESCE(a.qybjsj,'0') = '0'
+                THEN 1 ELSE 0 END) AS is_no_access
+        FROM zlkj_danger_data_accept.accept_company c
+        LEFT JOIN zlkj_danger_data_accept.all_access_status a ON c.code = a.company_code
+        WHERE (c.deleted IS NULL OR c.deleted = 0)
+        GROUP BY c.code
+    </select>
+
+    <!-- 2. 按企业分组：区域数量 -->
+    <select id="getZoneStatsByCompany" resultType="map">
+        SELECT
+            z.company_code,
+            SUM(CASE WHEN z.zone_type = 0 THEN 1 ELSE 0 END) AS temporary_zone_count,
+            SUM(CASE WHEN z.zone_type = 1 THEN 1 ELSE 0 END) AS fixed_zone_count
+        FROM zlkj_danger_data_accept.zone_geo z
+        WHERE z.deleted = 0
+        GROUP BY z.company_code
+    </select>
+
+    <!-- 3. 按企业+人员类型分组：人员数量 -->
+    <select id="getPersonnelTypeStatsByCompany" resultType="map">
+        SELECT
+            e.company_code,
+            e.person_type,
+            CASE e.person_type
+                WHEN '01' THEN '内部人员/员工'
+                WHEN '02' THEN '第三方'
+                WHEN '03' THEN '访客'
+                WHEN '04' THEN '物品'
+                WHEN '05' THEN '车辆'
+                ELSE '未知'
+            END AS person_name,
+            COUNT(*) AS person_count
+        FROM zlkj_danger_data_accept.accept_employee_info_formal e
+        WHERE e.deleted = 0
+        GROUP BY e.company_code, e.person_type
+    </select>
+
+    <!-- 4. 按企业+报警名称分组：报警数量（人员报警+区域报警，三状态分列） -->
+    <select id="getAlarmStatsByCompany" resultType="map">
+        SELECT
+            company_code,
+            alarm_name,
+            SUM(total_count)     AS total_count,
+            SUM(alarming_count)  AS alarming_count,
+            SUM(dispelled_count) AS dispelled_count
+        FROM (
+            SELECT
+                r.company_code,
+                CASE r.alarm_type
+                    WHEN '0' THEN 'SOS报警'
+                    WHEN '1' THEN '越界报警'
+                    WHEN '2' THEN '滞留报警'
+                    WHEN '3' THEN '静止报警'
+                    WHEN '4' THEN '离场报警'
+                    ELSE CONCAT('人员其他-', r.alarm_type)
+                END AS alarm_name,
+                COUNT(*) AS total_count,
+                SUM(CASE WHEN r.alarm_time IS NOT NULL AND r.alarm_time != ''
+                              AND (r.dispel_time IS NULL OR r.dispel_time = '')
+                         THEN 1 ELSE 0 END) AS alarming_count,
+                SUM(CASE WHEN r.dispel_time IS NOT NULL AND r.dispel_time != ''
+                         THEN 1 ELSE 0 END) AS dispelled_count
+            FROM zlkj_danger_data_accept.rybjsj r
+            WHERE r.deleted = '0'
+            GROUP BY r.company_code, r.alarm_type
+
+            UNION ALL
+
+            SELECT
+                q.company_code,
+                CASE q.alarm_type
+                    WHEN '1' THEN '超员报警'
+                    WHEN '2' THEN '缺员报警'
+                    WHEN '3' THEN '缺岗报警'
+                    ELSE CONCAT('区域其他-', q.alarm_type)
+                END AS alarm_name,
+                COUNT(*) AS total_count,
+                SUM(CASE WHEN q.alarm_time IS NOT NULL AND q.alarm_time != ''
+                              AND (q.dispel_time IS NULL OR q.dispel_time = '')
+                         THEN 1 ELSE 0 END) AS alarming_count,
+                SUM(CASE WHEN q.dispel_time IS NOT NULL AND q.dispel_time != ''
+                         THEN 1 ELSE 0 END) AS dispelled_count
+            FROM zlkj_danger_data_accept.qybjsj q
+            WHERE q.deleted = '0'
+            GROUP BY q.company_code, q.alarm_type
+        ) combined
+        GROUP BY company_code, alarm_name
+    </select>
+
+    <!-- 5. 按企业分组：人员聚集报警数量 -->
+    <select id="getCrowdAlarmCountByCompany" resultType="map">
+        SELECT
+            rj.company_code,
+            COUNT(*) AS crowd_alarm_count
+        FROM zlkj_danger_data_accept.ryjj rj
+        GROUP BY rj.company_code
+    </select>
+
 </mapper>

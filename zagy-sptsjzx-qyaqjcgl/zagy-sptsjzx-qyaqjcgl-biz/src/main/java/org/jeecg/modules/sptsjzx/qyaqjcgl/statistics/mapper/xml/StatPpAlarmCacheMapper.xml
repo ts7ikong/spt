@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatPpAlarmCacheMapper">
+
+    <insert id="batchUpsert">
+        INSERT INTO stat_pp_alarm_cache
+        (company_code, county_code, park_code, yq_type, is_scqy,
+         alarm_name, total_count, alarming_count, dispelled_count, updated_at)
+        VALUES
+        <foreach collection="list" item="r" separator=",">
+            (#{r.companyCode}, #{r.countyCode}, #{r.parkCode}, #{r.yqType}, #{r.isScqy},
+             #{r.alarmName}, #{r.totalCount}, #{r.alarmingCount}, #{r.dispelledCount}, NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            county_code     = VALUES(county_code),
+            park_code       = VALUES(park_code),
+            yq_type         = VALUES(yq_type),
+            is_scqy         = VALUES(is_scqy),
+            total_count     = VALUES(total_count),
+            alarming_count  = VALUES(alarming_count),
+            dispelled_count = VALUES(dispelled_count),
+            updated_at      = NOW()
+    </insert>
+
+    <!--
+        按 alarmStatus 动态选择聚合哪一列：
+          all       → SUM(total_count)
+          alarming  → SUM(alarming_count)
+          dispelled → SUM(dispelled_count)
+    -->
+    <select id="queryAlarmStats" resultType="map">
+        SELECT
+            alarm_name AS name,
+            <choose>
+                <when test="alarmStatus == 'alarming'">SUM(alarming_count)</when>
+                <when test="alarmStatus == 'dispelled'">SUM(dispelled_count)</when>
+                <otherwise>SUM(total_count)</otherwise>
+            </choose>
+            AS value
+        FROM stat_pp_alarm_cache
+        WHERE company_code IN
+        <foreach collection="companyCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        <if test="yqType != null">
+            AND yq_type = #{yqType}
+        </if>
+        <if test="isScqy != null">
+            AND is_scqy = #{isScqy}
+        </if>
+        GROUP BY alarm_name
+        HAVING value > 0
+        ORDER BY value DESC
+    </select>
+
+</mapper>

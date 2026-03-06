@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatPpBaseCacheMapper">
+
+    <insert id="batchUpsert">
+        INSERT INTO stat_pp_base_cache
+        (company_code, county_code, park_code, yq_type, is_scqy,
+         is_full_access, is_partial_access, is_no_access,
+         temporary_zone_count, fixed_zone_count,
+         crowd_alarm_count, updated_at)
+        VALUES
+        <foreach collection="list" item="r" separator=",">
+            (#{r.companyCode}, #{r.countyCode}, #{r.parkCode}, #{r.yqType}, #{r.isScqy},
+             #{r.isFullAccess}, #{r.isPartialAccess}, #{r.isNoAccess},
+             #{r.temporaryZoneCount}, #{r.fixedZoneCount},
+             #{r.crowdAlarmCount}, NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            county_code          = VALUES(county_code),
+            park_code            = VALUES(park_code),
+            yq_type              = VALUES(yq_type),
+            is_scqy              = VALUES(is_scqy),
+            is_full_access       = VALUES(is_full_access),
+            is_partial_access    = VALUES(is_partial_access),
+            is_no_access         = VALUES(is_no_access),
+            temporary_zone_count = VALUES(temporary_zone_count),
+            fixed_zone_count     = VALUES(fixed_zone_count),
+            crowd_alarm_count    = VALUES(crowd_alarm_count),
+            updated_at           = NOW()
+    </insert>
+
+    <select id="queryAggregated" resultType="map">
+        SELECT
+            SUM(is_full_access)       AS fullAccess,
+            SUM(is_partial_access)    AS partialAccess,
+            SUM(is_no_access)         AS noAccess,
+            SUM(temporary_zone_count) AS temporaryZoneCount,
+            SUM(fixed_zone_count)     AS fixedZoneCount,
+            SUM(crowd_alarm_count)    AS crowdAlarmCount
+        FROM stat_pp_base_cache
+        WHERE company_code IN
+        <foreach collection="companyCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+        <if test="yqType != null">
+            AND yq_type = #{yqType}
+        </if>
+        <if test="isScqy != null">
+            AND is_scqy = #{isScqy}
+        </if>
+    </select>
+
+</mapper>

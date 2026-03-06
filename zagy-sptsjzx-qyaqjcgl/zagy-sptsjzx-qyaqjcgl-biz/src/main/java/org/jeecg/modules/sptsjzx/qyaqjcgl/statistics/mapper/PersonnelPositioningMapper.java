@@ -84,4 +84,32 @@ public interface PersonnelPositioningMapper {
             @Param("isScqy") Integer isScqy,
             @Param("alarmStatus") String alarmStatus
     );
+
+    // ---- 以下方法供 PersonnelPositioningCacheJob 使用，全量扫描，按企业分组 ----
+
+    /**
+     * 按企业分组统计人员定位接入情况（全量）
+     */
+    List<Map<String, Object>> getPositioningAccessStatsByCompany();
+
+    /**
+     * 按企业分组统计区域数量（全量）
+     */
+    List<Map<String, Object>> getZoneStatsByCompany();
+
+    /**
+     * 按企业+人员类型分组统计人员数量（全量）
+     */
+    List<Map<String, Object>> getPersonnelTypeStatsByCompany();
+
+    /**
+     * 按企业+报警名称分组统计报警数量（全量，三种状态分列存储）
+     * 包含人员报警(rybjsj) + 区域报警(qybjsj)
+     */
+    List<Map<String, Object>> getAlarmStatsByCompany();
+
+    /**
+     * 按企业分组统计人员聚集报警数量（全量，来自 ryjj，无 alarmStatus 过滤）
+     */
+    List<Map<String, Object>> getCrowdAlarmCountByCompany();
 }
