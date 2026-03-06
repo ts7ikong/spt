@@ -2,7 +2,7 @@ package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatClosedManagementCache;
-import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatClosedManagementCacheMapper;
+import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatClosedManagementCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.dto.ClosedManagementStatisticsDTO;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.ClosedManagementMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.service.IClosedManagementService;
