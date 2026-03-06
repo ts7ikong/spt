@@ -6,6 +6,7 @@ import org.jeecg.boot.starter.lock.client.RedissonLockClient;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.*;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ import java.util.function.Supplier;
  */
 @Slf4j
 @Component
+@ConditionalOnBean(RedissonLockClient.class)
 public class PersonnelPositioningCacheJob {
 
     private static final String DS_KEY = "zfd";
