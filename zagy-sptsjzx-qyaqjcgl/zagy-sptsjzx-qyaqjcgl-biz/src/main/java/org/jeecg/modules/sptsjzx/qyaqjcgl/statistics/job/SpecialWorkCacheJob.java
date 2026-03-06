@@ -2,6 +2,7 @@ package org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.job;
 
 import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.jeecg.boot.starter.lock.client.RedissonLockClient;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatSwBaseCache;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.mapper.StatSwBaseCacheMapper;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.statistics.cache.StatSwTypeCacheRow;
@@ -38,8 +39,26 @@ public class SpecialWorkCacheJob {
     @Autowired
     private StatSwTypeCacheMapper typeCacheMapper;
 
+    @Autowired
+    private RedissonLockClient redissonLock;
+
+    private static final String LOCK_KEY = "cache:job:specialWork";
+    private static final int    LOCK_EXPIRE = 9 * 60; // 9分钟，小于 fixedRate
+
     @Scheduled(initialDelay = 40_000, fixedRate = 10 * 60_000)
     public void refresh() {
+        if (!redissonLock.tryLock(LOCK_KEY, -1, LOCK_EXPIRE)) {
+            log.debug("[SpecialWorkCacheJob] 未获取到锁，跳过本次刷新");
+            return;
+        }
+        try {
+            doRefresh();
+        } finally {
+            redissonLock.unlock(LOCK_KEY);
+        }
+    }
+
+    private void doRefresh() {
         log.info("[SpecialWorkCacheJob] 开始刷新...");
         long start = System.currentTimeMillis();
 
