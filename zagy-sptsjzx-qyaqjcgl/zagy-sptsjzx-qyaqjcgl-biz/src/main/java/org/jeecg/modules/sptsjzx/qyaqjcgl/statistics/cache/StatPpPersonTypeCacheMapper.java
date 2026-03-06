@@ -9,16 +9,15 @@ import java.util.Map;
 @Mapper
 public interface StatPpPersonTypeCacheMapper {
 
-    /**
-     * 批量写入/更新（INSERT ... ON DUPLICATE KEY UPDATE）
-     */
     void batchUpsert(@Param("list") List<StatPpPersonTypeCacheRow> list);
 
     /**
-     * 按企业编码列表聚合人员类型分布（供 personnelTypeStats 使用）
+     * companyCodes 为 null 时不限制企业范围（全市/全区查询走此路径）
      */
     List<Map<String, Object>> queryPersonTypeStats(
             @Param("companyCodes") List<String> companyCodes,
+            @Param("countyCode") String countyCode,
+            @Param("parkCode") String parkCode,
             @Param("yqType") Integer yqType,
             @Param("isScqy") Integer isScqy);
 }

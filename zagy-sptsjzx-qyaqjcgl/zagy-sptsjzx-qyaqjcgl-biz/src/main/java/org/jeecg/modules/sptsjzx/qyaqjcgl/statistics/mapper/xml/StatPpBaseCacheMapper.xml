@@ -38,14 +38,24 @@
             SUM(fixed_zone_count)     AS fixedZoneCount,
             SUM(crowd_alarm_count)    AS crowdAlarmCount
         FROM stat_pp_base_cache
-        WHERE company_code IN
-        <foreach collection="companyCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
-        <if test="yqType != null">
-            AND yq_type = #{yqType}
-        </if>
-        <if test="isScqy != null">
-            AND is_scqy = #{isScqy}
-        </if>
+        <where>
+            <if test="companyCodes != null and companyCodes.size() > 0">
+                AND company_code IN
+                <foreach collection="companyCodes" item="c" open="(" separator="," close=")">#{c}</foreach>
+            </if>
+            <if test="countyCode != null and countyCode != ''">
+                AND county_code = #{countyCode}
+            </if>
+            <if test="parkCode != null and parkCode != ''">
+                AND park_code = #{parkCode}
+            </if>
+            <if test="yqType != null">
+                AND yq_type = #{yqType}
+            </if>
+            <if test="isScqy != null">
+                AND is_scqy = #{isScqy}
+            </if>
+        </where>
     </select>
 
 </mapper>
