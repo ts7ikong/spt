@@ -8,13 +8,16 @@ import java.util.stream.Collectors;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
+import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.DataScopeHelper;
 import org.jeecg.common.util.oConvertUtils;
 
@@ -23,6 +26,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 
+import org.jeecg.config.JeecgBaseConfig;
 import org.jeecg.modules.sptsjzx.qyaqjcgl.qyjbxx.qyjbxx.service.IAcceptCompanyService;
 import org.jeecg.modules.sptsjzx.rydwsj.rydwjrqk.entity.RydwDataQualityExport;
 import org.jeecg.modules.sptsjzx.rydwsj.rydwjrqk.service.IRydwDataQualityExportService;
@@ -59,6 +63,9 @@ public class RydwDataQualityExportController extends JeecgController<RydwDataQua
     private IRydwDataQualityExportService rydwDataQualityExportService;
     @Autowired
     private IAcceptCompanyService acceptCompanyService;
+
+    @Resource
+    private JeecgBaseConfig jeecgBaseConfig;
 
     /**
      * 分页列表查询
@@ -97,6 +104,7 @@ public class RydwDataQualityExportController extends JeecgController<RydwDataQua
             for (RydwDataQualityExport item : pageList.getRecords()) {
                 // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
                 item.setCountyCode(item.getCompanyCode());
+                item.setIsZdwxy(item.getCompanyCode());
             }
         }
         return Result.OK(pageList);
@@ -183,7 +191,42 @@ public class RydwDataQualityExportController extends JeecgController<RydwDataQua
      */
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, RydwDataQualityExport rydwDataQualityExport) {
-        return super.exportXls(request, rydwDataQualityExport, RydwDataQualityExport.class, "人员定位接入情况");
+        return exportXlsCrjl(request, rydwDataQualityExport, RydwDataQualityExport.class, "人员定位接入情况");
+    }
+
+    protected ModelAndView exportXlsCrjl(HttpServletRequest request, RydwDataQualityExport object, Class<RydwDataQualityExport> clazz, String title) {
+        // Step.1 组装查询条件
+        QueryWrapper<RydwDataQualityExport> queryWrapper = QueryGenerator.initQueryWrapper(object, request.getParameterMap());
+        LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+
+        // 过滤选中数据
+        String selections = request.getParameter("selections");
+        if (oConvertUtils.isNotEmpty(selections)) {
+            List<String> selectionList = Arrays.asList(selections.split(","));
+            queryWrapper.in("id", selectionList);
+        }
+        // Step.2 获取导出数据
+        List<RydwDataQualityExport> exportList = service.list(queryWrapper);
+        if (CollectionUtils.isNotEmpty(exportList)) {
+            for (RydwDataQualityExport item : exportList) {
+                // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+                item.setCountyCode(item.getCompanyCode());
+                item.setIsZdwxy(item.getCompanyCode());
+            }
+        }
+
+        // Step.3 AutoPoi 导出Excel
+        ModelAndView mv = new ModelAndView(new JeecgEntityExcelView());
+        //此处设置的filename无效 ,前端会重更新设置一下
+        mv.addObject(NormalExcelConstants.FILE_NAME, title);
+        mv.addObject(NormalExcelConstants.CLASS, clazz);
+        //update-begin--Author:liusq  Date:20210126 for：图片导出报错，ImageBasePath未设置--------------------
+        ExportParams exportParams = new ExportParams(title + "报表", "导出人:" + sysUser.getRealname(), title);
+        exportParams.setImageBasePath(jeecgBaseConfig.getPath().getUpload());
+        //update-end--Author:liusq  Date:20210126 for：图片导出报错，ImageBasePath未设置----------------------
+        mv.addObject(NormalExcelConstants.PARAMS, exportParams);
+        mv.addObject(NormalExcelConstants.DATA_LIST, exportList);
+        return mv;
     }
 
     /**

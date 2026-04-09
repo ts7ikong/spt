@@ -53,7 +53,6 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 @RequestMapping("/sptsjzx/rydwsj/sbrydwjcsj/acceptEmployeeInfoFormal")
 @Slf4j
 public class AcceptEmployeeInfoFormalController extends JeecgController<AcceptEmployeeInfoFormal, IAcceptEmployeeInfoFormalService> {
-	
 
 	@Autowired
 	private IAcceptCompanyService acceptCompanyService;
@@ -82,7 +81,7 @@ public class AcceptEmployeeInfoFormalController extends JeecgController<AcceptEm
         // 自定义多选的查询规则为：LIKE_WITH_OR
         customeRuleMap.put("personType", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<AcceptEmployeeInfoFormal> queryWrapper = QueryGenerator.initQueryWrapper(acceptEmployeeInfoFormal, req.getParameterMap(),customeRuleMap);
-
+		queryWrapper.ne("deleted",1);
 		// 【数据权限过滤】根据登录用户的区县编码获取企业列表
 		// 实体只有companyCode字段，需要先查询企业表获取企业编码列表
 		if (!DataScopeHelper.needDataScope()) {

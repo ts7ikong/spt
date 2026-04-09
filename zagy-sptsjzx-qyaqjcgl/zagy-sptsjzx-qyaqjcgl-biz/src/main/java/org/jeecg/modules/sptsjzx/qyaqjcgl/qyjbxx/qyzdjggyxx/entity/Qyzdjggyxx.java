@@ -48,6 +48,7 @@ public class Qyzdjggyxx implements Serializable {
 	/**化工行业编码*/
 	@Excel(name = "化工行业编码", width = 15)
     @ApiModelProperty(value = "化工行业编码")
+    @Dict(dicCode = "zdjggy")
     private java.lang.String chemicalIndustryCode;
 	/**删除标志*/
 	@Excel(name = "删除标志", width = 15, dicCode = "scbz")

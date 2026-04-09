@@ -56,6 +56,7 @@ public class DeviceProcessSafety implements Serializable {
      */
     @Excel(name = "所属工艺", width = 15)
     @ApiModelProperty(value = "所属工艺")
+    @Dict(dicCode = "zdjggy")
     private java.lang.String chemprocessType;
     /**
      * 安全仪表联锁回路总数

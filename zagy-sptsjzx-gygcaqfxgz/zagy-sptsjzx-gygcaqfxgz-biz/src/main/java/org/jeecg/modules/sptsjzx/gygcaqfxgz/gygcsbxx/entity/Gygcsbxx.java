@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.math.BigDecimal;
+
 import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.util.SpringContextUtils;
 import lombok.Data;
@@ -20,113 +21,114 @@ import com.baomidou.mybatisplus.annotation.*;
 /**
  * @Description: 设备信息(化工园区)
  * @Author: zagy-cg
- * @Date:   2025-06-03
+ * @Date: 2025-06-03
  * @Version: V1.0
  */
 @Data
 @TableName("gygcsbxx")
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@ApiModel(value="gygcsbxx对象", description="设备信息(化工园区)")
+@ApiModel(value = "gygcsbxx对象", description = "设备信息(化工园区)")
 public class Gygcsbxx implements Serializable {
     private static final long serialVersionUID = 1L;
 
-	/**主键*/
-	@TableId(type = IdType.ASSIGN_ID)
+    /**主键*/
+    @TableId(type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "主键")
     private java.lang.String id;
-	/**uuid*/
-	@Excel(name = "uuid", width = 15)
+    /**uuid*/
+    @Excel(name = "uuid", width = 15)
     @ApiModelProperty(value = "uuid")
     private java.lang.String uuid;
-	/**园区编码*/
-	@Excel(name = "园区编码", width = 15)
+    /**园区编码*/
+    @Excel(name = "园区编码", width = 15)
     @ApiModelProperty(value = "园区编码")
+    @Dict(dictTable = "yqjbxx", dicText = "park_name", dicCode = "park_code")
     private java.lang.String parkCode;
-	/**企业编码*/
-	@Excel(name = "企业编码", width = 15)
+    /**企业编码*/
+    @Excel(name = "企业编码", width = 15)
     @ApiModelProperty(value = "企业编码")
     private java.lang.String companyCode;
-	/**设备编号*/
-	@Excel(name = "设备编号", width = 15)
+    /**设备编号*/
+    @Excel(name = "设备编号", width = 15)
     @ApiModelProperty(value = "设备编号")
     private java.lang.String equipmentCode;
-	/**设备名称*/
-	@Excel(name = "设备名称", width = 15)
+    /**设备名称*/
+    @Excel(name = "设备名称", width = 15)
     @ApiModelProperty(value = "设备名称")
     private java.lang.String equipmentName;
-	/**设备位置*/
-	@Excel(name = "设备位置", width = 15)
+    /**设备位置*/
+    @Excel(name = "设备位置", width = 15)
     @ApiModelProperty(value = "设备位置")
     private java.lang.String equipmentLocation;
-	/**经度*/
-	@Excel(name = "经度", width = 15)
+    /**经度*/
+    @Excel(name = "经度", width = 15)
     @ApiModelProperty(value = "经度")
     private java.lang.String longitude;
-	/**纬度*/
-	@Excel(name = "纬度", width = 15)
+    /**纬度*/
+    @Excel(name = "纬度", width = 15)
     @ApiModelProperty(value = "纬度")
     private java.lang.String latitude;
-	/**设备类型*/
-	@Excel(name = "设备类型", width = 15)
+    /**设备类型*/
+    @Excel(name = "设备类型", width = 15)
     @ApiModelProperty(value = "设备类型")
     private java.lang.String equipmentType;
-	/**设备状态*/
-	@Excel(name = "设备状态", width = 15)
+    /**设备状态*/
+    @Excel(name = "设备状态", width = 15)
     @ApiModelProperty(value = "设备状态")
     private java.lang.String equipmentStatus;
-	/**生产厂家*/
-	@Excel(name = "生产厂家", width = 15)
+    /**生产厂家*/
+    @Excel(name = "生产厂家", width = 15)
     @ApiModelProperty(value = "生产厂家")
     private java.lang.String equipmentFactory;
-	/**型号*/
-	@Excel(name = "型号", width = 15)
+    /**型号*/
+    @Excel(name = "型号", width = 15)
     @ApiModelProperty(value = "型号")
     private java.lang.String equipmentModel;
-	/**删除标志*/
-	@Excel(name = "删除标志", width = 15, dicCode = "scbz")
-	@Dict(dicCode = "scbz")
+    /**删除标志*/
+    @Excel(name = "删除标志", width = 15, dicCode = "scbz")
+    @Dict(dicCode = "scbz")
     @ApiModelProperty(value = "删除标志")
     private java.lang.String deleted;
-	/**创建日期*/
-	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    /**创建日期*/
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "创建日期")
     private java.util.Date createTime;
-	/**创建人*/
+    /**创建人*/
     @ApiModelProperty(value = "创建人")
     private java.lang.String createBy;
-	/**更新日期*/
-	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    /**更新日期*/
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "更新日期")
     private java.util.Date updateTime;
-	/**更新人*/
+    /**更新人*/
     @ApiModelProperty(value = "更新人")
     private java.lang.String updateBy;
-	/**创建日期_企业*/
-	@Excel(name = "创建日期_企业", width = 20, format = "yyyy-MM-dd HH:mm:ss")
-	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    /**创建日期_企业*/
+    @Excel(name = "创建日期_企业", width = 20, format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "创建日期_企业")
     private java.util.Date createTimeCompany;
-	/**创建人_企业*/
-	@Excel(name = "创建人_企业", width = 15)
+    /**创建人_企业*/
+    @Excel(name = "创建人_企业", width = 15)
     @ApiModelProperty(value = "创建人_企业")
     private java.lang.String createByCompany;
-	/**更新日期_企业*/
-	@Excel(name = "更新日期_企业", width = 20, format = "yyyy-MM-dd HH:mm:ss")
-	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    /**更新日期_企业*/
+    @Excel(name = "更新日期_企业", width = 20, format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "更新日期_企业")
     private java.util.Date updateTimeCompany;
-	/**更新人_企业*/
-	@Excel(name = "更新人_企业", width = 15)
+    /**更新人_企业*/
+    @Excel(name = "更新人_企业", width = 15)
     @ApiModelProperty(value = "更新人_企业")
     private java.lang.String updateByCompany;
-	/**区县Code*/
-	@TableField(exist = false)
-	@ApiModelProperty(value = "区县Code")
-	@Dict(dictTable = "v_accept_park", dicText = "county_name", dicCode = "code")
-	private java.lang.String countyCode;
+    /**区县Code*/
+    @TableField(exist = false)
+    @ApiModelProperty(value = "区县Code")
+    @Dict(dictTable = "v_accept_park", dicText = "county_name", dicCode = "code")
+    private java.lang.String countyCode;
 }

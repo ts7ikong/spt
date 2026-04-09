@@ -80,6 +80,7 @@ public class AcceptMeasuresTaskFormal implements Serializable {
 	/**工作日类型*/
 	@Excel(name = "工作日类型", width = 15)
     @ApiModelProperty(value = "工作日类型")
+	@Dict(dicCode = "gzrlx")
     private java.lang.String workDayType;
 	/**包保任务对应项*/
 	@Excel(name = "包保任务对应项", width = 15)

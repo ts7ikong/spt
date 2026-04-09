@@ -42,6 +42,7 @@ public class Xbjl implements Serializable {
 	/**园区编码*/
 	@Excel(name = "园区编码", width = 15)
     @ApiModelProperty(value = "园区编码")
+    @Dict(dictTable = "yqjbxx", dicText = "park_name", dicCode = "park_code")
     private java.lang.String parkCode;
 	/**接警编码*/
 	@Excel(name = "接警编码", width = 15)

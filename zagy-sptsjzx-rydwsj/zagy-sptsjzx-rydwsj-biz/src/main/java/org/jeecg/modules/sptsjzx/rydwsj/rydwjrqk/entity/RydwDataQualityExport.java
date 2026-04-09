@@ -45,14 +45,22 @@ public class RydwDataQualityExport implements Serializable {
 //    @Excel(name = "企业名称", width = 15)
     @ApiModelProperty(value = "企业名称")
     private String companyName;
+
+    /**区县Code*/
+    @TableField(exist = false)
+    @ApiModelProperty(value = "区县Code")
+    @Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+    @Excel(name = "所属区县", width = 20, dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
+    private java.lang.String countyCode;
+
     /**实时数据*/
     @Excel(name = "实时数据", width = 15, dicCode = "sssjsfjr")
     @Dict(dicCode = "sssjsfjr")
     @ApiModelProperty(value = "实时数据")
     private Integer realTimeSuccess;
     /**历史轨迹*/
-    @Excel(name = "历史轨迹", width = 15, dicCode = "sssjsfjr")
-    @Dict(dicCode = "sssjsfjr")
+    @Excel(name = "历史轨迹", width = 15, dicCode = "lsgjsfjr")
+    @Dict(dicCode = "lsgjsfjr")
     @ApiModelProperty(value = "历史轨迹")
     private Integer historyTrackSuccess;
     /**聚集报警*/
@@ -81,9 +89,12 @@ public class RydwDataQualityExport implements Serializable {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "检查时间")
     private Date checkTime;
-    /**区县Code*/
+
+
+    /**是否重大危险源*/
     @TableField(exist = false)
-    @ApiModelProperty(value = "区县Code")
-    @Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
-    private java.lang.String countyCode;
+    @ApiModelProperty(value = "是否重大危险源")
+    @Excel(name = "是否重大危险源", width = 10, dictTable = "v_accept_company", dicText = "is_zdwxy", dicCode = "code")
+    @Dict(dictTable = "v_accept_company", dicText = "is_zdwxy", dicCode = "code")
+    private java.lang.String isZdwxy;
 }

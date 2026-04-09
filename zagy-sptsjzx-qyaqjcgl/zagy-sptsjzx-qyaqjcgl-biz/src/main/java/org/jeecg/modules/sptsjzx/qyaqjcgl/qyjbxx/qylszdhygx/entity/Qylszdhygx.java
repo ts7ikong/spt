@@ -55,6 +55,7 @@ public class Qylszdhygx implements Serializable {
 	/**重点行业编码*/
 	@Excel(name = "重点行业编码", width = 15)
     @ApiModelProperty(value = "重点行业编码")
+    @Dict(dicCode = "zdhybm")
     private java.lang.String keyIndustryCode;
 	/**删除标志*/
 	@Excel(name = "删除标志", width = 15, dicCode = "scbz")
