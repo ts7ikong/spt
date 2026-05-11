@@ -3,6 +3,7 @@ package org.jeecg.common.aspect;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
+import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,9 +21,11 @@ import org.jeecg.common.util.oConvertUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +49,9 @@ public class DictAspect {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private DataSource dataSource;
 
     private static final String JAVA_UTIL_DATE = "java.util.Date";
 
@@ -146,11 +152,12 @@ public class DictAspect {
                             //update-begin---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
                             String dataSource = field.getAnnotation(Dict.class).ds();
                             //update-end---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
+                            String source = field.getAnnotation(Dict.class).source();
                             List<String> dataList;
                             String dictCode = code;
                             if (!StringUtils.isEmpty(table)) {
                                 //update-begin---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
-                                dictCode = String.format("%s,%s,%s,%s", table, text, code, dataSource);
+                                dictCode = String.format("%s,%s,%s,%s,%s", table, text, code, dataSource, source);
                                 //update-end---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
                             }
                             dataList = dataListMap.computeIfAbsent(dictCode, k -> new ArrayList<>());
@@ -180,10 +187,11 @@ public class DictAspect {
                         // 自定义的字典表数据源
                         String dataSource = field.getAnnotation(Dict.class).ds();
                         //update-end---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
+                        String source = field.getAnnotation(Dict.class).source();
                         String fieldDictCode = code;
                         if (!StringUtils.isEmpty(table)) {
                             //update-begin---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
-                            fieldDictCode = String.format("%s,%s,%s,%s", table, text, code, dataSource);
+                            fieldDictCode = String.format("%s,%s,%s,%s,%s", table, text, code, dataSource, source);
                             //update-end---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
                         }
 
@@ -287,24 +295,31 @@ public class DictAspect {
                 String table = arr[0], text = arr[1], code = arr[2];
                 String values = String.join(",", needTranslDataTable);
                 //update-begin---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
-                // 自定义的数据源
+                // 自定义的数据源（跨服务）
                 String dataSource = null;
                 if (arr.length > 3) {
                     dataSource = arr[3];
                 }
                 //update-end---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
+                // 本地数据源（跨库不跨服务）
+                String source = arr.length > 4 ? arr[4] : null;
                 log.debug("translateDictFromTableByKeys.dictCode:" + dictCode);
                 log.debug("translateDictFromTableByKeys.values:" + values);
-                //update-begin---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
-                
-                //update-begin---author:wangshuai---date:2024-01-09---for:微服务下为空报错没有参数需要传递空字符串---
-                if(null == dataSource){
-                    dataSource = "";
+
+                List<DictModel> texts;
+                if (!StringUtils.isEmpty(source)) {
+                    // source 不为空：直接在当前服务内切换数据源查询，不走系统服务Feign
+                    texts = localQueryDictByKeys(table, text, code, needTranslDataTable, source);
+                } else {
+                    //update-begin---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
+                    //update-begin---author:wangshuai---date:2024-01-09---for:微服务下为空报错没有参数需要传递空字符串---
+                    if (null == dataSource) {
+                        dataSource = "";
+                    }
+                    //update-end---author:wangshuai---date:2024-01-09---for:微服务下为空报错没有参数需要传递空字符串---
+                    texts = commonApi.translateDictFromTableByKeys(table, text, code, values, dataSource);
+                    //update-end---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
                 }
-                //update-end---author:wangshuai---date:2024-01-09---for:微服务下为空报错没有参数需要传递空字符串---
-                
-                List<DictModel> texts = commonApi.translateDictFromTableByKeys(table, text, code, values, dataSource);
-                //update-end---author:chenrui ---date:20231221  for：[issues/#5643]解决分布式下表字典跨库无法查询问题------------
                 log.debug("translateDictFromTableByKeys.result:" + texts);
                 List<DictModel> list = translText.computeIfAbsent(dictCode, k -> new ArrayList<>());
                 list.addAll(texts);
@@ -436,6 +451,25 @@ public class DictAspect {
 
         }
         return textValue.toString();
+    }
+
+    /**
+     * 在当前服务内直接切换到指定数据源查询字典表，不走系统服务Feign（source参数专用）
+     */
+    private List<DictModel> localQueryDictByKeys(String table, String text, String code, List<String> keys, String source) {
+        DynamicDataSourceContextHolder.push(source);
+        try {
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+            String placeholders = keys.stream().map(k -> "?").collect(Collectors.joining(","));
+            String sql = String.format("SELECT %s AS dictText, %s AS dictCode FROM %s WHERE %s IN (%s)", text, code, table, code, placeholders);
+            return jdbcTemplate.query(sql, keys.toArray(), (rs, rowNum) ->
+                    new DictModel(rs.getString("dictCode"), rs.getString("dictText")));
+        } catch (Exception e) {
+            log.error("localQueryDictByKeys error, source={}, table={}, error={}", source, table, e.getMessage(), e);
+            return new ArrayList<>();
+        } finally {
+            DynamicDataSourceContextHolder.poll();
+        }
     }
 
     /**

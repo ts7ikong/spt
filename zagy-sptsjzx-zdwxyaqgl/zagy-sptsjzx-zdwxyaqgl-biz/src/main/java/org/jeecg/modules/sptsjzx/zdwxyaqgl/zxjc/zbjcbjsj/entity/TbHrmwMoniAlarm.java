@@ -39,7 +39,6 @@ public class TbHrmwMoniAlarm implements Serializable {
 
     /**企业编码*/
     @ApiModelProperty(value = "企业编码")
-    @TableField(exist = false)
     @Dict(dictTable = "v_accept_company", dicText = "name", dicCode = "code")
     private String companyCode;
 
@@ -49,11 +48,11 @@ public class TbHrmwMoniAlarm implements Serializable {
     @Dict(dictTable = "v_company_county", dicText = "county_name", dicCode = "code")
     private java.lang.String countyCode;
 
-    /**指标编码*/
-    @Excel(name = "指标编码", width = 15)
-    @Dict(dictTable = "v_hrmw_target_with_company", dicText = "target_name", dicCode = "target_code", ds = "pg")
-    @ApiModelProperty(value = "指标编码")
 
+	/**指标编码*/
+	@Excel(name = "指标编码", width = 15)
+    @Dict(dictTable = "v_hrmw_target_with_company", dicText = "target_name", dicCode = "target_code", source = "pg")
+    @ApiModelProperty(value = "指标编码")
     private String targetCode;
     /**指标报警时间*/
     @Excel(name = "指标报警时间", width = 20, format = "yyyy-MM-dd HH:mm:ss")
