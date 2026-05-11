@@ -10,6 +10,7 @@ import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.util.SpringContextUtils;
 import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.jeecgframework.poi.excel.annotation.Excel;
 import org.jeecg.common.aspect.annotation.Dict;
@@ -51,8 +52,12 @@ public class TbHrmwMoniTargetCurrent implements Serializable {
 	/**指标编码*/
 	@Excel(name = "指标编码", width = 15)
     @ApiModelProperty(value = "指标编码")
-	@Dict(dictTable = "v_hrmw_target_with_company", dicText = "target_name", dicCode = "target_code")
     private java.lang.String targetCode;
+
+	@TableField(exist = false)
+	@JsonProperty("targetCode_dictText")
+	@ApiModelProperty(value = "指标名称")
+	private java.lang.String targetCodeDictText;
 	/**是否在线*/
 	@Excel(name = "是否在线", width = 15, dicCode = "zbsfzx")
 	@Dict(dicCode = "zbsfzx")

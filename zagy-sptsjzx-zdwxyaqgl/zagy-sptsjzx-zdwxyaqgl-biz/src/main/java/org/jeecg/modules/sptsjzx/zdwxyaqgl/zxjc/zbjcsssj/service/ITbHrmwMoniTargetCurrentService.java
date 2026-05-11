@@ -3,6 +3,9 @@ package org.jeecg.modules.sptsjzx.zdwxyaqgl.zxjc.zbjcsssj.service;
 import org.jeecg.modules.sptsjzx.zdwxyaqgl.zxjc.zbjcsssj.entity.TbHrmwMoniTargetCurrent;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @Description: 指标监测实时数据
  * @Author: zagy-cg
@@ -10,5 +13,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @Version: V1.0
  */
 public interface ITbHrmwMoniTargetCurrentService extends IService<TbHrmwMoniTargetCurrent> {
+
+    Map<String, String> getTargetNameMap(List<String> targetCodes);
 
 }
