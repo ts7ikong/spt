@@ -51,7 +51,7 @@ public class TbHrmwMoniTargetCurrent implements Serializable {
 	/**指标编码*/
 	@Excel(name = "指标编码", width = 15)
     @ApiModelProperty(value = "指标编码")
-	@Dict(dictTable = "v_hrmw_target_with_company", dicText = "target_name", dicCode = "target_code")
+	@Dict(dictTable = "v_hrmw_target_with_company", dicText = "target_name", dicCode = "target_code", ds = "pg")
     private java.lang.String targetCode;
 	/**是否在线*/
 	@Excel(name = "是否在线", width = 15, dicCode = "zbsfzx")

@@ -46,7 +46,6 @@ public class TbHrmwBaseVideo implements Serializable {
     private String videoName;
     /**企业编码*/
     @ApiModelProperty(value = "企业编码")
-    @TableField(exist = false)
     @Dict(dictTable = "v_accept_company", dicText = "name", dicCode = "code")
     private String companyCode;
 
