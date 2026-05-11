@@ -193,7 +193,7 @@ public class Qycnxq implements Serializable {
 	/**有无重大隐 患*/
 	@Excel(name = "有无重大隐 患", width = 15, dicCode = "sf")
 	@Dict(dicCode = "sf")
-    @ApiModelProperty(value = "有无重大隐 患")
+    @ApiModelProperty(value = "有无重大隐患")
     private java.lang.String mmHazards;
 	/**风险级别*/
 	@Excel(name = "风险级别", width = 15, dicCode = "fxjb")

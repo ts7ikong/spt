@@ -49,6 +49,23 @@ public class AcceptCompanyServiceImpl extends ServiceImpl<AcceptCompanyMapper, A
     }
 
     @Override
+    public List<String> getCompanyCodesByIsZdwxy(String isZdwxy) {
+        if (isZdwxy == null || isZdwxy.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        QueryWrapper<AcceptCompany> wrapper = new QueryWrapper<>();
+        wrapper.eq("is_zdwxy", isZdwxy);
+        wrapper.select("code");
+
+        List<AcceptCompany> companies = this.list(wrapper);
+        return companies.stream()
+                .map(AcceptCompany::getCode)
+                .filter(code -> code != null && !code.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<String> getYqCodesByCountyCode(String orgCode) {
         return baseMapper.getYqCodesByCountyCode(orgCode);
     }

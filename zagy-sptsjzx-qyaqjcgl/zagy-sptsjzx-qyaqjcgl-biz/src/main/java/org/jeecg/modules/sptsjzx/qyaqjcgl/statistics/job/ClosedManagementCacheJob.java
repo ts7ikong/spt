@@ -55,6 +55,18 @@ public class ClosedManagementCacheJob {
         }
     }
 
+    // 把 List<Map> 转成 parkCode -> count 的映射
+    private Map<String, Long> toCountMap(List<Map<String, Object>> list) {
+        if (list == null) return Collections.emptyMap();
+        Map<String, Long> result = new HashMap<>();
+        for (Map<String, Object> row : list) {
+            String code = (String) row.get("park_code");
+            Long cnt = ((Number) row.get("cnt")).longValue();
+            result.put(code, cnt);
+        }
+        return result;
+    }
+
     private void doRefresh() {
         List<String> allParkCodes = acceptCompanyService.getYqCodesByCountyCode(null);
         if (allParkCodes == null || allParkCodes.isEmpty()) {
@@ -94,26 +106,53 @@ public class ClosedManagementCacheJob {
         final LocalDateTime st = startTime, et = endTime;
 
         // 4 个查询并行跑，与现有 ServiceImpl 逻辑一致
-        CompletableFuture<List<Map<String, Object>>> f1 = CompletableFuture.supplyAsync(
-                () -> closedMapper.getStaticInfoByPark(parkCodes));
+        CompletableFuture<Map<String, Long>> kkmjF = CompletableFuture.supplyAsync(
+                () -> toCountMap(closedMapper.countGroupByPark("shipingtaishujuzhongxin.kkmjxx", parkCodes)));
+        CompletableFuture<Map<String, Long>> fkxxF = CompletableFuture.supplyAsync(
+                () -> toCountMap(closedMapper.countGroupByPark("shipingtaishujuzhongxin.fkxx", parkCodes)));
+        CompletableFuture<Map<String, Long>> whpclF = CompletableFuture.supplyAsync(
+                () -> toCountMap(closedMapper.countGroupByPark("shipingtaishujuzhongxin.whpclxx", parkCodes)));
+        CompletableFuture<Map<String, Long>> qtclF = CompletableFuture.supplyAsync(
+                () -> toCountMap(closedMapper.countGroupByPark("shipingtaishujuzhongxin.qtclxx", parkCodes)));
+        CompletableFuture<Map<String, Long>> tccF = CompletableFuture.supplyAsync(
+                () -> toCountMap(closedMapper.countGroupByPark("shipingtaishujuzhongxin.whpyscltccxx", parkCodes)));
+        CompletableFuture<Map<String, Long>> ryssdwF = CompletableFuture.supplyAsync(
+                () -> toCountMap(closedMapper.countGroupByPark("shipingtaishujuzhongxin.ryssdw", parkCodes)));
+        CompletableFuture<Map<String, Long>> whpclssdwF = CompletableFuture.supplyAsync(
+                () -> toCountMap(closedMapper.countGroupByPark("shipingtaishujuzhongxin.whpclssdw", parkCodes)));
+
         CompletableFuture<List<Map<String, Object>>> f2 = CompletableFuture.supplyAsync(
                 () -> closedMapper.getVehicleTrafficByPark(parkCodes, st, et));
         CompletableFuture<List<Map<String, Object>>> f3 = CompletableFuture.supplyAsync(
                 () -> closedMapper.getPersonnelTrafficByPark(parkCodes, st, et));
         CompletableFuture<List<Map<String, Object>>> f4 = CompletableFuture.supplyAsync(
                 () -> closedMapper.getAlarmStatsByPark(parkCodes));
-        CompletableFuture.allOf(f1, f2, f3, f4).join();
 
+        CompletableFuture.allOf(kkmjF, fkxxF, whpclF, qtclF, tccF, ryssdwF, whpclssdwF, f2, f3, f4).join();
+
+        Map<String, Long> kkmjMap      = kkmjF.join();
+        Map<String, Long> fkxxMap      = fkxxF.join();
+        Map<String, Long> whpclMap     = whpclF.join();
+        Map<String, Long> qtclMap      = qtclF.join();
+        Map<String, Long> tccMap       = tccF.join();
+        Map<String, Long> ryssdwMap    = ryssdwF.join();
+        Map<String, Long> whpclssdwMap = whpclssdwF.join();
         Map<String, Map<String, Object>> vehicleMap   = toMap(f2.join());
         Map<String, Map<String, Object>> personnelMap = toMap(f3.join());
         Map<String, Map<String, Object>> alarmMap     = toMap(f4.join());
 
-        List<Map<String, Object>> staticList = f1.join();
-        if (staticList == null || staticList.isEmpty()) return;
+        if (parkCodes == null || parkCodes.isEmpty()) return;
 
-        List<StatClosedManagementCache> rows = new ArrayList<>(staticList.size());
-        for (Map<String, Object> row : staticList) {
-            String parkCode = (String) row.get("park_code");
+        List<StatClosedManagementCache> rows = new ArrayList<>(parkCodes.size());
+        for (String parkCode : parkCodes) {
+            long kkmjCnt      = kkmjMap.getOrDefault(parkCode, 0L);
+            long fkxxCnt      = fkxxMap.getOrDefault(parkCode, 0L);
+            long whpclCnt     = whpclMap.getOrDefault(parkCode, 0L);
+            long qtclCnt      = qtclMap.getOrDefault(parkCode, 0L);
+            long tccCnt       = tccMap.getOrDefault(parkCode, 0L);
+            long ryssdwCnt    = ryssdwMap.getOrDefault(parkCode, 0L);
+            long whpclssdwCnt = whpclssdwMap.getOrDefault(parkCode, 0L);
+
             Map<String, Object> v = vehicleMap.getOrDefault(parkCode, Collections.emptyMap());
             Map<String, Object> p = personnelMap.getOrDefault(parkCode, Collections.emptyMap());
             Map<String, Object> a = alarmMap.getOrDefault(parkCode, Collections.emptyMap());
@@ -121,11 +160,17 @@ public class ClosedManagementCacheJob {
             StatClosedManagementCache cache = new StatClosedManagementCache();
             cache.setParkCode(parkCode);
             cache.setTimeRange(timeRange);
-            cache.setStaticModuleCount(num(row.get("staticModuleCount")));
-            cache.setGateCount(num(row.get("gateCount")));
-            cache.setHazardousVehicleCount(num(row.get("hazardousVehicleCount")));
-            cache.setOtherVehicleCount(num(row.get("otherVehicleCount")));
-            cache.setVisitorCount(num(row.get("visitorCount")));
+            // 7项各自有数据则+1
+            int moduleCount = (kkmjCnt > 0 ? 1 : 0) + (fkxxCnt > 0 ? 1 : 0)
+                    + (whpclCnt > 0 ? 1 : 0) + (qtclCnt > 0 ? 1 : 0)
+                    + (tccCnt > 0 ? 1 : 0) + (ryssdwCnt > 0 ? 1 : 0)
+                    + (whpclssdwCnt > 0 ? 1 : 0);
+            cache.setStaticModuleCount(moduleCount);
+            cache.setGateCount((int) kkmjCnt);
+            cache.setHazardousVehicleCount((int) whpclCnt);
+            cache.setOtherVehicleCount((int) qtclCnt);
+            cache.setVisitorCount((int) fkxxCnt);
+            // v / p / a 的字段赋值保持不变
             cache.setHasClsstx(num(v.get("has_clsstx")));
             cache.setGeneralCargoCount(num(v.get("generalCargoCount")));
             cache.setHazardousTransportCount(num(v.get("hazardousTransportCount")));

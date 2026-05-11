@@ -1,9 +1,6 @@
 package org.jeecg.modules.sptsjzx.rydwsj.rydwjrqk.controller;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -83,30 +80,100 @@ public class RydwDataQualityExportController extends JeecgController<RydwDataQua
                                                               @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                                               HttpServletRequest req) {
-        // 自定义查询规则
+        // 1. 初始化查询条件
         Map<String, QueryRuleEnum> customeRuleMap = new HashMap<>();
-        // 自定义多选的查询规则为：LIKE_WITH_OR
         customeRuleMap.put("companyCode", QueryRuleEnum.LIKE_WITH_OR);
         QueryWrapper<RydwDataQualityExport> queryWrapper = QueryGenerator.initQueryWrapper(rydwDataQualityExport, req.getParameterMap(), customeRuleMap);
-        // 市平台账号：不需要额外过滤，可以查看所有数据（QueryGenerator会根据前端参数自动过滤）
-        if (rydwDataQualityExport.getCountyCode() != null) {
-            String orgCode = rydwDataQualityExport.getCountyCode();
-            List<String> companyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
-            if (companyCodes == null) {
-                // 请求的企业不在当前区县权限范围内，返回空结果
+
+        // 2. 定义最终的企业代码集合
+        List<String> finalCompanyCodes = null;
+
+        // ==========================================
+        // 【第一步：处理数据权限】 (参照 ZoneGeo 接口)
+        // ==========================================
+        if (!DataScopeHelper.needDataScope()) {
+            // --- 场景 A: 区县账号 (需要数据权限过滤) ---
+            String orgCode = DataScopeHelper.getCurrentUserOrgCode();
+            List<String> permissionCompanyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+
+            // 如果该区县下没有企业，直接返回空
+            if (permissionCompanyCodes == null || permissionCompanyCodes.isEmpty()) {
                 return Result.OK(new Page<>(pageNo, pageSize));
             }
-            DataScopeHelper.applyCompanyCodeFilter(queryWrapper, companyCodes, "company_code");
+
+            // 初始化最终列表为权限列表
+            finalCompanyCodes = permissionCompanyCodes;
+
+            // 如果前端传了 companyCode，需要验证是否在权限范围内
+            String requestCompanyCode = rydwDataQualityExport.getCompanyCode();
+            if (requestCompanyCode != null && !requestCompanyCode.isEmpty()) {
+                if (!finalCompanyCodes.contains(requestCompanyCode)) {
+                    // 请求的企业不在当前区县权限范围内，返回空结果
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                // 注意：这里不重新设置 finalCompanyCodes，因为 QueryGenerator 已经处理了 companyCode 的等于查询
+                // 但为了保险，也可以强制过滤：finalCompanyCodes = Arrays.asList(requestCompanyCode);
+            }
+        } else {
+            // --- 场景 B: 市平台账号 (无数据权限限制，但可能有前端传来的区县筛选) ---
+            // 如果前端指定了区县，则只查该区县的数据
+            if (rydwDataQualityExport.getCountyCode() != null && !rydwDataQualityExport.getCountyCode().isEmpty()) {
+                String orgCode = rydwDataQualityExport.getCountyCode();
+                List<String> countyCompanyCodes = acceptCompanyService.getCompanyCodesByCountyCode(orgCode);
+                if (countyCompanyCodes == null || countyCompanyCodes.isEmpty()) {
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+                finalCompanyCodes = countyCompanyCodes;
+            }
+            // 如果没传区县，finalCompanyCodes 保持 null，表示查询所有
         }
-        Page<RydwDataQualityExport> page = new Page<RydwDataQualityExport>(pageNo, pageSize);
+
+        // ==========================================
+        // 【第二步：处理业务筛选】 (重大危险源)
+        // ==========================================
+        if (rydwDataQualityExport.getIsZdwxy() != null && !rydwDataQualityExport.getIsZdwxy().isEmpty()) {
+            String isZdwxy = rydwDataQualityExport.getIsZdwxy();
+            List<String> zdwxyCompanyCodes = acceptCompanyService.getCompanyCodesByIsZdwxy(isZdwxy);
+
+            // 如果没有重大危险源企业，直接返回空
+            if (zdwxyCompanyCodes == null || zdwxyCompanyCodes.isEmpty()) {
+                return Result.OK(new Page<>(pageNo, pageSize));
+            }
+
+            // 取交集：(权限范围 OR 前端选的区县) AND (重大危险源)
+            if (finalCompanyCodes == null) {
+                // 之前没有限制（市平台且没选区县），直接赋值为重大危险源列表
+                finalCompanyCodes = zdwxyCompanyCodes;
+            } else {
+                // 之前有限制，取交集
+                finalCompanyCodes.retainAll(zdwxyCompanyCodes);
+                // 如果交集为空，说明该权限/区县下没有符合重大危险源条件的企业
+                if (finalCompanyCodes.isEmpty()) {
+                    return Result.OK(new Page<>(pageNo, pageSize));
+                }
+            }
+        }
+
+        // ==========================================
+        // 【第三步：应用最终过滤】
+        // ==========================================
+        if (finalCompanyCodes != null) {
+            DataScopeHelper.applyCompanyCodeFilter(queryWrapper, finalCompanyCodes, "company_code");
+        }
+
+        // 4. 执行分页查询
+        Page<RydwDataQualityExport> page = new Page<>(pageNo, pageSize);
         IPage<RydwDataQualityExport> pageList = rydwDataQualityExportService.page(page, queryWrapper);
+
+        // 5. 数据后处理
         if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
             for (RydwDataQualityExport item : pageList.getRecords()) {
-                // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
+                // 手动赋值 transient 字段
                 item.setCountyCode(item.getCompanyCode());
                 item.setIsZdwxy(item.getCompanyCode());
             }
         }
+
         return Result.OK(pageList);
     }
 

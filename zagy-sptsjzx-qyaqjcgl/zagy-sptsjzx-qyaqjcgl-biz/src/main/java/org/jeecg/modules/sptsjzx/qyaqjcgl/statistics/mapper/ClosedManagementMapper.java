@@ -54,11 +54,6 @@ public interface ClosedManagementMapper {
             @Param("endTime") LocalDateTime endTime
     );
 
-    List<Map<String, Object>> getClosedManagementStatsByPark(
-            @Param("parkCodes") List<String> parkCodes,
-            @Param("startTime") LocalDateTime startTime,
-            @Param("endTime") LocalDateTime endTime
-    );
 
     /** 静态基础数据（kkmj/fkxx/whpcl/qtcl/tcc/ryssdw/whpclssdw 7 张小表） */
     List<Map<String, Object>> getStaticInfoByPark(@Param("parkCodes") List<String> parkCodes);
@@ -75,4 +70,7 @@ public interface ClosedManagementMapper {
 
     /** 报警数据（sbbjsj，与其他 3 个查询并行） */
     List<Map<String, Object>> getAlarmStatsByPark(@Param("parkCodes") List<String> parkCodes);
+
+    List<Map<String, Object>> countGroupByPark(@Param("tableName") String tableName,
+                                               @Param("parkCodes") List<String> parkCodes);
 }

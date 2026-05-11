@@ -28,4 +28,6 @@ public interface IAcceptCompanyService extends IService<AcceptCompany> {
     AcceptCompany getByCompanyCode(String companyCode);
 
     String getCompanyCountyCodeByCode(String companyCode);
+
+    List<String> getCompanyCodesByIsZdwxy(String isZdwxy);
 }
