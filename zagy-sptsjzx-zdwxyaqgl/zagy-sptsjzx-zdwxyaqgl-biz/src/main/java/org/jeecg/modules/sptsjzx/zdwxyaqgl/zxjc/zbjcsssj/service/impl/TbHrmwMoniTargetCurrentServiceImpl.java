@@ -8,11 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * @Description: 指标监测实时数据
  * @Author: zagy-cg
@@ -22,14 +17,5 @@ import java.util.stream.Collectors;
 @Service
 @DS("pg")
 public class TbHrmwMoniTargetCurrentServiceImpl extends ServiceImpl<TbHrmwMoniTargetCurrentMapper, TbHrmwMoniTargetCurrent> implements ITbHrmwMoniTargetCurrentService {
-
-    @Override
-    public Map<String, String> getTargetNameMap(List<String> targetCodes) {
-        if (targetCodes == null || targetCodes.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        List<Map<String, String>> list = baseMapper.queryTargetNamesByCodes(targetCodes);
-        return list.stream().collect(Collectors.toMap(m -> m.get("code"), m -> m.get("name"), (a, b) -> a));
-    }
 
 }

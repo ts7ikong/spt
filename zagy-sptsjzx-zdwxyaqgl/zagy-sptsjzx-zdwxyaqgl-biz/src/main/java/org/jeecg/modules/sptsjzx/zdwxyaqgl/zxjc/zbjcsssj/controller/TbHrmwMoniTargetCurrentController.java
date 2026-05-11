@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.ArrayList;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -112,16 +111,9 @@ public class TbHrmwMoniTargetCurrentController extends JeecgController<TbHrmwMon
         Page<TbHrmwMoniTargetCurrent> page = new Page<TbHrmwMoniTargetCurrent>(pageNo, pageSize);
         IPage<TbHrmwMoniTargetCurrent> pageList = tbHrmwMoniTargetCurrentService.page(page, queryWrapper);
         if (pageList != null && CollectionUtils.isNotEmpty(pageList.getRecords())) {
-            List<String> targetCodes = pageList.getRecords().stream()
-                    .map(TbHrmwMoniTargetCurrent::getTargetCode)
-                    .filter(code -> code != null && !code.isEmpty())
-                    .distinct()
-                    .collect(Collectors.toList());
-            Map<String, String> targetNameMap = tbHrmwMoniTargetCurrentService.getTargetNameMap(targetCodes);
             for (TbHrmwMoniTargetCurrent item : pageList.getRecords()) {
                 // 因为 countyCode 是 transient 字段（非数据库列），这里手动赋值
                 item.setCountyCode(item.getCompanyCode());
-                item.setTargetCodeDictText(targetNameMap.get(item.getTargetCode()));
             }
         }
         return Result.OK(pageList);
